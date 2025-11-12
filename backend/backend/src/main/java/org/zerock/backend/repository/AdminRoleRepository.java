@@ -3,6 +3,10 @@ package org.zerock.backend.repository;
 import org.zerock.backend.entity.AdminRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-// 두 번째 제네릭 타입으로 엔티티 내부의 ID 클래스를 지정합니다.
+/**
+ * AdminRole 엔티티를 위한 리포지토리
+ *
+ * JpaRepository<[엔티티 클래스], [엔티티의 ID 클래스 타입]>
+ */
 public interface AdminRoleRepository extends JpaRepository<AdminRole, AdminRole.AdminRoleId> {
 }
