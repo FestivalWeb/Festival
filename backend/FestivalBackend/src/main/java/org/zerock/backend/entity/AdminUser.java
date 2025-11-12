@@ -1,8 +1,7 @@
 package org.zerock.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -38,7 +37,6 @@ public class AdminUser {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-    // ✅ 양방향 매핑 (AdminUser ↔ AdminActivityLog)
     @OneToMany(mappedBy = "adminUser", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AdminActivityLog> activityLogs;
 }
