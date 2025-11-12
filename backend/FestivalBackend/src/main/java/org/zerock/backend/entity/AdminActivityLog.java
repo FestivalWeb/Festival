@@ -18,7 +18,7 @@ public class AdminActivityLog {
    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "admin_id", nullable = false)
-    private AdminUser adminUser;
+    private Admin_ip_whitelist adminUser;
 
     @Column(name = "action_type", nullable = false, length = 100)
     private String actionType;
