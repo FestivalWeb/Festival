@@ -35,13 +35,10 @@ public class Booth {
     @Column(nullable = false, length = 200)
     private String location;
 
-    @ManyToMany
-    @JoinTable(
-        name = "booth_img_mapping",
-        joinColumns = @JoinColumn(name = "booth_id"),
-        inverseJoinColumns = @JoinColumn(name = "file_id")
-    )
-    private Set<MediaFile> images = new LinkedHashSet<>();
+    @OneToMany(mappedBy = "booth",      // jsw2 수정사항(매핑 분리)
+           cascade = CascadeType.ALL,
+           orphanRemoval = true)
+    private Set<BoothImage> images = new LinkedHashSet<>();
 
     public Long getId() { return id; }
     public String getTitle() { return title; }
@@ -58,6 +55,6 @@ public class Booth {
     public void setMaxPerson(Long maxPerson) { this.maxPerson = maxPerson; }
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
-    public Set<MediaFile> getImages() { return images; }
-    public void setImages(Set<MediaFile> images) { this.images = images; }
+    public Set<BoothImage> getImages() { return images; } // jsw2 수정사항(매핑 분리)
+    public void setImages(Set<BoothImage> images) { this.images = images; } // jsw2 수정사항(매핑 분리)
 }

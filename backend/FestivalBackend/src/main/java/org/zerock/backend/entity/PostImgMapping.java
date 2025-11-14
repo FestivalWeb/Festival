@@ -1,30 +1,28 @@
 package org.zerock.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
-@Getter
+@Getter @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@IdClass(PostImgMappingId.class) // [중요] 아까 만든 복합 키 클래스 연결
-@Table(name = "post_img_mapping") // 테이블 이름 소문자
+@AllArgsConstructor
+@Builder
+@Table(name = "post_img_mapping")
 public class PostImgMapping {
 
-    @Id // 복합 키의 일부임을 표시
-    @Column(name = "post_id")
-    private Long postId;
+    @EmbeddedId
+    private PostImgMappingId id;
 
-    @Id // 복합 키의 일부임을 표시
-    @Column(name = "file_id")
-    private Long fileId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("postId")   // id.postId 값과 FK(post_id) 값 매핑
+    @JoinColumn(name = "post_id", nullable = false)
+    private post post;
 
-    // 생성자
-    @Builder
-    public PostImgMapping(Long postId, Long fileId) {
-        this.postId = postId;
-        this.fileId = fileId;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("fileId")   // id.fileId 값과 FK(file_id) 값 매핑
+    @JoinColumn(name = "file_id", nullable = false)
+    private MediaFile mediaFile;
+
+// 이전 코드는 단순히 pk로만 사용하여 fk 연관관계로 수정 
 }
