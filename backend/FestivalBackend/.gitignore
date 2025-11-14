@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# application.properties (API 키 등 민감 정보 포함)
+application.properties
