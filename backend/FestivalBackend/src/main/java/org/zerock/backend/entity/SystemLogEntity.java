@@ -21,7 +21,7 @@ public class SystemLogEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
-    private LogLevel level; // INFO / WARN / ERROR
+    private LogLevel level;
 
     @Column(nullable = false, length = 255)
     private String message;

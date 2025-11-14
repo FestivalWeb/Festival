@@ -4,10 +4,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.zerock.backend.entity.RoleEntity;
 
 public interface RoleRepository extends JpaRepository<RoleEntity, Long> {
-
-    boolean existsByRoleCode(String roleCode);
-
-    RoleEntity findByRoleName(String roleName);
-
-    RoleEntity findByRoleCode(String roleCode);
 }
