@@ -3,18 +3,18 @@ import { useNavigate } from "react-router-dom";
 import SearchBar from "../board/SearchBar";
 import BoardTable from "../board/BoardTable";
 import Pagination from "../board/Pagination";
-import noticeData from "../data/noticeData";
+import postData from "../data/postData"; // 게시글 더미 데이터
 
-export default function NoticePage() {
+export default function PostsPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="notice-page">
-      <h2 className="notice-title">공지사항</h2>
+    <div className="post-page">
+      <h2 className="post-title">게시글</h2>
       <SearchBar />
       <BoardTable
-        data={noticeData}
-        onTitleClick={(id) => navigate(`/notice/${id}`)}
+        data={postData}
+        onTitleClick={(id) => navigate(`/post/${id}`)}
       />
       <Pagination />
     </div>

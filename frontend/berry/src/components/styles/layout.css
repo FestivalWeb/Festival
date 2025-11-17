@@ -1,23 +1,28 @@
 .layout-container {
   display: flex;
-  height: 100vh;
+  flex-direction: row;  /* 사이드바 왼쪽, 콘텐츠 오른쪽 */
+  min-height: 100vh;    /* 화면 전체 높이 확보 */
 }
 
+/* 왼쪽 사이드바 */
 .sidebar {
   width: 170px;
+  min-width: 170px;    /* 최소 너비 유지 */
   background: #353535;
   color: white;
   padding: 20px;
+  box-sizing: border-box; /* padding 포함 너비 계산 */
 }
 
+/* 오른쪽 영역 */
 .layout-content {
   flex: 1;
   background: #fde6e6;
-  padding: 0; /* 기존 40px 제거 */
+  padding: 20px;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
-
 .top-header {
   background-color: pink;
   padding: 15px 20px;
