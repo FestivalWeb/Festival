@@ -23,19 +23,19 @@ public class Reservation {
     @Column(name = "reser_date", nullable = false)
     private LocalDate reserDate;
 
-    // varchar(30) 타입 매핑
-    @Column(name = "user_id", nullable = false, length = 30)
-    private String userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
 
     // bigint(20) 타입 매핑
-    // (나중에 Booth 엔티티가 생기면 @ManyToOne 관계로 변경 가능)
-    @Column(name = "booth_id", nullable = false)
-    private Long boothId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "booth_id", nullable = false)
+    private Booth booth;
 
     @Builder
-    public Reservation(LocalDate reserDate, String userId, Long boothId) {
+    public Reservation(LocalDate reserDate, UserEntity user, Booth booth) {
         this.reserDate = reserDate;
-        this.userId = userId;
-        this.boothId = boothId;
+        this.user = user;
+        this.booth = booth;
     }
 }
