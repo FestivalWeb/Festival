@@ -35,7 +35,7 @@ export default function NoticeDetail() {
       </div>
       {notice.file && (
         <img
-          src={notice.file}         // noticeData에서 file 경로 가져오기
+          src={`/images/k-popfestival.jpg`}         // noticeData에서 file 경로 가져오기
           alt="공지 이미지"
           style={{ width: "50%", height: "50%", marginTop: "20px" }}
         />
