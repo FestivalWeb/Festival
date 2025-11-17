@@ -12,7 +12,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-
+import java.util.LinkedHashSet;
+import java.util.Set;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -43,6 +44,8 @@ public class post {
     @Column(name = "update_date")
     private LocalDateTime updateDate;
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<PostImgMapping> images = new LinkedHashSet<>();
     //--- 기타 컬럼 ---
 
     @ColumnDefault("0") // 조회수 기본값 0

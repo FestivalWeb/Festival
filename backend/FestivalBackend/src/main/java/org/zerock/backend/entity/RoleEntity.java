@@ -1,14 +1,17 @@
 package org.zerock.backend.entity;
 
+import java.util.LinkedHashSet;
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.NoArgsConstructor;
+import java.util.Set;
 
 @Entity
 @Table(name = "role")
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class RoleEntity {
 
     @Id
@@ -21,4 +24,9 @@ public class RoleEntity {
 
     @Column(name = "role_name", nullable = false, length = 80)
     private String roleName;
+
+    // 권한을 가진 관리자들
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<AdminRole> admins = new LinkedHashSet<>();
 }

@@ -1,36 +1,27 @@
 package org.zerock.backend.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import jakarta.persistence.*;
-import java.io.Serializable;
+import lombok.*;
 
 @Entity
-@Getter
-@Setter
 @Table(name = "admin_role")
+@Getter @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class AdminRole {
 
     @EmbeddedId
     private AdminRoleId id;
 
- 
-    @Embeddable
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @EqualsAndHashCode 
-    public static class AdminRoleId implements Serializable {
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @MapsId("adminId")     // FK + PK 동기화
+    @JoinColumn(name = "admin_id", nullable = false)
+    private AdminUser adminUser;
 
-        @Column(name = "admin_id")
-        private Long adminId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @MapsId("roleId")      // FK + PK 동기화
+    @JoinColumn(name = "role_id", nullable = false)
+    private RoleEntity role;
 
-        @Column(name = "role_id")
-        private Long roleId;
-    }
-}
+}   // pk로 설정되어 있어 fk 연관관계로 수정 - jsw2

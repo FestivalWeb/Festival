@@ -3,12 +3,15 @@ package org.zerock.backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "admin_user")
-@Getter
-@Setter
+@Getter @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class AdminUser {
 
     @Id
@@ -29,14 +32,24 @@ public class AdminUser {
     private String email;
 
     @Column(name = "is_active", nullable = false)
+    @Builder.Default
     private boolean isActive = true;
 
     @Column(name = "created_at", nullable = false, updatable = false)
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "updated_at", nullable = false)
+    @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 
+    // 권한 목록 (AdminUser 1 ↔ N AdminRole)
     @OneToMany(mappedBy = "adminUser", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AdminActivityLog> activityLogs;
+    @Builder.Default
+    private Set<AdminRole> roles = new LinkedHashSet<>();
+
+    // 활동 로그
+    @OneToMany(mappedBy = "adminUser", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<AdminActivityLog> activityLogs = new LinkedHashSet<>();
 }

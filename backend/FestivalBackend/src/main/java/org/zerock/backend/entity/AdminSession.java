@@ -18,8 +18,9 @@ public class AdminSession {
     private String sessionId;
 
     
-    @Column(name = "admin_id", nullable = false)
-    private Long adminId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id", nullable = false)
+    private AdminUser adminUser;   // ← adminId → admin 으로 타입/이름 변경
 
    
     @Column(name = "created_at", nullable = false, updatable = false)

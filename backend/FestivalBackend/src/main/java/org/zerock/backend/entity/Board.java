@@ -19,8 +19,9 @@ public class Board {
     private Long boardId;
 
     
-    @Column(name = "created_by", nullable = false)
-    private Long createdBy;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by", nullable = false)
+    private AdminUser createdBy;   // ← 관리자와 연관관계 (현재 db 복합키 이지만, 나중에 created_by는 pk 제외시켜야함 - 11.17)
 
    
     @Column(name = "name", length = 100, nullable = false)
