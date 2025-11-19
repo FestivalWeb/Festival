@@ -1,0 +1,31 @@
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import "../styles/gallery.css";
+
+export default function GalleryPage() {
+  const navigate = useNavigate();
+
+  const menuItems = [
+    { label: "체험부스", path: "/booth-images", img: "/images/booth.jpg" },
+    { label: "공지사항", path: "/notice-images", img: "/images/notice.jpg" },
+    { label: "게시글", path: "/post-images", img: "/images/post.jpg" },
+  ];
+
+  return (
+     <div className="gallery-page">
+      <h2>갤러리</h2>
+      <div className="gallery-list">
+        {menuItems.map((item) => (
+          <div
+            key={item.label}
+            className="gallery-card"
+            onClick={() => navigate(item.path)}
+          >
+            <img src={item.img} alt={item.label} className="gallery-img" />
+            <span className="gallery-label">{item.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
