@@ -26,6 +26,10 @@ public class UserSessionEntity {
 
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
+    
+    // [수정] DB에 존재하는 refresh_token 컬럼 매핑 추가
+    @Column(name = "refresh_token", length = 255) 
+    private String refreshToken;
 
     @Column(name = "user_agent", length = 255)
     private String userAgent;

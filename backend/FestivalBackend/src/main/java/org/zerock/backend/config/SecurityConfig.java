@@ -23,7 +23,8 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) 
             .authorizeHttpRequests(authz -> authz
                 
-                .requestMatchers("/users/**", "/map/**", "/weather/**").permitAll() 
+                // 로그인 경로(/auth/**)를 추가하여 인증 없이 접근 가능하도록 설정
+                .requestMatchers("/users/**", "/map/**", "/weather/**", "/auth/**").permitAll() 
                
                 .anyRequest().authenticated()
             );
