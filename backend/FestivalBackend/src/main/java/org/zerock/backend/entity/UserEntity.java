@@ -14,13 +14,13 @@ public class UserEntity {
     @Column(name = "user_id", length = 30, nullable = false)
     private String userId;
 
-    @Column(nullable = true, length = 255)
+    @Column(nullable = false, length = 255) 
     private String password;
 
     @Column(nullable = false, length = 50)
     private String name;
 
-    @Column(nullable = true, length = 255)
+    @Column(nullable = false, length = 255)
     private String email;
 
     @Column(nullable = false, length = 10)
@@ -42,4 +42,6 @@ public class UserEntity {
     
     @Column(name = "provider", length = 20)
     private String provider;
+
+    
 }
