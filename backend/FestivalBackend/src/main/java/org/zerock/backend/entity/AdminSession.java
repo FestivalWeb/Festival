@@ -30,6 +30,8 @@ public class AdminSession {
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
 
+    @Column(name = "last_access_at", nullable = false)
+    private LocalDateTime lastAccessAt;
     
     @Column(name = "user_agent", length = 255)
     private String userAgent;
@@ -45,6 +47,10 @@ public class AdminSession {
    
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        createdAt = now;
+        if (lastAccessAt == null) {
+            lastAccessAt = now;
+        }
     }
 }
