@@ -1,22 +1,26 @@
-/* 전체 페이지 기본 */
+/* ============================
+   메인 페이지 기본 래퍼
+   ============================ */
 .sf-page {
-  min-height: 100vh;
-  background: #ffffff;
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui,
     sans-serif;
   color: #222;
+  padding-top: 70px;   /* 🔥 헤더 높이만큼 위에 공간 확보 (필요하면 숫자 조절) */
 }
 
-/* 헤더 */
+/* ============================
+   헤더
+   ============================ */
 .sf-header {
-  position: sticky;
+  position: fixed;      /* 🔥 스크롤해도 항상 화면 상단에 고정 */
   top: 0;
-  z-index: 20;
+  left: 0;
+  right: 0;
+  z-index: 100;
   background: #ffffffcc;
   backdrop-filter: blur(10px);
   border-bottom: 1px solid #ffe0eb;
 }
-
 .sf-header-inner {
   max-width: 1200px;
   margin: 0 auto;
@@ -26,11 +30,15 @@
   justify-content: space-between;
 }
 
-/* 로고 */
+/* 로고 영역 */
 .sf-logo-area {
   display: flex;
   align-items: center;
   gap: 8px;
+  cursor: pointer;
+
+  text-decoration: none;   /* 🔥 밑줄 제거 */
+  color: inherit;          /* 🔥 원래 글자색 유지 */
 }
 
 .sf-logo-mark {
@@ -51,7 +59,9 @@
   font-size: 18px;
 }
 
-/* 네비게이션 */
+/* ============================
+   메인 네비게이션 (가운데 메뉴)
+   ============================ */
 .sf-nav {
   display: flex;
   gap: 16px;
@@ -59,34 +69,38 @@
 
 .sf-nav-item {
   border: none;
-  background: transparent;
+  background: #ffffff; /* 🔥 기본 흰색 */
+  color: #d60042;
   font-size: 14px;
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 8px 16px;
   border-radius: 999px;
-  color: #444;
-  transition: background 0.2s, color 0.2s, transform 0.1s;
+  transition: 0.2s;
+  box-shadow: 0 2px 4px rgba(255, 150, 180, 0.2); /* 살짝 입체감 */
 }
 
 .sf-nav-item:hover {
-  background: #ffe5ef;
+  background: #ffe9f1; /* 🔥 마우스 올리면 핑크 */
   color: #d60042;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
-.sf-nav-item--active {
-  background: #ff4773;
-  color: #ffffff;
+/* 클릭했을 때 눌린 느낌 */
+.sf-nav-item:active {
+  transform: scale(0.97);
 }
 
-/* 헤더 오른쪽 */
-.sf-header-right {
+/* ============================
+   헤더 오른쪽 영역 (검색 + 로그인)
+   ============================ */
+.nav-right {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.sf-icon-button {
+/* 돋보기 아이콘 버튼 */
+.search-icon-button {
   width: 32px;
   height: 32px;
   border-radius: 999px;
@@ -99,7 +113,22 @@
   font-size: 16px;
 }
 
-.sf-login-button {
+/* 검색 입력창 */
+.search-input {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #ff5c8a;
+  font-size: 13px;
+  outline: none;
+  min-width: 160px;
+}
+
+.search-input:focus {
+  box-shadow: 0 0 0 2px rgba(255, 92, 138, 0.2);
+}
+
+/* 로그인 버튼 */
+.login-button {
   border-radius: 999px;
   border: 1px solid #ff5c8a;
   background: #ffffff;
@@ -110,9 +139,11 @@
   font-weight: 600;
 }
 
-/* 히어로 영역 */
+/* ============================
+   히어로 카드 영역
+   ============================ */
 .sf-hero {
-  padding: 40px 16px 80px;
+  padding: 32px 0 64px; /* 바깥 app-shell 패딩과 겹치지 않게 살짝만 */
 }
 
 .sf-hero-inner {
@@ -120,7 +151,7 @@
   margin: 0 auto;
   border-radius: 24px;
 
-  background: url("../assets/딸기.jpg") no-repeat center/cover;
+  background: url("../../assets/딸기.jpg") no-repeat center/cover;
 
   box-shadow: 0 18px 40px rgba(255, 90, 140, 0.4);
   display: grid;
@@ -128,18 +159,13 @@
   overflow: hidden;
 }
 
-
-
-/* 왼쪽 텍스트 */
+/* 왼쪽 텍스트 카드 */
 .sf-hero-text {
   padding: 40px 40px 48px;
   border-radius: 16px;
-
-  /* ✨ 글씨 뒤만 투명 유리판처럼 처리 */
   background: rgba(255, 255, 255, 0.55);
   backdrop-filter: blur(6px);
-
-  color: #222;  /* 글씨는 선명하게 */
+  color: #222;
 }
 
 .sf-hero-badge {
@@ -157,12 +183,12 @@
 }
 
 .title-green {
-  color: #0b8a28; /* 초록 */
+  color: #0b8a28;
   font-weight: 800;
 }
 
 .title-red {
-  color: #d62839; /* 딸기 빨강 */
+  color: #d62839;
   font-weight: 800;
 }
 
@@ -170,10 +196,8 @@
   font-size: 40px;
   line-height: 1.2;
   margin: 0;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.25); /* 배경 위에서도 선명하게 */
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
-
-
 
 .sf-hero-subtitle {
   display: block;
@@ -203,7 +227,7 @@
   max-width: 360px;
 }
 
-/* 버튼들 */
+/* 버튼 영역 */
 .sf-hero-buttons {
   margin-top: 24px;
   display: flex;
@@ -227,7 +251,6 @@
   color: #fff;
 }
 
-
 .sf-primary-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 14px 30px rgba(180, 0, 60, 0.5);
@@ -236,20 +259,24 @@
 .sf-outline-button {
   background: rgba(255, 255, 255, 0.85);
   color: #ff2f65;
+  transition: 0.2s;
 }
 
 .sf-outline-button:hover {
-  background: #fff0f5;
+  background: #ffe9f1;
+  color: #d60042;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(255, 70, 120, 0.25);
 }
 
-/* 오른쪽 비주얼 */
+/* 오른쪽 비주얼 영역 */
 .sf-hero-visual {
   position: relative;
   overflow: hidden;
   min-height: 260px;
 }
 
-/* 메인 딸기 이미지 (실제 프로젝트에선 진짜 이미지로 바꿔도 됨) */
+/* 메인 딸기 이미지 */
 .sf-hero-strawberry-main {
   position: absolute;
   right: -40px;
@@ -263,7 +290,7 @@
   box-shadow: 0 20px 40px rgba(160, 0, 40, 0.6);
 }
 
-/* 오른쪽 정보 배지 */
+/* 오른쪽 작은 정보 카드 */
 .sf-hero-badge-card {
   position: absolute;
   left: 32px;
@@ -293,19 +320,32 @@
   position: fixed;
   bottom: 24px;
   right: 24px;
-  width: 56px;
-  height: 56px;
-  border-radius: 999px;
-  border: none;
   cursor: pointer;
-  background: linear-gradient(135deg, #5a2cff, #9a59ff);
-  color: #ffffff;
-  font-weight: 700;
-  font-size: 18px;
-  box-shadow: 0 14px 30px rgba(60, 20, 160, 0.6);
+
+  /* 배경, 테두리 전부 제거 */
+  background: none;
+  border: none;
+  box-shadow: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* 반응형 */
+.sf-chatbot-icon {
+  font-size: 48px; /* 🔥 로봇 크게 */
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+/* hover 반응 (살짝 튀어오르게) */
+.sf-chatbot-icon:hover {
+  transform: scale(1.15);
+}
+
+/* ============================
+   반응형
+   ============================ */
 @media (max-width: 900px) {
   .sf-hero-inner {
     grid-template-columns: 1fr;
@@ -316,6 +356,6 @@
   }
 
   .sf-nav {
-    display: none; /* 모바일에서는 상단 메뉴 숨기고 추후 햄버거 버튼 추가 가능 */
+    display: none; /* 모바일에서는 상단 메뉴 숨김 (추후 햄버거 가능) */
   }
 }

@@ -23,9 +23,29 @@
 }
 
 .intro-title {
-  font-size: 22px;
-  font-weight: 700;
-  color: #222;
+  font-size: 32px;        /* 더 큼 */
+  font-weight: 800;       /* 진하게 */
+  color: #e73667;         /* 딸기 느낌 핑크-레드 */
+  text-align: center;     /* 가운데 정렬 */
+  letter-spacing: 2px;    /* 글자 간격 */
+  margin-top: 20px;
+  margin-bottom: 20px;
+
+  /* 부드러운 밑줄 효과 */
+  position: relative;
+  display: inline-block;
+}
+
+.intro-title::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 4px;
+  background-color: #ff9bb7;  /* 연한 딸기색 하이라이트 */
+  border-radius: 4px;
 }
 
 .intro-lang-buttons {

@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import "../components/MainHero.css"
+import "../components/home/MainHero.css"
 import "./styles/layout.css";
 
 export default function Header() {
@@ -30,9 +30,6 @@ export default function Header() {
           </button>
           <button className="sf-nav-item" onClick={() => navigate("/notice")}>
             오시는 길
-          </button>
-          <button className="sf-nav-item" onClick={() => navigate("/post")}>
-            로그인
           </button>
         </nav>
 

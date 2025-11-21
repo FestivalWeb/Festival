@@ -1,9 +1,16 @@
-html, body, #root {
+html, body {
   width: 100%;
   height: 100%;
   margin: 0 auto;
   padding: 0;
   text-align: left; /* 필요하면 삭제 가능 */
+}
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
 }
 
 .logo {
@@ -32,4 +39,12 @@ html, body, #root {
   a:nth-of-type(2) .logo {
     animation: logo-spin infinite 20s linear;
   }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
 }

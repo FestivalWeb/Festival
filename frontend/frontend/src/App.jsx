@@ -1,8 +1,8 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import Layout from "./components2/layout/Layout";
-import MainHero1 from "./components/MainHero1";
-import FestivalIntro from "./components/FestivalIntro";
+import MainHero1 from "./components/home/MainHero1";
+import FestivalIntro from "./components/home/FestivalIntro";
 import NoticePage from "./components2/pages/NoticePage";
 import NoticeDetail from "./components2/pages/NoticeDetail";
 import PostPage from "./components2/pages/PostPage";
@@ -18,17 +18,9 @@ import Footer from "./components2/Footer";
 import BoothDetail from "./components2/pages/BoothDetail";
 import Sidebar from "./components2/layout/Sidebar";
 import BoothImageDetail from "./components2/pages/BoothImageDetail";
-
-// function App() {
-//   return (
-//     <Router>
-//       <Header />
-
-//       <Routes>
-//         {/* 첫 화면과 축제 소개 */}
-//         <Route path="/" element={<MainHero1 />} />
-//         <Route path="/intro" element={<FestivalIntro />} />
-
+import HomePage from "./components/home/HomePage.jsx";
+import FestivalIntroDetail from "./components/home/FestivalIntroDetail.jsx";
+import AdminPage from "./components/admin/AdminPage.jsx";
 
 function App() {
   return (
@@ -49,8 +41,9 @@ function AppContent() {
       {!hideHeader && <Header />}
 
       <Routes>
-        <Route path="/" element={<MainHero1 />} />
-        <Route path="/intro" element={<FestivalIntro />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/intro/detail" element={<FestivalIntroDetail />} />
+        <Route path="/admin" element={<AdminPage />} />
 
         <Route path="/notice" element={<Layout><NoticePage /></Layout>} />
         <Route path="/notice/:id" element={<Layout><NoticeDetail /></Layout>} />

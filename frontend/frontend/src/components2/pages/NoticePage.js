@@ -9,8 +9,8 @@ export default function NoticePage() {
   const navigate = useNavigate();
 
   return (
-    <div className="notice-page">
-      <h2 className="notice-title">공지사항</h2>
+    <div className="notice-page2">
+      <h2 className="notice-page-title">공지사항</h2>
       <SearchBar />
       <BoardTable
         data={noticeData}

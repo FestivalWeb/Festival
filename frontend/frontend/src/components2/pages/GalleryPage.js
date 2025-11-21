@@ -14,15 +14,15 @@ export default function GalleryPage() {
   return (
      <div className="gallery-page">
       <h2>갤러리</h2>
-      <div className="gallery-list">
+      <div className="gallery-page-list">
         {menuItems.map((item) => (
           <div
             key={item.label}
-            className="gallery-card"
+            className="gallery-page-card"
             onClick={() => navigate(item.path)}
           >
-            <img src={item.img} alt={item.label} className="gallery-img" />
-            <span className="gallery-label">{item.label}</span>
+            <img src={item.img} alt={item.label} className="gallery-page-img" />
+            <span className="gallery-page-label">{item.label}</span>
           </div>
         ))}
       </div>

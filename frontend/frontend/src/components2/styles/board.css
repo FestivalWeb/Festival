@@ -1,5 +1,7 @@
 .layout-content {
   padding: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .search-bar {
@@ -8,8 +10,18 @@
   margin-bottom: 20px;
 }
 
-.board-table {
+ .notice-page2 .board-table {
   width: 100%;
+  max-width: 100%;
+  margin: 0; 
+  border-collapse: collapse;
+  background: white;
+}
+
+.post-page .board-table {
+  width: 100%;
+  max-width: 100%;
+  margin: 0; 
   border-collapse: collapse;
   background: white;
 }
@@ -71,12 +83,12 @@
   cursor: pointer;
 }
 
-.notice-title {
+.notice-page-title {
   margin-top: 20px;
   margin-bottom: 20px;
 }
 
-.post-title {
+.post-page-title {
   margin-top: 20px;
   margin-bottom: 20px;
 }

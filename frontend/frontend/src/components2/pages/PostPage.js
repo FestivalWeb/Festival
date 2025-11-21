@@ -10,7 +10,7 @@ export default function PostsPage() {
 
   return (
     <div className="post-page">
-      <h2 className="post-title">게시글</h2>
+      <h2 className="post-page-title">게시글</h2>
       <SearchBar />
       <BoardTable
         data={postData}
