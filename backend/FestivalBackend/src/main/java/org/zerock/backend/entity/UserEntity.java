@@ -5,7 +5,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "user")
+@Table(name = "users")
 @Getter
 @Setter
 public class UserEntity {
@@ -35,13 +35,9 @@ public class UserEntity {
     @Column(name = "is_verified", nullable = false)
     private boolean isVerified = false;
 
-    
     @Column(name = "social_id", length = 255, unique = true)
     private String socialId;
 
-    
     @Column(name = "provider", length = 20)
     private String provider;
-
-    
 }

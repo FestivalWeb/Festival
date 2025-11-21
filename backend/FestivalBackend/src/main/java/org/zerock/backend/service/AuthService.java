@@ -1,6 +1,5 @@
 package org.zerock.backend.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -34,14 +33,15 @@ public class AuthService {
     private final UserSessionRepository userSessionRepository;
     private final RestTemplate restTemplate;
 
-    @Value("${kakao.client.id}")
-    private String kakaoClientId;
-    
-    @Value("${kakao.redirect.uri}")
-    private String kakaoRedirectUri;
+    @Value("${kakao.client_id}")
+    private String clientId;
+
+    @Value("${kakao.redirect_uri}")
+    private String redirectUri;
 
     // (일반 로그인 메서드 login은 생략 - 기존과 동일)
     @Transactional
+    @SuppressWarnings("null")
     public UserLoginResponseDto login(UserLoginRequestDto dto) {
         UserEntity user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다."));
@@ -57,9 +57,6 @@ public class AuthService {
         return createSession(user, "로그인 성공");
     }
 
-    /**
-     * 카카오 로그인 로직 (닉네임 파싱 수정됨)
-     */
     @Transactional
     public UserLoginResponseDto kakaoLogin(String code) {
         // 1. 인가 코드로 액세스 토큰 요청
@@ -67,53 +64,77 @@ public class AuthService {
 
         // 2. 토큰으로 카카오 사용자 정보 조회
         JsonNode kakaoUserInfo = getKakaoUserInfo(accessToken);
-        
-        // 3. ID 추출
+
+        // 3. 사용자 정보 추출 (ID, 닉네임, 이메일)
         String socialId = kakaoUserInfo.get("id").asText();
-        
-        // 4. [수정] 닉네임 추출 로직 강화 (profile -> properties 순서로 찾기)
-        String nickname = "";
-        JsonNode kakaoAccount = kakaoUserInfo.path("kakao_account");
-        
-        if (kakaoAccount.path("profile").has("nickname")) {
-            nickname = kakaoAccount.path("profile").path("nickname").asText();
-        } else if (kakaoUserInfo.path("properties").has("nickname")) {
-            nickname = kakaoUserInfo.path("properties").path("nickname").asText();
-        }
-        
-        // 그래도 없으면 기본값 설정
-        if (nickname.isEmpty()) {
-            nickname = "KakaoUser"; 
-        }
-        
-        // 5. 이메일 추출
-        String rawEmail = kakaoAccount.path("email").asText();
-        String email = (rawEmail == null || rawEmail.isEmpty()) ? socialId + "@kakao.com" : rawEmail;
+        String nickname = kakaoUserInfo.path("properties").path("nickname").asText("Unknown");
+        // 이메일은 동의 안하면 없을 수 있음
+        String email = kakaoUserInfo.path("kakao_account").path("email").asText(socialId + "@kakao.com"); 
 
-        // 람다식에서 사용하기 위해 변수 고정
-        String finalNickname = nickname; 
-
-        // 6. 회원가입 및 로그인 처리
+        // 4. 회원가입 또는 로그인 처리
+        // socialId로 기존 회원을 찾습니다. (UserEntity에 socialId 필드가 있어야 함!)
         UserEntity user = userRepository.findBySocialId(socialId)
                 .orElseGet(() -> {
+                    // 없으면 신규 회원가입
                     UserEntity newUser = new UserEntity();
-                    newUser.setUserId("kakao_" + socialId); 
+                    newUser.setUserId(nickname); // ID 중복 방지 접두사
                     newUser.setSocialId(socialId);
                     newUser.setProvider("KAKAO");
-                    
-                    // [중요] 수정된 닉네임 사용
-                    newUser.setName(finalNickname);
+                    newUser.setName(nickname);
                     newUser.setEmail(email);
-                    newUser.setSex("Unknown");
-                    
-                    // 비밀번호 암호화 (보안 필수)
-                    newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
-                    newUser.setVerified(true); 
-                    
+                    newUser.setSex("Unknown"); // 필수값이라 임시로 채움
+                    newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString())); // 비밀번호 랜덤
+                    newUser.setVerified(true); // 소셜 로그인은 이미 인증됨
                     return userRepository.save(newUser);
                 });
 
+        // 5. 세션 생성 및 반환
         return createSession(user, "카카오 로그인 성공");
+    }
+
+    // --- 내부 메서드 (토큰 요청) ---
+    @SuppressWarnings("null")
+    private String getKakaoAccessToken(String code) {
+        String tokenUrl = "https://kauth.kakao.com/oauth/token";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("grant_type", "authorization_code");
+        body.add("client_id", clientId);
+        body.add("redirect_uri", redirectUri);
+        body.add("code", code);
+        // body.add("client_secret", "보안코드가_있다면_여기_입력"); 
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(tokenUrl, HttpMethod.POST, request, String.class);
+            JsonNode root = new ObjectMapper().readTree(response.getBody());
+            return root.path("access_token").asText();
+        } catch (Exception e) {
+            throw new RuntimeException("카카오 토큰 발급 실패: " + e.getMessage());
+        }
+    }
+
+    // --- 내부 메서드 (사용자 정보 요청) ---
+    @SuppressWarnings("null")
+    private JsonNode getKakaoUserInfo(String accessToken) {
+        String userInfoUrl = "https://kapi.kakao.com/v2/user/me";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + accessToken);
+        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(userInfoUrl, HttpMethod.GET, request, String.class);
+            return new ObjectMapper().readTree(response.getBody());
+        } catch (Exception e) {
+            throw new RuntimeException("카카오 유저 정보 조회 실패: " + e.getMessage());
+        }
     }
 
     // (아래 createSession, getKakaoAccessToken, getKakaoUserInfo 메서드는 기존과 동일)
@@ -141,40 +162,5 @@ public class AuthService {
                 .sessionId(sessionId)
                 .message(message)
                 .build();
-    }
-
-    // getKakaoAccessToken, getKakaoUserInfo는 기존 코드 그대로 두세요.
-    private String getKakaoAccessToken(String code) {
-        String tokenUrl = "https://kauth.kakao.com/oauth/token";
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("grant_type", "authorization_code");
-        body.add("client_id", kakaoClientId);
-        body.add("redirect_uri", kakaoRedirectUri);
-        body.add("code", code);
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-        ResponseEntity<String> response = restTemplate.exchange(tokenUrl, HttpMethod.POST, request, String.class);
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(response.getBody());
-            return root.path("access_token").asText();
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("카카오 토큰 파싱 실패", e);
-        }
-    }
-
-    private JsonNode getKakaoUserInfo(String accessToken) {
-        String userInfoUrl = "https://kapi.kakao.com/v2/user/me";
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + accessToken);
-        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
-        HttpEntity<Void> request = new HttpEntity<>(headers);
-        ResponseEntity<String> response = restTemplate.exchange(userInfoUrl, HttpMethod.GET, request, String.class);
-        try {
-            return new ObjectMapper().readTree(response.getBody());
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("카카오 유저 정보 파싱 실패", e);
-        }
     }
 }
