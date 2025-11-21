@@ -19,119 +19,61 @@ import BoothDetail from "./components2/pages/BoothDetail";
 import Sidebar from "./components2/layout/Sidebar";
 import BoothImageDetail from "./components2/pages/BoothImageDetail";
 
+// function App() {
+//   return (
+//     <Router>
+//       <Header />
+
+//       <Routes>
+//         {/* 첫 화면과 축제 소개 */}
+//         <Route path="/" element={<MainHero1 />} />
+//         <Route path="/intro" element={<FestivalIntro />} />
+
+
 function App() {
   return (
     <Router>
-      <Header />
-
-      <Routes>
-        {/* 첫 화면과 축제 소개 */}
-        <Route path="/" element={<MainHero1 />} />
-        <Route path="/intro" element={<FestivalIntro />} />
-
-        {/* Layout 안에 들어가는 페이지 */}
-        <Route
-          path="/notice"
-          element={
-            <Layout>
-              <NoticePage />
-            </Layout>
-          }
-        />
-        <Route
-          path="/notice/:id"
-          element={
-            <Layout>
-              <NoticeDetail />
-            </Layout>
-          }
-        />
-        <Route
-          path="/post"
-          element={
-            <Layout>
-              <PostPage />
-            </Layout>
-          }
-        />
-        <Route
-          path="/post/:id"
-          element={
-            <Layout>
-              <PostDetail />
-            </Layout>
-          }
-        />
-        <Route
-          path="/booth"
-          element={
-            <Layout>
-              <BoothPage />
-            </Layout>
-          }
-        />
-        <Route
-          path="/booth/:id"
-          element={<BoothDetailWrapper />}
-        />
-        <Route
-          path="/gallery"
-          element={
-            <Layout>
-              <GalleryPage />
-            </Layout>
-          }
-        />
-        <Route
-          path="/gallery/:menu" // /gallery/booth, /gallery/notice-images, /gallery/post-images
-          element={
-            <Layout sidebarType="galleryDetail">
-              <GalleryDetail />
-            </Layout>
-          }
-        />
-
-        {/* NoticeImages, PostImages 상세 이미지 페이지 */}
-        <Route
-          path="/notice-images"
-          element={
-            <Layout sidebarType="galleryDetail">
-              <NoticeImages />
-            </Layout>
-          }
-        />
-        <Route
-          path="/post-images"
-          element={
-            <Layout sidebarType="galleryDetail">
-              <PostImages />
-            </Layout>
-          }
-        />
-        <Route
-          path="/booth-images"
-          element={
-            <Layout sidebarType="galleryDetail">
-              <BoothImage />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/booth-images/:id"
-          element={
-            <Layout sidebarType="galleryDetail">
-              <BoothImageDetail />
-            </Layout>
-          }
-        />
-      </Routes>
-      <Footer />
+      <AppContent />
     </Router>
   );
 }
 
-// useLocation으로 state 전달받기
+function AppContent() {
+  const location = useLocation();
+
+  // 메인 페이지에서는 Header 숨김 / mainhero1과 header가 두번 렌더링됨.
+  const hideHeader = location.pathname === "/";
+
+  return (
+    <>
+      {!hideHeader && <Header />}
+
+      <Routes>
+        <Route path="/" element={<MainHero1 />} />
+        <Route path="/intro" element={<FestivalIntro />} />
+
+        <Route path="/notice" element={<Layout><NoticePage /></Layout>} />
+        <Route path="/notice/:id" element={<Layout><NoticeDetail /></Layout>} />
+
+        <Route path="/post" element={<Layout><PostPage /></Layout>} />
+        <Route path="/post/:id" element={<Layout><PostDetail /></Layout>} />
+
+        <Route path="/booth" element={<Layout><BoothPage /></Layout>} />
+        <Route path="/booth/:id" element={<BoothDetailWrapper />} />
+
+        <Route path="/gallery" element={<Layout><GalleryPage /></Layout>} />
+        <Route path="/gallery/:menu" element={<Layout sidebarType="galleryDetail"><GalleryDetail /></Layout>} />
+
+        <Route path="/notice-images" element={<Layout sidebarType="galleryDetail"><NoticeImages /></Layout>} />
+        <Route path="/post-images" element={<Layout sidebarType="galleryDetail"><PostImages /></Layout>} />
+        <Route path="/booth-images" element={<Layout sidebarType="galleryDetail"><BoothImage /></Layout>} />
+        <Route path="/booth-images/:id" element={<Layout sidebarType="galleryDetail"><BoothImageDetail /></Layout>} />
+      </Routes>
+
+      <Footer />
+    </>
+  );
+}
 
 const BoothDetailWrapper = () => {
   const location = useLocation();
@@ -139,7 +81,7 @@ const BoothDetailWrapper = () => {
   if (!booth) return <p>부스를 찾을 수 없습니다.</p>;
 
   return (
-    <Layout sidebarType="boothDetail"> {/* sidebarType으로 사이드바 지정 */}
+    <Layout sidebarType="boothDetail">
       <BoothDetail booth={booth} />
     </Layout>
   );

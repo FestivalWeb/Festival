@@ -21,33 +21,3 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# --------------------------
-# React / Node 기본 ignore
-# --------------------------
-
-# dependencies
-/node_modules
-
-# production
-/build
-/dist
-
-# misc
-.DS_Store
-.env
-.env.local
-.env.*.local
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# editor / system files
-.vscode/
-.idea/
-*.log
-
-# --------------------------
-# berry 폴더 추적 금지
-# --------------------------
-berry/

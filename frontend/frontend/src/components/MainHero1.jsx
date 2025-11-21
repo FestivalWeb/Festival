@@ -23,17 +23,17 @@ function MainHero({ onNavigate }) {
 
           {/* 가운데 메뉴 */}
           <nav className="sf-nav-right">
-  <button
-    className="sf-nav-item sf-nav-item-active"
-    onClick={() => onNavigate("intro")}
-  >
-    축제소개
-  </button>
-  <button className="sf-nav-item">행사일정</button>
-  <button className="sf-nav-item">체험프로그램</button>
-  <button className="sf-nav-item">오시는 길</button>
-  <button className="sf-nav-item">공지사항</button>
-</nav>
+            <button
+              className="sf-nav-item sf-nav-item-active"
+              onClick={() => onNavigate("intro")}
+            >
+              축제소개
+            </button>
+            <button className="sf-nav-item">행사일정</button>
+            <button className="sf-nav-item">체험프로그램</button>
+            <button className="sf-nav-item">오시는 길</button>
+            <button className="sf-nav-item">공지사항</button>
+          </nav>
 
 
           {/* 오른쪽 메뉴 */}
@@ -52,15 +52,15 @@ function MainHero({ onNavigate }) {
           {/* 왼쪽 텍스트 영역 */}
           <section className="sf-hero-text">
             <p className="sf-hero-badge">제27회</p>
-           <h1 className="sf-hero-title">
-  <span className="title-green">논산</span>
-  <span className="title-red">딸기</span>
-  <span className="title-green">축제</span>
+            <h1 className="sf-hero-title">
+              <span className="title-green">논산</span>
+              <span className="title-red">딸기</span>
+              <span className="title-green">축제</span>
 
-  <span className="sf-hero-subtitle">
-    논산딸기, 세계를 잇다
-  </span>
-</h1>
+              <span className="sf-hero-subtitle">
+                논산딸기, 세계를 잇다
+              </span>
+            </h1>
 
             <p className="sf-hero-date">
               2025. 3. 27(목) ~ 3. 30(일)
@@ -70,7 +70,7 @@ function MainHero({ onNavigate }) {
             </p>
 
             <p className="sf-hero-desc">
-              새벽 딸기 수확 체험부터 야간 라이브 공연까지,  
+              새벽 딸기 수확 체험부터 야간 라이브 공연까지,
               달콤한 딸기의 도시 논산에서 봄을 먼저 만나보세요.
             </p>
 
