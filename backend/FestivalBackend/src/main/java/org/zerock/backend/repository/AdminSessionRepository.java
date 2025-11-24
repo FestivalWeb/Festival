@@ -1,6 +1,7 @@
 package org.zerock.backend.repository;
 
 import org.zerock.backend.entity.AdminSession;
+import org.zerock.backend.entity.AdminUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -19,4 +20,6 @@ public interface AdminSessionRepository extends JpaRepository<AdminSession, Stri
 
     // 만료된 세션 일괄 삭제용
     void deleteByExpiresAtBefore(LocalDateTime now);
+
+    void deleteByAdminUser(AdminUser adminUser);
 }

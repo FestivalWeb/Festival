@@ -43,6 +43,9 @@ public class AdminUser {
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 
+    @Column(name = "last_login_at")
+    private LocalDateTime lastLoginAt;   // 최근 로그인 시간
+    
     // 권한 목록 (AdminUser 1 ↔ N AdminRole)
     @OneToMany(mappedBy = "adminUser", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -52,4 +55,5 @@ public class AdminUser {
     @OneToMany(mappedBy = "adminUser", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<AdminActivityLog> activityLogs = new LinkedHashSet<>();
+
 }

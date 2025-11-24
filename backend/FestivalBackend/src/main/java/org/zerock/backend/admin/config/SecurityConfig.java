@@ -18,6 +18,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 우리가 만든 관리자 로그인 API는 모두 허용
                         .requestMatchers("/api/admin/auth/login").permitAll()
+                        .requestMatchers("/api/admin/auth/signup").permitAll()
+                        .requestMatchers("/api/admin/**").permitAll()
                         // 나머지도 일단 전부 허용 (관리자 인증 필터 만들고 나서 바꾸자)
                         .anyRequest().permitAll()
                 );

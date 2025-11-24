@@ -11,4 +11,6 @@ public interface AdminUserRepository extends JpaRepository<AdminUser, Long> {
 
     // 관리자 계정 생성 시 중복 체크 등에 쓸 수 있음 (선택)
     boolean existsByUsername(String username);
+
+    boolean existsByEmail(String email);
 }

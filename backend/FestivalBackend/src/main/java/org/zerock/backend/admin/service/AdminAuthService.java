@@ -4,11 +4,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.zerock.backend.admin.dto.AdminLoginRequest;
 import org.zerock.backend.admin.dto.AdminLoginResponse;
+import org.zerock.backend.admin.dto.AdminSignupRequest;
+import org.zerock.backend.admin.dto.AdminSignupResponse;
+import org.zerock.backend.entity.AdminIpWhitelist;
 import org.zerock.backend.entity.AdminSession;
 import org.zerock.backend.entity.AdminUser;
 import org.zerock.backend.repository.AdminIpWhitelistRepository;
@@ -30,9 +34,61 @@ public class AdminAuthService {
     private final AdminSessionRepository adminSessionRepository;
     private final PasswordEncoder passwordEncoder;
 
+    
     // 세션 유지 시간 (슬라이딩 기준)
     private static final long SESSION_HOURS = 2L;
 
+    /**
+     * 관리자 회원가입 처리
+     * 
+     */
+    public AdminSignupResponse signup(AdminSignupRequest request,
+                                      HttpServletRequest httpRequest) {
+
+        // 1. 아이디 중복 체크
+        if (adminUserRepository.existsByUsername(request.getUsername())) {
+            throw new IllegalArgumentException("이미 사용 중인 아이디입니다.");
+        }
+
+        // 2. 이메일 중복 체크 (선택)
+        if (adminUserRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        }
+
+        // 3. 비밀번호 해시
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+
+        AdminUser adminUser = AdminUser.builder()
+        .username(request.getUsername())
+        .name(request.getName())
+        .passwordHash(encodedPassword)
+        .email(request.getEmail())
+        .isActive(false)
+        .createdAt(LocalDateTime.now())
+        .updatedAt(LocalDateTime.now())
+        .build();
+        // 5. DB 저장
+        AdminUser savedUser = adminUserRepository.save(adminUser);
+
+        // 6. 클라이언트 IP 추출 (로그인 때 쓰던 메서드 재사용)
+        String clientIp = extractClientIp(httpRequest);
+
+        // 6. 화이트리스트에 기본 IP 1개 등록
+        AdminIpWhitelist whitelist = new AdminIpWhitelist();
+        whitelist.setAdminUser(savedUser);
+        whitelist.setIpAddress(clientIp);
+        
+        adminIpWhitelistRepository.save(whitelist);
+        
+        // 7. 응답 반환
+        return AdminSignupResponse.builder()
+                .adminId(savedUser.getAdminId())
+                .username(savedUser.getUsername())
+                .name(savedUser.getName())
+                .email(savedUser.getEmail())
+                .active(savedUser.isActive())
+                .build();
+    }
 
     /**
      * 관리자 로그인 처리
@@ -74,6 +130,10 @@ public class AdminAuthService {
         }
 
         LocalDateTime now = LocalDateTime.now();
+
+        adminUser.setLastLoginAt(now);
+        adminUser.setUpdatedAt(now);
+        adminUserRepository.save(adminUser);
 
          // 6. 요청 쿠키에서 기존 세션 가져오기 - 브라우저에 이미 ADMIN_SESSION_ID 쿠키가 있으면 세션 재사용 시도
         String existingSessionId = extractSessionIdFromCookie(httpRequest);
@@ -148,6 +208,42 @@ public class AdminAuthService {
             }
         }
         return null;
+    }   
+
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+
+    String sessionId = extractSessionIdFromCookie(request);
+    String ip = extractClientIp(request);
+
+    if (sessionId != null && !sessionId.isBlank()) {
+
+        // 콘솔에 로그 출력
+        System.out.println("### LOGOUT REQUEST: sessionId = " + sessionId);
+
+        try {
+            adminSessionRepository.deleteById(sessionId);
+            System.out.println("### LOGOUT SUCCESS: session deleted in DB");
+        } catch (EmptyResultDataAccessException ignore) {
+            System.out.println("### LOGOUT INFO: session already deleted");
+        }
+    } else {
+        System.out.println("### LOGOUT FAILED: no session cookie found");
+    }
+
+        // 쿠키 삭제
+        clearSessionCookie(response);
+        System.out.println("### LOGOUT: cookie cleared");
+        System.out.println("### LOGOUT: admin at IP " + ip + " logged out.");
+    }
+
+    private void clearSessionCookie(HttpServletResponse response) {
+        ResponseCookie cookie = ResponseCookie.from("ADMIN_SESSION_ID", "")
+                .httpOnly(true)
+                .path("/")
+                .maxAge(0)         // 0초 → 즉시 만료
+                .sameSite("Lax")
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
     }
 
     /**
@@ -186,6 +282,5 @@ public class AdminAuthService {
         System.out.println("### ADMIN LOGIN clientIp(normalized) = [" + ip + "]");
         return ip;
     }
-
-    
+ 
 }

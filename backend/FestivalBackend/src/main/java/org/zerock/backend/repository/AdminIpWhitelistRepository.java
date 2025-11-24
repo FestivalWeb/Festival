@@ -12,4 +12,6 @@ public interface AdminIpWhitelistRepository extends JpaRepository<AdminIpWhiteli
 
     // 존재 여부만 알고 싶을 때
     boolean existsByAdminUserAndIpAddress(AdminUser adminUser, String ipAddress);
+
+    void deleteByAdminUser(AdminUser adminUser);
 }

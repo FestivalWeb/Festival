@@ -1,5 +1,6 @@
 package org.zerock.backend.admin.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,8 @@ public class AdminSessionCleanupService {
      * cron = "0 0 * * * *"
      *  → 매 시간 0분(정각)에 한 번 실행
      */
-    @Scheduled(cron = "0 0 * * * *")
+    @Transactional
+    @Scheduled(cron = "0 * * * * *")
     public void cleanupExpiredSessions() {
         LocalDateTime now = LocalDateTime.now();
         int beforeCount = (int) adminSessionRepository.count();

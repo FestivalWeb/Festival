@@ -64,6 +64,9 @@ public class AdminSessionFilter extends OncePerRequestFilter {
 
                     // 쿠키도 다시 내려서 브라우저 쪽 만료 시간 연장
                     refreshSessionCookie(response, sessionId);
+                    
+                    // 🔥 여기서 엔티티 전체가 아니라 adminId만 심는다
+                    request.setAttribute("loginAdminId", session.getAdminUser().getAdminId());
 
                     // (선택) 필요하다면 요청에 현재 관리자 정보 심어줄 수도 있음
                     // request.setAttribute("adminUser", session.getAdminUser());
