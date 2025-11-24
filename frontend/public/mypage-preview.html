@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>마이페이지 프리뷰</title>
+  <style>
+    /* 간소화한 MyPage 스타일 (프리뷰 전용) */
+    body{font-family:pretendard,system-ui,Arial,sans-serif;background:#f8eef0;margin:0;padding:24px;display:flex;justify-content:center}
+    .mypage-outer{width:100%;max-width:1150px}
+    .mypage-container{display:flex;min-height:78vh;border-radius:28px;border:1px solid rgba(0,0,0,0.08);overflow:hidden;box-shadow:0 18px 40px rgba(0,0,0,0.06);background:#fff6f8}
+    .mypage-sidebar{width:220px;background:rgba(0,0,0,0.04);padding:36px 18px;display:flex;flex-direction:column;align-items:center}
+    .avatar-circle{width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 30% 20%, #ffd1dc, #ff8aa2);margin-bottom:18px}
+    .side-nav{width:100%;display:flex;flex-direction:column;gap:12px}
+    .side-nav button{background:transparent;border:none;text-align:left;padding:8px 12px;border-radius:8px;color:#333;cursor:pointer}
+    .side-nav button.active{background:#ffe9f1;color:#d60042;font-weight:700}
+    .mypage-main{flex:1;padding:28px}
+    .main-header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(0,0,0,0.06);padding-bottom:14px;margin-bottom:18px}
+    .main-header .title{font-size:18px;font-weight:700}
+    .main-content{padding:18px}
+    .info-row{display:flex;align-items:center;gap:20px;padding:12px 0;border-bottom:1px solid rgba(0,0,0,0.03)}
+    .info-row .label{width:120px;color:#666}
+    .info-row .value{color:#222}
+    .btn-logout{background:#ff6a86;color:#fff;border:none;padding:8px 14px;border-radius:14px;cursor:pointer}
+    .btn-primary{background:#9bdc3b;border:none;padding:8px 14px;border-radius:16px;color:#fff;cursor:pointer}
+    .btn-ghost{background:transparent;border:1px solid rgba(0,0,0,0.06);padding:8px 14px;border-radius:14px;cursor:pointer;margin-left:8px}
+    .main-footer{padding-top:22px;color:#9aa; font-size:13px;background:transparent}
+    .footer-inner{display:flex;gap:18px;justify-content:space-between;align-items:flex-start;padding:18px 8px;border-top:1px solid rgba(0,0,0,0.04)}
+    .footer-left{display:flex;flex-direction:column;gap:12px;width:28%}
+    .footer-avatar{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 30% 20%, #ffd1dc, #ff8aa2);box-shadow:inset 0 -6px 12px rgba(255,255,255,0.2)}
+    .footer-links{display:flex;flex-direction:column;gap:6px;color:#666;font-size:13px}
+    .footer-center{flex:1;color:#444;font-size:13px;display:flex;flex-direction:column;gap:6px}
+    .footer-right{width:28%;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+    .footer-right a{color:#1fa73a;text-decoration:none;font-weight:600}
+    .footer-copy{padding:12px 8px 28px;border-top:0;text-align:center;color:#a8a8a8;font-size:12px}
+    @media (max-width:900px){
+      body{padding:12px}
+      .mypage-container{flex-direction:column;border-radius:12px}
+      .mypage-sidebar{width:100%;flex-direction:row;gap:12px;padding:12px}
+      .side-nav{flex-direction:row;gap:8px;overflow:auto}
+      .mypage-main{padding:16px}
+      .footer-inner{flex-direction:column;align-items:flex-start;gap:12px}
+      .footer-left,.footer-right{width:100%;align-items:flex-start}
+      .footer-right{align-items:flex-start}
+      .footer-copy{padding-bottom:20px}
+    }
+  </style>
+</head>
+<body>
+  <div class="mypage-outer">
+    <div class="mypage-container">
+      <aside class="mypage-sidebar">
+        <div class="avatar-circle"></div>
+        <nav class="side-nav">
+          <button class="active">내 정보</button>
+          <button>예약 목록</button>
+          <button>내가 쓴 글</button>
+          <button>비밀번호 변경</button>
+          <button>회원 탈퇴</button>
+        </nav>
+      </aside>
+      <main class="mypage-main">
+        <div class="main-header">
+          <div class="title">내 정보</div>
+          <div>
+            <button class="btn-logout" onclick="alert('로그아웃 됨')">로그아웃</button>
+          </div>
+        </div>
+        <section class="main-content">
+          <p class="hint">원하는 정보를 수정할 수 있습니다.</p>
+          <div class="info-row"><span class="label">이름</span><span class="value">관리자</span></div>
+          <div class="info-row"><span class="label">이메일</span><span class="value">nonsan@nonsan.com</span></div>
+          <div class="info-row"><span class="label">전화번호</span><span class="value">010-1234-5678</span></div>
+          <div style="margin-top:18px">
+            <button class="btn-primary" onclick="alert('수정 완료')">수정하기</button>
+            <button class="btn-ghost" onclick="alert('취소')">취소</button>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+  <footer class="main-footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <div class="footer-avatar"></div>
+        <div class="footer-links">
+          <div class="footer-link">인스타그램</div>
+          <div class="footer-link">유튜브</div>
+          <div class="footer-link">이메일</div>
+        </div>
+      </div>
+
+      <div class="footer-center">
+        <div>instagram.com/nonsan.korea</div>
+        <div>www.youtube.com/@Nonsan</div>
+        <div>nonsan@nonsan.com</div>
+      </div>
+
+      <div class="footer-right">
+        <a href="#">개인정보 취급 방침</a>
+        <a href="#">저작권 정책</a>
+        <a href="#">집단 이메일 수집 거부</a>
+      </div>
+    </div>
+    <div class="footer-copy">COPYRIGHT 2025 NONSAN CITY. ALL RIGHTS RESERVED</div>
+  </footer>
+</body>
+</html>

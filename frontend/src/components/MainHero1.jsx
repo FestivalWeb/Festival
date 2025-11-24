@@ -3,11 +3,16 @@ import React from "react";
 import "./MainHero.css";
 
 // 껍데기 컴포넌트
-function MainHero1({ onNavigate }) {
-  return <MainHero onNavigate={onNavigate} />;
+function MainHero1({ onNavigate, isLoggedIn }) {
+  return <MainHero onNavigate={onNavigate} isLoggedIn={isLoggedIn} />;
 }
 
-function MainHero({ onNavigate }) {
+function MainHero({ onNavigate, isLoggedIn }) {
+  const handleLogout = () => {
+    sessionStorage.removeItem('user');
+    onNavigate && onNavigate('home');
+  };
+
   return (
     <div className="sf-page">
       {/* 상단 헤더 */}
@@ -41,7 +46,21 @@ function MainHero({ onNavigate }) {
             <button className="sf-icon-button" aria-label="검색">
               🔍
             </button>
-            <button className="sf-login-button">로그인</button>
+            {isLoggedIn ? (
+              <button
+                className="sf-login-button"
+                onClick={handleLogout}
+              >
+                로그아웃
+              </button>
+            ) : (
+              <button
+                className="sf-login-button"
+                onClick={() => onNavigate && onNavigate("login")}
+              >
+                로그인
+              </button>
+            )}
           </div>
         </div>
       </header>

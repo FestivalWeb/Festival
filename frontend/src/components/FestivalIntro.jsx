@@ -1,7 +1,7 @@
 // src/components/FestivalIntro.jsx
 import "./FestivalIntro.css";
 
-function FestivalIntro() {
+function FestivalIntro({ onNavigate, isLoggedIn }) {
   return (
     <div className="intro-page">
       <div className="intro-container">
