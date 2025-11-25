@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+// import React, { useState } from "react";
+// import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import "../components/home/MainHero.css"
 import "./styles/layout.css";
@@ -9,7 +9,6 @@ export default function Header() {
 
   return (
     <header className="sf-header">
-      <div className="sf-header-inner">
         {/* 왼쪽 로고 영역 */}
         <div className="sf-logo-area">
           <div className="sf-logo-mark">🍓</div>
@@ -38,7 +37,7 @@ export default function Header() {
           <button className="sf-icon-button" aria-label="검색">🔍</button>
           <button className="sf-login-button">로그인</button>
         </div>
-      </div>
+      
     </header>
   );
 }

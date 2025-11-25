@@ -42,7 +42,7 @@ function MainHero1({
               className="sf-nav-item"
               onClick={onScrollToNotice}
             >
-              공지사항
+              공지사항/게시물
             </button>
 
             <button

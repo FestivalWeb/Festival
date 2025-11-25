@@ -21,7 +21,7 @@ export default function PostDetail() {
       }}>
         {post.title}
       </h2>
-      <div style={{ marginBottom: "10px", color: "#555" }}>
+      <div style={{ marginBottom: "10px", color: "#555", textAlign: "right" }}>
         작성자: {post.author} | 조회수: {post.views} | 날짜: {post.date}
       </div>
       <div style={{ marginTop: "20px", whiteSpace: "pre-line" }}>
@@ -34,16 +34,21 @@ export default function PostDetail() {
           style={{ width: "50%", height: "50%", marginTop: "20px" }}
         />
       )}
-      <button style={{
-        marginTop: "20px", padding: "8px 16px",
-        border: "2px solid #333",
-        borderRadius: "5px",
-        backgroundColor: "white",
-        color: "#333",
-        cursor: "pointer",
-      }} onClick={() => navigate(-1)}>
-        목록으로 돌아가기
-      </button>
+     <div style={{ marginTop: "40px", textAlign: "left" }}>
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            padding: "8px 16px",
+            border: "2px solid #333",
+            borderRadius: "5px",
+            backgroundColor: "white",
+            color: "#333",
+            cursor: "pointer",
+          }}
+        >
+          목록으로 돌아가기
+        </button>
+      </div>
     </div>
   );
 }

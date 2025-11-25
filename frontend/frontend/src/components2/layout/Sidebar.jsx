@@ -46,7 +46,7 @@ export default function Sidebar({ type }) {
               { label: "공지사항", path: "/notice" },
               { label: "게시글", path: "/post" },
               { label: "갤러리", path: "/gallery" },
-              { label: "체험 부스", path: "/booth" },
+              { label: "체험 부스 예약", path: "/booth" },
             ].map((item) => (
               <li
                 key={item.label}

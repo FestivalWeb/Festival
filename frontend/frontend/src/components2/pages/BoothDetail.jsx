@@ -60,7 +60,7 @@ const BoothDetail = ({ booth }) => {
         {/* 오른쪽: 상세 설명 */}
         <div className="detail-info-box">
           <h2 className="detail-title">{booth.title}</h2>
-          <p className="detail-desc">{booth.description}</p>
+          <p className="detail-desc">{booth.res_description}</p>
         </div>
       </div>
 

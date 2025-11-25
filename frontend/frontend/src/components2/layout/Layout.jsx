@@ -1,33 +1,3 @@
-// import React from "react";
-// import Sidebar from "../layout/Sidebar";
-
-// export default function Layout({ children, sidebarType = "default" }) {
-//   return (
-//     <div className="layout-container">
-//       <Sidebar type={sidebarType || "default"} />
-//       <div className="layout-content">{children}</div>
-//     </div>
-//   );
-// }
-
-// src/components2/layout/Layout.jsx
-// import React from "react";
-// import Sidebar from "./Sidebar";
-// import "../styles/layout.css";
-
-// function Layout({ children, sidebarType }) {
-//   return (
-//     <div className="layout-container">
-//       <Sidebar type={sidebarType} />
-//       <main className="layout-content" style={{ paddingTop: "80px" }}>
-//         {children}
-//       </main>
-//     </div>
-//   );
-// }
-
-// export default Layout;
-
 import React from "react";
 import Sidebar from "./Sidebar";
 import "../styles/layout.css";

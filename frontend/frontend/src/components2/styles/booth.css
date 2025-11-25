@@ -1,7 +1,7 @@
 /* BoothPage.js */
 
 /* 전체 리스트 세로 배치 */
-.booth-list {
+.booth2-list {
   display: flex;
   flex-direction: column;
   gap: 2vw;      /* gap도 비율로 */
@@ -11,7 +11,7 @@
 }
 
 /* 각 아이템 */
-.booth-item {
+.booth2-item {
   display: flex;
   background: #fff;
   border-radius: 1.5vw;  /* 픽셀 -> 비율 */
@@ -21,24 +21,24 @@
   transition: transform 0.15s ease;
 }
 
-.booth-item:hover {
+.booth2-item:hover {
   transform: translateY(-0.3vw);
 }
 
 /* 왼쪽 이미지 */
-.booth-image-wrap {
+.booth2-image-wrap {
   flex: 0 0 35%;   /* 고정 폭이 아니라 전체 대비 비율 */
   height: auto;    /* 이미지 비율 유지 */
 }
 
-.booth-image {
+.booth2-image {
   width: 100%;
   height: auto;    /* 높이 자동으로 비율 유지 */
   object-fit: cover;
 }
 
 /* 오른쪽 박스 */
-.booth-info-box {
+.booth2-info-box {
   flex: 1;    /* 남은 공간을 채움 */
   background: #faf4f5;
   padding: 2vw; /* padding도 비율 */
@@ -48,7 +48,7 @@
 }
 
 /* 제목 + 태그 */
-.booth-title {
+.booth2-title {
   margin: 0 0 1vw 0;
   font-size: 1.3vw;
   display: flex;
@@ -56,7 +56,7 @@
   gap: 0.5vw;
 }
 
-.booth-tag {
+.booth2-tag {
   background: #ff5777;
   color: #fff;
   padding: 0.3vw 0.8vw;
@@ -65,7 +65,7 @@
 }
 
 /* 정보 목록 */
-.booth-info-list {
+.booth2-info-list {
   display: flex;
   flex-direction: column;
   gap: 0.7vw;
@@ -73,7 +73,7 @@
   color: #444;
 }
 
-.booth-info-row {
+.booth2-info-row {
   display: flex;
   align-items: center;
   gap: 0.5vw;
@@ -133,8 +133,8 @@
 .detail-title,
 .reserve-title,
 .detail-row,
-.booth-detail h2,
-.booth-detail p {
+.booth2-detail h2,
+.booth2-detail p {
   font-size: 1.3vw; /* booth-title과 동일 */
   line-height: 1.4;
   color: #333;
@@ -199,7 +199,7 @@
 /* BoothImageDetail.jsx */
 
 /* 갤러리 부스 상세페이지 중앙 정렬 */
-.booth-detail {
+.booth2-detail {
   width: 90%;
   max-width: 800px;
   margin: 0 auto;
@@ -210,11 +210,13 @@
   padding: 20px 0;
 }
 
-.booth-detail-img {
+.booth2-detail-img {
   width: 100%;
   max-width: 600px;
   height: auto;
   border-radius: 8px;
   object-fit: cover;
   display: block;
+    margin-top: 20px;   /* 상단 간격 */
+  margin-bottom: 20px; /* 하단 간격 */
 }

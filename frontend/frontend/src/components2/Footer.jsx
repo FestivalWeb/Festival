@@ -9,7 +9,6 @@ export default function Footer() {
         padding: "20px 0",
         width: "100%",
         fontFamily: "Arial, sans-serif",
-        // marginTop: "40px",
       }}
     >
       <div
@@ -34,13 +33,13 @@ export default function Footer() {
             <img
               src="/icons/instagram.jpg"
               alt="instagram"
-              style={{ width: "28px" }}
+              style={{ width: "28px", marginLeft: "20px" }}
             />
-            <span style={{ width: "120px", fontWeight: "600" }}>인스타그램</span>
+            <span style={{ width: "120px", fontWeight: "600", marginLeft: "10px" }}>인스타그램</span>
             <a
               href="https://instagram.com/nonsan.korea"
               target="_blank"
-              style={{ color: "#000", textDecoration: "none" }}
+              style={{ color: "#000", textDecoration: "none", marginLeft: "458px" }} // 오른쪽으로 이동
             >
               instagram.com/nonsan.korea
             </a>
@@ -51,13 +50,13 @@ export default function Footer() {
             <img
               src="/icons/youtube.png"
               alt="youtube"
-              style={{ width: "28px" }}
+              style={{ width: "28px", marginLeft: "20px" }}
             />
-            <span style={{ width: "120px", fontWeight: "600" }}>유튜브</span>
+            <span style={{ width: "120px", fontWeight: "600", marginLeft: "10px" }}>유튜브</span>
             <a
               href="https://www.youtube.com/@Nonsan"
               target="_blank"
-              style={{ color: "#000", textDecoration: "none" }}
+              style={{ color: "#000", textDecoration: "none", marginLeft: "460px" }} // 오른쪽으로 이동
             >
               youtube.com/@Nonsan
             </a>
@@ -68,12 +67,12 @@ export default function Footer() {
             <img
               src="/icons/email.png"
               alt="email"
-              style={{ width: "28px" }}
+              style={{ width: "28px", marginLeft: "20px" }}
             />
-            <span style={{ width: "120px", fontWeight: "600" }}>이메일</span>
+            <span style={{ width: "120px", fontWeight: "600", marginLeft: "10px" }}>이메일</span>
             <a
               href="mailto:nonsan@nonsan.com"
-              style={{ color: "#000", textDecoration: "none" }}
+              style={{ color: "#000", textDecoration: "none", marginLeft: "460px" }} // 오른쪽으로 이동
             >
               nonsan@nonsan.com
             </a>
@@ -103,6 +102,7 @@ export default function Footer() {
             fontSize: "12px",
             color: "#555",
             lineHeight: "1.6",
+            marginLeft: "50px"
           }}
         >
           <div>2024년 충청남도 논산시 시민로 270</div>

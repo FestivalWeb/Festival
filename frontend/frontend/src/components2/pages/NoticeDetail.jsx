@@ -16,8 +16,14 @@ export default function NoticeDetail() {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h2>{notice.title}</h2>
-      <div style={{ marginBottom: "10px", color: "#555" }}>
+      <h2 style={{
+        paddingBottom: "10px",
+        borderBottom: "2px solid #333",
+        marginBottom: "20px",
+      }}>
+        {notice.title}
+      </h2>
+      <div style={{ marginBottom: "10px", color: "#555", textAlign: "right" }}>
         작성자: {notice.dept} | 조회수: {notice.views} | 날짜: {notice.date}
       </div>
       <div style={{ marginBottom: "20px" }}>
@@ -40,16 +46,22 @@ export default function NoticeDetail() {
           style={{ width: "50%", height: "50%", marginTop: "20px" }}
         />
       )}
-      <button onClick={() => navigate(-1)} style={{
-        marginTop: "20px",
-        padding: "8px 16px",
-        border: "2px solid #333",
-        borderRadius: "5px",
-        backgroundColor: "white",
-        color: "#333",
-        cursor: "pointer",
-      }}>
-        목록으로 돌아가기</button>
+
+      <div style={{ marginTop: "40px", textAlign: "left" }}>
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            padding: "8px 16px",
+            border: "2px solid #333",
+            borderRadius: "5px",
+            backgroundColor: "white",
+            color: "#333",
+            cursor: "pointer",
+          }}
+        >
+          목록으로 돌아가기
+        </button>
+      </div>
     </div>
   );
 }

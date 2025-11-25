@@ -10,7 +10,7 @@ export default function NoticePage() {
 
   return (
     <div className="notice-page2">
-      <h2 className="notice-page-title">공지사항</h2>
+      <h2 className="notice-page2-title">  </h2>
       <SearchBar />
       <BoardTable
         data={noticeData}

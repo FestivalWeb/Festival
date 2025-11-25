@@ -2,16 +2,19 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { boothData } from "../data/boothData";
 import "../styles/gallery.css";
+import Pagination from "../board/Pagination";
+
 
 export default function BoothImage() {
   const navigate = useNavigate();
 
   return (
-    <div className="booth-grid">
+    <div>
+    <div className="booth2-grid">
       {boothData.slice(0, 3).map((booth) => (
         <div
           key={booth.id}
-          className="booth-card"
+          className="booth2-card"
           onClick={() => navigate(`/booth-images/${booth.id}`)}
           style={{ cursor: "pointer" }}
         >
@@ -20,6 +23,9 @@ export default function BoothImage() {
           <p>{booth.description}</p>
         </div>
       ))}
+    </div>
+
+    <Pagination />
     </div>
   );
 }

@@ -15,9 +15,7 @@ function GallerySection() {
 
         <div className="gallery-grid">
           <div className="gallery-card">
-            <div className="gallery-thumb">
-              <img src={photo1} alt="개막식 & 불꽃놀이" />
-              </div>
+            <div className="gallery-thumb">사진 1</div>
             <p className="gallery-caption">개막식 &amp; 불꽃놀이</p>
           </div>
 

@@ -12,14 +12,28 @@ export default function BoothImageDetail() {
   }
 
   return (
-    <div className="booth-detail">
+    <div className="booth2-detail">
       <h2>{booth.title}</h2>
 
-      <img
-        src={booth.detailImg ? booth.detailImg : booth.img}
-        alt={booth.title}
-        className="booth-detail-img"
-      />
+      {/* detailImg가 배열인 경우 여러 이미지를 출력 */}
+      <div className="booth2-images">
+        {Array.isArray(booth.detailImg) ? (
+          booth.detailImg.map((image, index) => (
+            <img
+              key={index}
+              src={image}
+              alt={`${booth.title} 상세 이미지 ${index + 1}`}
+              className="booth2-detail-img"
+            />
+          ))
+        ) : (
+          <img
+            src={booth.img}  // detailImg가 배열이 아니면 기본 이미지 사용
+            alt={booth.title}
+            className="booth2-detail-img"
+          />
+        )}
+      </div>
 
       <p>{booth.description}</p>
 
