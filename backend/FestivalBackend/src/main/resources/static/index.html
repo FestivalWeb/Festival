@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <title>게시판 테스트</title>
+  <style>
+    /* 썸네일 / 상세 이미지 살짝만 꾸미기 */
+    .thumb {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      margin-right: 8px;
+      vertical-align: middle;
+      border: 1px solid #ccc;
+    }
+
+    .detail-img {
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
+      margin-right: 8px;
+      margin-bottom: 8px;
+      border: 1px solid #ccc;
+    }
+
+    #postList li {
+      margin: 4px 0;
+      list-style: none;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>게시판 API 테스트</h1>
+
+  <button id="btnLogin">① 테스트 로그인</button>
+  <hr>
+
+  <h2>글 작성</h2>
+  <input id="title" placeholder="제목" style="width:300px;"><br>
+  <textarea id="content" placeholder="내용" rows="4" cols="40"></textarea><br>
+  <button id="btnCreate">② 글 작성</button>
+  <div id="createResult"></div>
+
+  <hr>
+  <h2>글 목록 (썸네일 포함)</h2>
+  <button id="btnLoadList">③ 목록 불러오기</button>
+  <ul id="postList"></ul>
+
+  <hr>
+  <h2>글 상세</h2>
+  <input id="detailId" placeholder="postId 입력">
+  <button id="btnLoadDetail">④ 상세 불러오기</button>
+
+  <!-- 글 수정/삭제 버튼 -->
+  <button id="btnUpdate">⑤ 글 수정</button>
+  <button id="btnDelete">⑥ 글 삭제</button>
+
+  <h3>상세 JSON</h3>
+  <pre id="detailResult"></pre>
+
+  <h3>상세 이미지</h3>
+  <div id="detailImages"></div>
+
+  <script>
+    const BASE_URL = "http://localhost:8080";
+
+    /** URL이 절대경로인지 상대경로인지에 따라 src 만들어 주는 헬퍼 */
+    function resolveSrc(uri) {
+      if (!uri) return null;
+      return uri.startsWith("http") ? uri : `${BASE_URL}${uri}`;
+    }
+
+    // ① 테스트 로그인 (세션에 LOGIN_USER_ID 넣기)
+    document.getElementById("btnLogin").onclick = async () => {
+      const res = await fetch(`${BASE_URL}/api/test/login`, {
+        credentials: "include"
+      });
+      const text = await res.text();
+      alert(text);
+    };
+
+    // ② 글 작성
+    document.getElementById("btnCreate").onclick = async () => {
+      const title = document.getElementById("title").value;
+      const context = document.getElementById("content").value;
+
+      const res = await fetch(`${BASE_URL}/api/posts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          title,
+          context,
+          fileIds: []   // 이미지 업로드 아직 안 쓰면 빈 배열
+        })
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        alert("글 작성 실패: " + text);
+        return;
+      }
+
+      const data = await res.json();
+      document.getElementById("createResult").innerText =
+        `생성된 postId = ${data.postId}`;
+    };
+
+    // ③ 글 목록 불러오기 + 썸네일 표시
+    document.getElementById("btnLoadList").onclick = async () => {
+      const res = await fetch(`${BASE_URL}/api/posts`, {
+        credentials: "include"
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        alert("목록 조회 실패: " + text);
+        return;
+      }
+
+      const list = await res.json();
+      console.log("목록 응답:", list);
+
+      if (!Array.isArray(list)) {
+        alert("목록 데이터 형식이 올바르지 않습니다.");
+        return;
+      }
+
+      const ul = document.getElementById("postList");
+      ul.innerHTML = "";
+
+      list.forEach(post => {
+        const li = document.createElement("li");
+
+        // 썸네일 있으면 <img> 추가
+        if (post.thumbnailUri) {
+          const img = document.createElement("img");
+          img.className = "thumb";
+          img.src = resolveSrc(post.thumbnailUri);
+          img.alt = "thumbnail";
+          li.appendChild(img);
+        }
+
+        // 텍스트 정보
+        const span = document.createElement("span");
+        span.textContent =
+          `[${post.postId}] ${post.title} / ${post.userId} / 조회수 ${post.view}`;
+        li.appendChild(span);
+
+        ul.appendChild(li);
+      });
+    };
+
+    // ④ 글 상세 불러오기 + 상세 이미지 표시
+    document.getElementById("btnLoadDetail").onclick = async () => {
+      const id = document.getElementById("detailId").value.trim();
+      if (!id) {
+        alert("postId를 입력해 주세요.");
+        return;
+      }
+
+      const res = await fetch(`${BASE_URL}/api/posts/${id}`, {
+        credentials: "include"
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        alert("상세 조회 실패: " + text);
+        return;
+      }
+
+      const data = await res.json();
+      document.getElementById("detailResult").innerText =
+        JSON.stringify(data, null, 2);
+
+      // 수정 편의용: 제목/내용 입력창에 채우기
+      document.getElementById("title").value = data.title ?? "";
+      document.getElementById("content").value = data.context ?? "";
+
+      // ✅ 상세 이미지 영역 렌더링
+      const imgBox = document.getElementById("detailImages");
+      imgBox.innerHTML = "";
+
+      if (Array.isArray(data.images) && data.images.length > 0) {
+        data.images.forEach(imgDto => {
+          const src = resolveSrc(imgDto.thumbUri || imgDto.storageUri);
+          if (!src) return;
+
+          const img = document.createElement("img");
+          img.className = "detail-img";
+          img.src = src;
+          img.alt = "image";
+          imgBox.appendChild(img);
+        });
+      } else {
+        imgBox.textContent = "이미지 없음";
+      }
+    };
+
+    // ⑤ 글 수정
+    document.getElementById("btnUpdate").onclick = async () => {
+      const id = document.getElementById("detailId").value.trim();
+      if (!id) {
+        alert("수정할 postId를 입력하거나, 먼저 상세를 불러와 주세요.");
+        return;
+      }
+
+      const title = document.getElementById("title").value.trim();
+      const context = document.getElementById("content").value.trim();
+
+      if (!title) {
+        alert("제목을 입력해 주세요.");
+        return;
+      }
+
+      const res = await fetch(`${BASE_URL}/api/posts/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          title,
+          context,
+          fileIds: [] // 이미지 아직 안 쓰므로 빈 배열
+        })
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        alert("글 수정 실패: " + text);
+        return;
+      }
+
+      const data = await res.json();
+      alert("글이 수정되었습니다.");
+      document.getElementById("detailResult").innerText =
+        JSON.stringify(data, null, 2);
+    };
+
+    // ⑥ 글 삭제
+    document.getElementById("btnDelete").onclick = async () => {
+      const id = document.getElementById("detailId").value.trim();
+      if (!id) {
+        alert("삭제할 postId를 입력하거나, 먼저 상세를 불러와 주세요.");
+        return;
+      }
+
+      if (!confirm(`정말로 글 ${id} 를 삭제할까요?`)) {
+        return;
+      }
+
+      const res = await fetch(`${BASE_URL}/api/posts/${id}`, {
+        method: "DELETE",
+        credentials: "include"
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        alert("글 삭제 실패: " + text);
+        return;
+      }
+
+      alert("글이 삭제되었습니다.");
+
+      document.getElementById("detailResult").innerText = "";
+      document.getElementById("detailId").value = "";
+      document.getElementById("title").value = "";
+      document.getElementById("content").value = "";
+      document.getElementById("detailImages").innerHTML = "";
+    };
+  </script>
+</body>
+
+</html>

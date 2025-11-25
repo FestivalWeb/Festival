@@ -13,18 +13,20 @@ import lombok.NoArgsConstructor;
 @Table(name = "post_img_mapping") // 테이블 이름 소문자
 public class PostImgMapping {
 
-    @Id // 복합 키의 일부임을 표시
-    @Column(name = "post_id")
-    private Long postId;
+    @Id
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id")
+    private post post;
 
-    @Id // 복합 키의 일부임을 표시
-    @Column(name = "file_id")
-    private Long fileId;
+    @Id
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "file_id")
+    private MediaFile file;
 
     // 생성자
     @Builder
-    public PostImgMapping(Long postId, Long fileId) {
-        this.postId = postId;
-        this.fileId = fileId;
+    public PostImgMapping(post post, MediaFile file) {
+        this.post = post;
+        this.file = file;
     }
 }
