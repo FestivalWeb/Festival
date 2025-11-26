@@ -30,7 +30,6 @@ public class Post {
     @Column(name = "title", nullable = false, length = 200)
     private String title;
 
-    // 스키마에 'context'라고 되어 있어서 그대로 썼습니다. (보통 'content'를 많이 씁니다)
     @Column(name = "context", length = 500)
     private String context;
 
