@@ -115,7 +115,7 @@ public class PostServiceImpl implements PostService {
                                 .toList();
         }
 
-        @Override
+        @Override 
         @Transactional
         public PostDetailResponse getPostDetail(Long postId) {
 
