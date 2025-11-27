@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/gallery.css";
 
+// 갤러리누르면 가장 먼저 있는 페이지
 export default function GalleryPage() {
   const navigate = useNavigate();
 

@@ -46,16 +46,6 @@ html, body, #root {
   min-height: 100%;   
 }
 
-/* 왼쪽 사이드바 */
-.sidebar {
-  width: 170px;
-  min-width: 170px;    /* 최소 너비 유지 */
-  background: #414040;
-  color: white;
-  padding: 20px;
-  box-sizing: border-box; /* padding 포함 너비 계산 */
-}
-
 /* 사이드바 메뉴 글자 색상, 손가락 모양, hover */
 .sidebar ul li {
   cursor: pointer;       /* 손가락 모양 */
@@ -71,8 +61,8 @@ html, body, #root {
 
 /* 왼쪽 사이드바 */
 .sidebar {
-  width: 170px;
-  min-width: 170px;    /* 최소 너비 유지 */
+  width: 190px;
+  min-width: 190px;    /* 최소 너비 유지 */
   background: #414040;
   color: white;
   padding: 20px;
@@ -80,6 +70,16 @@ html, body, #root {
   
   /* 추가: 헤더 높이만큼 내려오기 */
   margin-top: 60px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;   /* 세로로 나열 */
+  align-items: center;      /* 가운데 정렬 */
+  margin-right: 20px;
 }
 
 /* 오른쪽 영역 */

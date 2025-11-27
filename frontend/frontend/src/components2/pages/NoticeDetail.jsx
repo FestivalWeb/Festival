@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import noticeData from "../data/noticeData";
 import PageLayout from "../layout/PageLayout";
 
+// 공지사항 상세페이지
 export default function NoticeDetail() {
   const { id } = useParams(); // URL에서 id 가져오기
 
@@ -49,7 +50,10 @@ export default function NoticeDetail() {
 
       <div style={{ marginTop: "40px", textAlign: "left" }}>
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            navigate('/notice');
+            window.scrollTo(0, 0);
+          }}
           style={{
             padding: "8px 16px",
             border: "2px solid #333",

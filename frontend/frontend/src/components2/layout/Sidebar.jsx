@@ -6,7 +6,7 @@ export default function Sidebar({ type }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 체험부스 상세 메뉴
+  // 갤러리의 체험부스 상세 메뉴
   const boothDetailMenu = [
     { label: "체험부스 1", path: "/booth-images/1" },
     { label: "체험부스 2", path: "/booth-images/2" },
@@ -20,7 +20,7 @@ export default function Sidebar({ type }) {
     { label: "게시글", path: "/post-images" },
   ];
 
-  // 현재 경로가 /booth-images/숫자 인지 체크
+  // 현재 경로가 /booth-images/숫자 인지 체크 -> 체험부스1, 2, 3 눌렀을 때 빨간색 활성화
   const isBoothDetail = /^\/booth-images\/\d+$/.test(location.pathname);
 
   // 메뉴 렌더링 함수
@@ -42,7 +42,7 @@ export default function Sidebar({ type }) {
           ? renderMenu(boothDetailMenu)
           : type === "galleryDetail"
           ? renderMenu(galleryDetailMenu)
-          : [
+          : [   // 기본 메뉴
               { label: "공지사항", path: "/notice" },
               { label: "게시글", path: "/post" },
               { label: "갤러리", path: "/gallery" },

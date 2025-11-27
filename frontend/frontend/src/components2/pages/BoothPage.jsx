@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/booth.css";
 
+// 체험부스 예약 탭 대표 페이지
 const booths = [
   {
     id: 1,
@@ -32,7 +33,7 @@ const booths = [
     location: "체험관 2층",
     image: "/images/booth3.jpg",
     res_description: "논산딸기를 직접 수확해봅니다."
-  },
+  }
 ];
 
 const BoothSection = () => {

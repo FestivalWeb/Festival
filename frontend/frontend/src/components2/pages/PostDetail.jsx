@@ -2,6 +2,7 @@ import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import postData from "../data/postData"; // 게시글 더미 데이터
 
+// 게시글 상세페이지
 export default function PostDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -34,9 +35,12 @@ export default function PostDetail() {
           style={{ width: "50%", height: "50%", marginTop: "20px" }}
         />
       )}
-     <div style={{ marginTop: "40px", textAlign: "left" }}>
+      <div style={{ marginTop: "40px", textAlign: "left" }}>
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            navigate('/post');
+            window.scrollTo(0, 0);
+          }}
           style={{
             padding: "8px 16px",
             border: "2px solid #333",

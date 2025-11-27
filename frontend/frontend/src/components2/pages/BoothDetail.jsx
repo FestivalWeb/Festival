@@ -3,6 +3,7 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "../styles/booth.css";
 
+// 체험부스 예약 탭 상세페이지
 const BoothDetail = ({ booth }) => {
   const activeDates = ["2025-11-21", "2025-11-22", "2025-11-23"];
 

@@ -49,7 +49,7 @@ function HomePage() {
       />
 
       {/* 축제 소개 섹션 */}
-      <div ref={introRef}>
+      <div ref={introRef} className="festivalintro">
         <FestivalIntro />
       </div>
 
@@ -69,7 +69,7 @@ function HomePage() {
       </div>
 
       {/* 오시는 길 섹션 */}
-      <div ref={directionsRef}>
+      <div ref={directionsRef} className="directions-section">
         <DirectionsSection />
       </div>
     </div>

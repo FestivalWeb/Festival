@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { boothData } from "../data/boothData";
 import "../styles/gallery.css";
 
+// 갤러리의 체험부스 탭 상세 이미지
 export default function BoothImageDetail() {
   const { id } = useParams();
   const booth = boothData.find((item) => item.id === Number(id));

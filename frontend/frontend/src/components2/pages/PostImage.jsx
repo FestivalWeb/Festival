@@ -1,6 +1,7 @@
 import React from "react";
 import postData from "../data/postData";
 
+// 게시글에 첨부된 이미지만 모아놓음 (갤러리의 게시글탭)
 export default function PostImages() {
   // 첨부된 이미지만 가져오기
   const images = postData

@@ -2,6 +2,7 @@ import React from "react";
 import Sidebar from "./Sidebar";
 import "../styles/layout.css";
 
+// sidebar에서 하위메뉴로 넘어가기 위해서 layout으로 감싸서 사용
 function Layout({ children, sidebarType }) {
   const headerHeight = 80; // Header 높이
 

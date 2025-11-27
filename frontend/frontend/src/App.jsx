@@ -30,12 +30,14 @@ function App() {
   );
 }
 
+// 메인페이지의 Header의 경우 스크롤기능 때문에 다른 페이지에 따로 적용할 수 없어 AppContent() 조건 함수로 표현
 function AppContent() {
   const location = useLocation();
 
-  // 메인 페이지에서는 Header 숨김 / mainhero1과 header가 두번 렌더링됨.
-  const hideHeader = location.pathname === "/";
-
+  // 메인 페이지, admin, introdetail에서는 Header 숨김, mainhero1에 이미 자체 Header 코드가 있어서 header가 두번 렌더링됨.
+  const hideHeader = location.pathname === "/" ||
+    location.pathname.startsWith("/admin") ||
+    location.pathname === "/intro/detail";
   return (
     <>
       {!hideHeader && <Header />}

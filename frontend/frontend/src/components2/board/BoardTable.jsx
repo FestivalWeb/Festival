@@ -1,6 +1,7 @@
 import React from "react";
 import "../styles/board.css";
 
+// 공지사항, 게시판에서 공통으로 사용하는 파일 틀
 export default function BoardTable({ data, onTitleClick }) {
   return (
     <table className="board-table">
@@ -32,7 +33,14 @@ export default function BoardTable({ data, onTitleClick }) {
             <td>{item.dept}</td>
             <td>{item.views}</td>
             <td>{item.date}</td>
-            <td>{item.file}</td>
+            {/* 첨부파일 아이콘 표시 */}
+            <td>
+              {item.file ? (
+                <span style={{ fontSize: "18px" }}>📁</span>
+              ) : (
+                ""
+              )}
+            </td>
           </tr>
         ))}
       </tbody>

@@ -1,6 +1,7 @@
 import React from "react";
 import noticeData from "../data/noticeData";
 
+// 공지사항에 첨부된 이미지만 모아놓음 (갤러리의 공지사항탭)
 export default function NoticeImages() {
   // 첨부된 이미지만 가져오기
   const images = noticeData

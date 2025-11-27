@@ -1,3 +1,4 @@
+// 갤러리의 체험부스 상세이미지 임시 데이터
 export const boothData = [
   {
     id: 1,
