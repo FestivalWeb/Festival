@@ -1,8 +1,9 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
+  /* 기본 컬러 스킴 설정 */
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
@@ -13,6 +14,22 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ★ 중요 수정: body의 flex 설정을 block으로 변경하여 스크롤 가능하게 만듦 */
+body {
+  margin: 0;
+  padding: 0;
+  display: block; /* flex 제거 */
+  width: 100%;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+/* React Root div도 꽉 차게 설정 */
+#root {
+  width: 100%;
+  height: 100%;
+}
+
 a {
   font-weight: 500;
   color: #646cff;
@@ -20,14 +37,6 @@ a {
 }
 a:hover {
   color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
 }
 
 h1 {
@@ -54,6 +63,7 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+/* 라이트 모드 기본 설정 */
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
@@ -65,19 +75,25 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
-  /* 🔥 모든 페이지 공통 레이아웃 껍데기 */
-.app-shell {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;   /* 가운데 정렬 */
-  background: #ffeef5;       /* 연한 딸기 배경 (전체 화면) */
 }
 
-/* 껍데기 안에 들어오는 각각의 페이지(메인/소개/상세) 공통 규칙 */
+/* =========================================
+   🍓 논산 딸기축제 홈페이지 전용 레이아웃 (.app-shell)
+   관리자 페이지(.admin-layout)와 겹치지 않게 분리
+   ========================================= */
+.app-shell {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;   /* 내부 컨텐츠 가운데 정렬 */
+  background: #ffeef5;       /* 연한 딸기 배경 */
+  color: #333;               /* 글씨색 강제 지정 (다크모드 방지) */
+}
+
+/* 홈페이지 내부 컨텐츠 폭 제한 */
 .app-shell > * {
   width: 100%;
-  max-width: 1200px;         /* 세 페이지 폭 통일 */
-  padding: 40px 24px 80px;   /* 위/옆/아래 여백 통일 */
+  max-width: 1200px;         /* 최대 폭 */
+  padding: 40px 24px 80px;   /* 여백 */
   box-sizing: border-box;
-}
 }

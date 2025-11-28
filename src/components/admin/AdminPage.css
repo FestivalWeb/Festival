@@ -1,19 +1,9 @@
-/* 전체 레이아웃 */
-.admin-layout {
-  display: flex;
-  min-height: 100vh;
-  background: #020617; /* 다크 네이비 */
-  color: #e5e7eb;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
-}
-
 /* 사이드바 */
 .admin-sidebar {
   width: 220px;
   background: #020617;
   border-right: 1px solid #111827;
-  padding: 16px 16px 24px;
+  padding: 72px 16px 24px;
   display: flex;
   flex-direction: column;
 }
@@ -307,4 +297,65 @@
 .admin-page-btn--active {
   background: #2563eb;
   border-color: #2563eb;
+}
+/* ===== 메뉴 열고닫기 공통 레이아웃 ===== */
+.admin-layout {
+  display: flex; /* 사이드바 + 메인 나란히 배치 */
+}
+
+/* 사이드바 기본 스타일(이미 있다면 transition만 추가해도 됨) */
+.admin-sidebar {
+  width: 240px;
+  transition: transform 0.25s ease;
+}
+
+/* 열림 / 닫힘 상태에 따라 사이드바 위치 변경 */
+.admin-layout.sidebar-open .admin-sidebar {
+  transform: translateX(0);
+}
+
+.admin-layout.sidebar-closed .admin-sidebar {
+  transform: translateX(-100%);
+}
+
+/* 메인 영역 기본 */
+.admin-main {
+  flex: 1;
+  position: relative;
+  transition: padding-left 0.25s ease;
+}
+
+/* ===== 햄버거(메뉴 토글) 버튼 ===== */
+.admin-menu-toggle {
+  position: fixed;
+  left: 20px;
+  top: 18px;
+  z-index: 100;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid #2b3550;
+  background: #0c1324;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45);
+}
+
+.admin-menu-toggle-bar {
+  width: 16px;
+  height: 2px;
+  border-radius: 999px;
+  background: #f7f7ff;
+}
+
+.admin-layout {
+  display: flex;
+  min-height: 100vh; /* 화면 전체 높이 사용 */
+  width: 100vw;      /* 화면 전체 너비 사용 */
+  background: #020617;
+  color: #e5e7eb;
 }

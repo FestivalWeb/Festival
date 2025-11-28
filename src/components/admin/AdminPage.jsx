@@ -1,216 +1,118 @@
-// src/components/admin/AdminPage.jsx
-import React from "react";
+import React, { useState } from "react";
+import { Outlet, useNavigate, useLocation } from "react-router-dom"; // 라우터 훅 추가
 import "./AdminPage.css";
 
-const dummyAccounts = [
-  {
-    id: 1,
-    username: "admin01",
-    name: "김관리",
-    email: "admin01@festival.kr",
-    role: "SUPER",
-    status: "활성",
-    lastLogin: "2025-11-03 09:12",
-    createdAt: "2024-04-01",
-  },
-  {
-    id: 2,
-    username: "staff22",
-    name: "이운영",
-    email: "op22@festival.kr",
-    role: "STAFF",
-    status: "활성",
-    lastLogin: "2025-11-03 08:45",
-    createdAt: "2025-01-03",
-  },
-  {
-    id: 3,
-    username: "guest01",
-    name: "박체크",
-    email: "chk@festival.kr",
-    role: "VIEWER",
-    status: "정지",
-    lastLogin: "2025-08-20 12:10",
-    createdAt: "2025-02-01",
-  },
-  {
-    id: 4,
-    username: "mod07",
-    name: "정관리",
-    email: "mgr07@festival.kr",
-    role: "MANAGER",
-    status: "활성",
-    lastLogin: "2025-11-02 21:33",
-    createdAt: "2024-10-10",
-  },
-  {
-    id: 5,
-    username: "staff31",
-    name: "유지원",
-    email: "ju31@festival.kr",
-    role: "STAFF",
-    status: "활성",
-    lastLogin: "2025-11-02 19:10",
-    createdAt: "2025-02-14",
-  },
-];
-
 function AdminPage() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const navigate = useNavigate(); // 페이지 이동 함수
+  const location = useLocation(); // 현재 주소 확인용
+
+  // 현재 메뉴가 활성화되었는지 확인하는 함수
+  const isActive = (path) => location.pathname === `/admin/${path}`;
+
+  // 현재 주소에 따라 헤더 제목 변경
+  const getPageTitle = () => {
+    const path = location.pathname;
+    if (path.includes("dashboard")) return "대시보드";
+    if (path.includes("account")) return "계정 관리";
+    if (path.includes("board")) return "게시판 관리";
+    if (path.includes("popup")) return "팝업 관리";
+    if (path.includes("log")) return "로그 상세";
+    return "관리자 시스템";
+  };
+
   return (
-    <div className="admin-layout">
-      {/* 왼쪽 사이드바 */}
+    <div className={`admin-layout ${isSidebarOpen ? "sidebar-open" : "sidebar-closed"}`}>
+      
+      {/* 1. 햄버거 버튼 (메뉴 토글) */}
+      <button
+        type="button"
+        className="admin-menu-toggle"
+        onClick={() => setIsSidebarOpen((prev) => !prev)}
+        aria-label="메뉴 열고 닫기"
+      >
+        <span className="admin-menu-toggle-bar" />
+        <span className="admin-menu-toggle-bar" />
+        <span className="admin-menu-toggle-bar" />
+      </button>
+
+      {/* 2. 왼쪽 사이드바 */}
       <aside className="admin-sidebar">
         <div className="admin-logo">
-          <span className="admin-logo-mark">A</span>
+          <span className="admin-logo-mark">🍓</span>
           <span className="admin-logo-text">Admin</span>
         </div>
 
         <nav className="admin-nav">
           <div className="admin-nav-section">MENU</div>
-          <button className="admin-nav-item">대시보드</button>
-          <button className="admin-nav-item admin-nav-item--active">
+          
+          {/* 대시보드 버튼 */}
+          <button 
+            className={`admin-nav-item ${isActive("dashboard") ? "admin-nav-item--active" : ""}`}
+            onClick={() => navigate("/admin/dashboard")}
+          >
+            대시보드
+          </button>
+          
+          {/* 계정관리 버튼 */}
+          <button 
+            className={`admin-nav-item ${isActive("account") ? "admin-nav-item--active" : ""}`}
+            onClick={() => navigate("/admin/account")}
+          >
             계정관리
           </button>
-          <button className="admin-nav-item">게시판관리</button>
-          <button className="admin-nav-item">팝업관리</button>
+          
+          {/* 게시판관리 버튼 */}
+          <button 
+            className={`admin-nav-item ${isActive("board") ? "admin-nav-item--active" : ""}`}
+            onClick={() => navigate("/admin/board")}
+          >
+            게시판관리
+          </button>
+          
+          {/* 팝업관리 버튼 */}
+          <button 
+            className={`admin-nav-item ${isActive("popup") ? "admin-nav-item--active" : ""}`}
+            onClick={() => navigate("/admin/popup")}
+          >
+            팝업관리
+          </button>
 
           <div className="admin-nav-section">SYSTEM</div>
-          <button className="admin-nav-item">로그아웃(상세)</button>
+          
+          {/* 로그상세 버튼 */}
+          <button 
+            className={`admin-nav-item ${isActive("log") ? "admin-nav-item--active" : ""}`}
+            onClick={() => navigate("/admin/log")}
+          >
+            로그 상세
+          </button>
         </nav>
       </aside>
 
-      {/* 오른쪽 메인 영역 */}
+      {/* 3. 오른쪽 메인 영역 */}
       <main className="admin-main">
         {/* 상단 바 */}
         <header className="admin-topbar">
           <div className="admin-topbar-left">
             <div className="admin-topbar-path">
-              계정관리 &gt; 계정 목록
+              관리자 &gt; {getPageTitle()}
             </div>
-            <h1 className="admin-topbar-title">계정 목록</h1>
+            <h1 className="admin-topbar-title">{getPageTitle()}</h1>
           </div>
           <div className="admin-topbar-right">
-            <span className="admin-user-email">admin@festival.kr</span>
+            <span className="admin-user-email">admin@festival.kr (SUPER)</span>
           </div>
         </header>
 
-        {/* 내용 카드 */}
-        <section className="admin-content-card">
-          {/* 필터 / 액션 영역 */}
-          <div className="admin-filters-row">
-            <div className="admin-filter-group">
-              <label className="admin-filter-label">이름/이메일</label>
-              <input
-                type="text"
-                className="admin-input"
-                placeholder="이름 또는 이메일 검색"
-              />
-            </div>
+        {/* ★ 여기가 핵심입니다 ★
+            기존에는 여기에 계정 목록 테이블 코드가 직접 있었지만,
+            이제는 <Outlet />을 넣어서 주소에 맞는 컴포넌트(대시보드, 계정 등)를 불러옵니다.
+        */}
+        <div style={{ padding: "20px", height: "calc(100vh - 70px)", overflowY: "auto" }}>
+            <Outlet />
+        </div>
 
-            <div className="admin-filter-group">
-              <label className="admin-filter-label">역할</label>
-              <select className="admin-select">
-                <option>역할 전체</option>
-                <option>SUPER</option>
-                <option>MANAGER</option>
-                <option>STAFF</option>
-                <option>VIEWER</option>
-              </select>
-            </div>
-
-            <div className="admin-filter-group">
-              <label className="admin-filter-label">상태</label>
-              <select className="admin-select">
-                <option>상태 전체</option>
-                <option>활성</option>
-                <option>정지</option>
-              </select>
-            </div>
-
-            <div className="admin-filter-group">
-              <label className="admin-filter-label">정렬</label>
-              <select className="admin-select">
-                <option>최신순</option>
-                <option>오래된순</option>
-                <option>이름순</option>
-              </select>
-            </div>
-
-            <div className="admin-filter-actions">
-              <button className="admin-btn admin-btn--ghost">검색</button>
-              <button className="admin-btn admin-btn--primary">
-                신규 등록
-              </button>
-              <button className="admin-btn admin-btn--ghost">역할 변경</button>
-              <button className="admin-btn admin-btn--ghost">활성/중단</button>
-              <button className="admin-btn admin-btn--danger">선택 삭제</button>
-            </div>
-          </div>
-
-          {/* 계정 목록 테이블 */}
-          <div className="admin-table-wrapper">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>
-                    <input type="checkbox" />
-                  </th>
-                  <th>아이디</th>
-                  <th>이름</th>
-                  <th>이메일</th>
-                  <th>역할</th>
-                  <th>상태</th>
-                  <th>최근 로그인</th>
-                  <th>등록일</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dummyAccounts.map((acc) => (
-                  <tr key={acc.id}>
-                    <td>
-                      <input type="checkbox" />
-                    </td>
-                    <td>{acc.username}</td>
-                    <td>{acc.name}</td>
-                    <td>{acc.email}</td>
-                    <td>
-                      <span className="admin-role-pill">{acc.role}</span>
-                    </td>
-                    <td>
-                      <span
-                        className={
-                          acc.status === "활성"
-                            ? "admin-status-pill admin-status-pill--active"
-                            : "admin-status-pill admin-status-pill--disabled"
-                        }
-                      >
-                        {acc.status}
-                      </span>
-                    </td>
-                    <td>{acc.lastLogin}</td>
-                    <td>{acc.createdAt}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* 하단 정보 + 페이지네이션 */}
-          <div className="admin-table-footer">
-            <div className="admin-table-count">
-              1–5 / 58
-            </div>
-            <div className="admin-pagination">
-              <button className="admin-page-btn">&lt;</button>
-              <button className="admin-page-btn admin-page-btn--active">
-                1
-              </button>
-              <button className="admin-page-btn">2</button>
-              <button className="admin-page-btn">3</button>
-              <button className="admin-page-btn">&gt;</button>
-            </div>
-          </div>
-        </section>
       </main>
     </div>
   );
