@@ -73,9 +73,9 @@ const Login = ({ onNavigate, onLoginSuccess }) => {
 
           {/* 하단 링크 */}
           <div className="login-footer">
-            <a href="#/">비밀번호 찾기</a>
+            <button className="login-link" type="button" onClick={() => onNavigate && onNavigate('forgotPassword')}>비밀번호 찾기</button>
             <span> | </span>
-            <a href="#/">아이디 찾기</a>
+            <button className="login-link" type="button" onClick={() => onNavigate && onNavigate('findId')}>아이디 찾기</button>
             <span> | </span>
             <button
               className="login-signup-link"

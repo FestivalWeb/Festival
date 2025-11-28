@@ -5,6 +5,8 @@ import FestivalIntro from "./components/FestivalIntro";
 import Login from "./components3/Login";
 import Signup from "./components3/Signup";
 import MyPage from "./components3/MyPage";
+import FindId from "./components3/FindId";
+import ForgotPassword from "./components3/ForgotPassword";
 import Header from "./components/Header";
 
 function App() {
@@ -33,6 +35,8 @@ function App() {
       {page === "intro" && <FestivalIntro onNavigate={setPage} isLoggedIn={isLoggedIn} />}
       {page === "login" && <Login onNavigate={setPage} onLoginSuccess={() => setIsLoggedIn(true)} />}
       {page === "signup" && <Signup onNavigate={setPage} />}
+      {page === "findId" && <FindId onNavigate={setPage} />}
+      {page === "forgotPassword" && <ForgotPassword onNavigate={setPage} />}
       {page === "mypage" && <MyPage onNavigate={setPage} onLogout={handleLogout} />}
     </>
   );

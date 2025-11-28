@@ -79,6 +79,22 @@
   position: relative;
 }
 
+/* step containers */
+.signup-step { width: 100%; display:flex; flex-direction:column; align-items:center; gap:18px }
+.terms-card { width:100%; background:#fff8fb; border-radius:10px; padding:18px; border:1px solid rgba(255,80,120,0.06); box-sizing:border-box }
+.term-row { display:block; margin:8px 0; font-size:14px; color:#444 }
+
+.actions-row { display:flex; gap:12px; width:100%; justify-content:center; margin-top:8px }
+.signup-small-btn { padding:10px 12px; border-radius:8px; border:1px solid #e6e6e6; background:#fff; cursor:pointer; font-weight:600 }
+
+.verify-card, .complete-card, .done-card { width:100%; max-width:420px; padding:18px; border-radius:10px; background:#fff; border:1px solid rgba(0,0,0,0.04); box-sizing:border-box }
+.verify-card p, .complete-card p, .done-card p { margin:0 0 12px 0; color:#666 }
+.summary-row { margin:6px 0; color:#333 }
+
+/* smaller tweaks for step buttons */
+.signup-btn-green { min-width:120px }
+
+
 /* 제목 */
 .signup-header {
   display: flex;
