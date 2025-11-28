@@ -50,8 +50,39 @@
   <div id="createResult"></div>
 
   <hr>
-  <h2>글 목록 (썸네일 포함)</h2>
-  <button id="btnLoadList">③ 목록 불러오기</button>
+  <h2>글 목록 (썸네일 포함 + 페이징/검색/정렬)</h2>
+
+  <!-- ✅ 페이징/검색/정렬 파라미터 입력 -->
+  <div>
+    페이지: <input id="page" type="number" value="0" style="width:60px;"> (0부터 시작)
+    페이지 크기: <input id="size" type="number" value="10" style="width:60px;">
+    <br>
+    검색어: <input id="keyword" type="text" style="width:150px;">
+    검색 타입:
+    <select id="searchType">
+      <option value="ALL">전체(제목+내용)</option>
+      <option value="TITLE">제목</option>
+      <option value="CONTENT">내용</option>
+      <option value="USER">작성자</option>
+    </select>
+    <br>
+    정렬 기준:
+    <select id="sortBy">
+      <option value="postId">postId(기본)</option>
+      <option value="createDate">작성일</option>
+      <option value="view">조회수</option>
+      <option value="title">제목</option>
+    </select>
+    방향:
+    <select id="direction">
+      <option value="DESC">DESC</option>
+      <option value="ASC">ASC</option>
+    </select>
+
+    <button id="btnLoadList">③ 목록 불러오기</button>
+  </div>
+
+  <div id="pageInfo"></div>
   <ul id="postList"></ul>
 
   <hr>
@@ -176,9 +207,27 @@
       document.getElementById("imagePreview").innerHTML = "";
     };
 
-    // ③ 글 목록 불러오기 + 썸네일 표시
+    // ③ 글 목록 불러오기 + 썸네일 표시 (⚠️ Page 구조 반영)
     document.getElementById("btnLoadList").onclick = async () => {
-      const res = await fetch(`${BASE_URL}/api/posts`, {
+
+      const page = parseInt(document.getElementById("page").value || "0", 10);
+      const size = parseInt(document.getElementById("size").value || "10", 10);
+      const keyword = document.getElementById("keyword").value || "";
+      const type = document.getElementById("searchType").value || "ALL";
+      const sortBy = document.getElementById("sortBy").value || "postId";
+      const direction = document.getElementById("direction").value || "DESC";
+
+      const params = new URLSearchParams();
+      params.set("page", page);
+      params.set("size", size);
+      params.set("sortBy", sortBy);
+      params.set("direction", direction);
+      params.set("type", type);
+      if (keyword.trim() !== "") {
+        params.set("keyword", keyword.trim());
+      }
+
+      const res = await fetch(`${BASE_URL}/api/posts?` + params.toString(), {
         credentials: "include"
       });
 
@@ -188,13 +237,19 @@
         return;
       }
 
-      const list = await res.json();
-      console.log("목록 응답:", list);
+      const pageData = await res.json();
+      console.log("페이지 응답:", pageData);
 
+      const list = pageData.content;
       if (!Array.isArray(list)) {
         alert("목록 데이터 형식이 올바르지 않습니다.");
         return;
       }
+
+      // 페이지 정보 표시
+      const pageInfo = document.getElementById("pageInfo");
+      pageInfo.innerText =
+        `현재 페이지: ${pageData.number} / 전체 페이지: ${pageData.totalPages},  전체 글 수: ${pageData.totalElements}`;
 
       const ul = document.getElementById("postList");
       ul.innerHTML = "";

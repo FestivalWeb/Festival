@@ -5,6 +5,8 @@ import org.zerock.backend.dto.PostCreateResponse;
 import org.zerock.backend.dto.PostDetailResponse;
 import org.zerock.backend.dto.PostSummaryResponse;
 import org.zerock.backend.dto.PostUpdateRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
@@ -29,4 +31,13 @@ public interface PostService {
 
     // 글 삭제 (작성자만 가능)
     void deletePost(String loginUserId, Long postId);
+
+    Page<PostSummaryResponse> getPostPage(
+        int page,
+        int size,
+        String sortBy,
+        Sort.Direction direction,
+        String keyword,
+        String type   // ALL, TITLE, CONTENT, TITLE_CONTENT, USER
+    );
 }

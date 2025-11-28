@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -15,7 +17,6 @@ import org.zerock.backend.dto.PostSummaryResponse;
 import org.zerock.backend.dto.PostUpdateRequest;
 import org.zerock.backend.service.PostService;
 
-
 @RestController
 @RequestMapping("/api/posts")
 @RequiredArgsConstructor
@@ -23,37 +24,55 @@ public class PostController {
 
     private final PostService postService;
 
+    // ----------------- ① 글 작성 -----------------
     @PostMapping
     public ResponseEntity<PostCreateResponse> createPost(
             @RequestBody PostCreateRequest request,
             HttpSession session
     ) {
-        // 1) 로그인한 회원 ID 가져오기
         String loginUserId = (String) session.getAttribute("LOGIN_USER_ID");
         if (loginUserId == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
         }
 
-        // 2) 서비스 호출
-        PostCreateResponse response =
-                postService.createPost(loginUserId, request);
-
-        // 3) 201 Created + 생성된 게시글 ID 반환
+        PostCreateResponse response = postService.createPost(loginUserId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    // ----------------- ② 글 목록 (페이징 + 검색/정렬) -----------------
     @GetMapping
+    public ResponseEntity<Page<PostSummaryResponse>> getPostPage(
+            @RequestParam(defaultValue = "0") int page,          // 0부터 시작
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "postId") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "ALL") String type      // ALL, TITLE, CONTENT, TITLE_CONTENT, USER
+    ) {
+        Sort.Direction dir = Sort.Direction.fromString(direction);
+        Page<PostSummaryResponse> result =
+                postService.getPostPage(page, size, sortBy, dir, keyword, type);
+
+        return ResponseEntity.ok(result);
+    }
+
+    // (참고용: 옛날 전체 리스트가 필요하면 이런 식으로 다른 경로로 남겨둘 수도 있음)
+    /*
+    @GetMapping("/all")
     public ResponseEntity<List<PostSummaryResponse>> getPostList() {
         List<PostSummaryResponse> list = postService.getPostList();
         return ResponseEntity.ok(list);
     }
-    
+    */
+
+    // ----------------- ③ 글 상세 -----------------
     @GetMapping("/{postId}")
     public ResponseEntity<PostDetailResponse> getPostDetail(@PathVariable Long postId) {
         PostDetailResponse response = postService.getPostDetail(postId);
         return ResponseEntity.ok(response);
     }
 
+    // ----------------- ④ 글 수정 -----------------
     @PutMapping("/{postId}")
     public ResponseEntity<PostDetailResponse> updatePost(
             @PathVariable Long postId,
@@ -74,6 +93,7 @@ public class PostController {
         }
     }
 
+    // ----------------- ⑤ 글 삭제 -----------------
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deletePost(
             @PathVariable Long postId,
@@ -90,6 +110,5 @@ public class PostController {
         } catch (IllegalStateException e) { // 작성자 아님
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         }
-    }       
-
+    }
 }
