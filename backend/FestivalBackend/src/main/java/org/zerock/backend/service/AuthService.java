@@ -18,6 +18,7 @@ import org.zerock.backend.dto.UserLoginRequestDto;
 import org.zerock.backend.dto.UserLoginResponseDto;
 import org.zerock.backend.entity.UserEntity;
 import org.zerock.backend.entity.UserSessionEntity;
+import org.zerock.backend.exception.LoginException;
 import org.zerock.backend.repository.UserRepository;
 import org.zerock.backend.repository.UserSessionRepository;
 
@@ -39,19 +40,22 @@ public class AuthService {
     @Value("${kakao.redirect_uri}")
     private String redirectUri;
 
-    // (일반 로그인 메서드 login은 생략 - 기존과 동일)
+    // [수정] login 메서드
     @Transactional
     @SuppressWarnings("null")
     public UserLoginResponseDto login(UserLoginRequestDto dto) {
+        // 1. 아이디 조회 실패 시
         UserEntity user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다."));
+                .orElseThrow(() -> new LoginException("존재하지 않는 아이디입니다.")); // LoginException 사용
 
+        // 2. 비밀번호 불일치 시
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다.");
+            throw new LoginException("비밀번호가 일치하지 않습니다."); // LoginException 사용
         }
 
+        // 3. 이메일 미인증 시
         if (!user.isVerified()) {
-             throw new IllegalStateException("인증되지 않은 계정입니다. 이메일 인증을 완료해주세요.");
+             throw new LoginException("이메일 인증이 완료되지 않은 계정입니다."); // LoginException 사용
         }
         
         return createSession(user, "로그인 성공");

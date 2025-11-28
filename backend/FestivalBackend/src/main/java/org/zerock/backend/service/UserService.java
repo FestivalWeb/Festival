@@ -6,9 +6,13 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.zerock.backend.dto.PasswordChangeDto;
+import org.zerock.backend.dto.UserProfileResponseDto;
+import org.zerock.backend.dto.UserProfileUpdateDto;
 import org.zerock.backend.dto.UserSignupRequestDto;
 import org.zerock.backend.entity.UserEntity;
 import org.zerock.backend.repository.UserRepository;
+import org.zerock.backend.repository.UserSessionRepository;
 
 import java.util.Map;
 import java.util.Random;
@@ -22,6 +26,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JavaMailSender mailSender;
+    private final UserSessionRepository userSessionRepository;
 
     // [1] 메모리 저장소: 인증번호 저장 (이메일 <-> 인증번호)
     private final Map<String, String> emailCodeMap = new ConcurrentHashMap<>();
@@ -57,16 +62,19 @@ public class UserService {
     /**
      * 인증번호 검증
      */
-    public boolean verifyEmailCode(String email, String code) {
+    public String verifyEmailCode(String email, String code) {
         String savedCode = emailCodeMap.get(email);
 
-        // 저장된 코드와 입력 코드가 일치하면
-        if (savedCode != null && savedCode.equals(code)) {
-            emailVerifiedMap.put(email, true); // [중요] 인증 성공 도장 찍기!
-            emailCodeMap.remove(email); 
-            return true;
+        // 1) 코드가 없거나(만료), 2) 불일치하면 에러
+        if (savedCode == null || !savedCode.equals(code)) {
+            throw new IllegalArgumentException("인증번호가 일치하지 않거나 만료되었습니다.");
         }
-        return false;
+
+        // 일치하면 인증 완료 처리
+        emailVerifiedMap.put(email, true);
+        emailCodeMap.remove(email); 
+        
+        return "이메일 인증이 완료되었습니다."; // 성공 메시지 반환
     }
 
     /**
@@ -110,7 +118,104 @@ public class UserService {
     }
 
     @SuppressWarnings("null")
+    public String checkUserIdAvailable(String userId) {
+        if (userRepository.findById(userId).isPresent()) {
+            throw new IllegalArgumentException("이미 사용 중인 아이디입니다."); // [에러 발생]
+        }
+        return "사용 가능한 아이디입니다."; // [성공 메시지]
+    }
+
+    @SuppressWarnings("null")
     public boolean isUserIdAvailable(String userId) {
         return userRepository.findById(userId).isEmpty();
+    }
+
+    /**
+     * [1] 마이페이지 정보 조회
+     */
+    @SuppressWarnings("null")
+    public UserProfileResponseDto getUserProfile(String userId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
+
+        return UserProfileResponseDto.builder()
+                .userId(user.getUserId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .birthDate(user.getBirthDate())
+                .sex(user.getSex())
+                .nationality(user.getNationality())
+                .build();
+    }
+
+    /**
+     * [2] 회원 정보 수정
+     */
+    @Transactional
+    @SuppressWarnings("null")
+    public void updateUserProfile(String userId, UserProfileUpdateDto dto) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
+
+        // 변경할 정보만 덮어씌우기 (Dirty Checking으로 자동 저장)
+        if(dto.getName() != null) user.setName(dto.getName());
+        if(dto.getPhoneNumber() != null) user.setPhoneNumber(dto.getPhoneNumber());
+        if(dto.getBirthDate() != null) user.setBirthDate(dto.getBirthDate());
+        if(dto.getSex() != null) user.setSex(dto.getSex());
+        if(dto.getNationality() != null) user.setNationality(dto.getNationality());
+        
+        // userRepository.save(user); // @Transactional이 있으면 생략 가능하지만 명시해도 됨
+    }
+
+    /**
+     * [3] 비밀번호 변경
+     */
+    @Transactional
+    @SuppressWarnings("null")
+    public void changePassword(String userId, PasswordChangeDto dto) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
+
+        // ▼▼▼ [추가] 소셜 로그인 유저는 비밀번호 변경 불가 처리 ▼▼▼
+        if ("KAKAO".equals(user.getProvider())) {
+            throw new IllegalArgumentException("카카오 로그인 사용자는 비밀번호를 변경할 수 없습니다.");
+        }
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+        // 1. 현재 비밀번호 확인
+        if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+        }
+        // 2. 새 비밀번호 확인
+        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+            throw new IllegalArgumentException("새 비밀번호가 일치하지 않습니다.");
+        }
+
+        // 3. 비밀번호 암호화 후 저장
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+    }
+    
+    /**
+     * [4] 회원 탈퇴
+     */
+    @Transactional
+    @SuppressWarnings("null")
+    public void deleteUser(String userId, String password) {
+         UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
+         
+         // 1. 카카오 유저가 아니면 비밀번호 확인
+         if (user.getProvider() == null || !user.getProvider().equals("KAKAO")) {
+             if (!passwordEncoder.matches(password, user.getPassword())) {
+                throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            }
+         }
+        
+        // 2. [수정됨] 세션(로그인 기록) 먼저 강제 삭제
+        userSessionRepository.deleteByUserId(userId);
+
+        // 3. 회원 정보 삭제
+        userRepository.delete(user);
     }
 }

@@ -36,4 +36,10 @@ public class GlobalExceptionHandler {
             
         return ResponseEntity.badRequest().body(errors);
     }
+
+    @ExceptionHandler(LoginException.class)
+    public ResponseEntity<String> handleLoginException(LoginException e) {
+        // 에러 메시지(예: "아이디가 틀렸습니다")를 그대로 반환
+        return ResponseEntity.badRequest().body(e.getMessage());
+    }
 }

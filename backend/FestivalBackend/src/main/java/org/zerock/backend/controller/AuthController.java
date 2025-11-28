@@ -14,18 +14,15 @@ public class AuthController {
 
     private final AuthService authService;
 
-    // 일반 로그인
+    // [수정] try-catch를 모두 제거했습니다!
     @PostMapping("/login")
     public ResponseEntity<UserLoginResponseDto> login(@RequestBody UserLoginRequestDto dto) {
-        try {
-            UserLoginResponseDto response = authService.login(dto);
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            return ResponseEntity.badRequest().body(UserLoginResponseDto.builder().message(e.getMessage()).build());
-        }
+        // 서비스가 알아서 예외를 던지면 -> GlobalExceptionHandler가 받아서 처리함
+        // 컨트롤러는 "성공했을 때"만 신경 쓰면 됨
+        UserLoginResponseDto response = authService.login(dto);
+        return ResponseEntity.ok(response);
     }
 
-    // [중요] 이 메서드가 'class' 괄호 안에 바로 있어야 합니다! (내부 클래스 금지)
     @GetMapping("/kakao/callback")
     public ResponseEntity<UserLoginResponseDto> kakaoLogin(@RequestParam("code") String code) {
         UserLoginResponseDto response = authService.kakaoLogin(code);

@@ -2,6 +2,7 @@ package org.zerock.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -25,6 +26,18 @@ public class UserEntity {
 
     @Column(nullable = false, length = 10)
     private String sex;
+
+    @Column(length = 20)
+    private String phoneNumber;
+
+    @Column(length = 50)
+    private String nationality;
+    
+    @Column(length = 50)
+    private String nickname;
+    
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
 
     @Column(name = "verify_code", length = 10)
     private String verifyCode;
