@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './MyPage.css';
 import instaIcon from '../assets/인스타그램.png';
 import ytIcon from '../assets/유튜브.png';
@@ -7,9 +8,11 @@ import Reservations from './Reservations';
 import PostsList from './PostsList';
 import ConfirmModal from './ConfirmModal';
 
-const MyPage = ({ onNavigate, onLogout }) => {
+const MyPage = ({ onLogout }) => {
   const usr = sessionStorage.getItem('user');
   const user = usr ? JSON.parse(usr) : null;
+
+  const navigate = useNavigate();
 
   const [view, setView] = useState('info');
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -27,7 +30,7 @@ const MyPage = ({ onNavigate, onLogout }) => {
   const handleLogout = () => {
     sessionStorage.removeItem('user');
     onLogout && onLogout();
-    onNavigate && onNavigate('home');
+    navigate('/');
   };
 
   const openConfirm = (action) => {
@@ -61,7 +64,7 @@ const MyPage = ({ onNavigate, onLogout }) => {
     if (window.confirm('정말 계정을 삭제하시겠습니까?')) {
       sessionStorage.removeItem('user');
       alert('계정이 삭제되었습니다.');
-      onNavigate && onNavigate('home');
+      navigate('/');
     }
   };
 

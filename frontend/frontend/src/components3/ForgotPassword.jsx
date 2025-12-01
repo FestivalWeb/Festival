@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './FindId.css';
 import './ForgotPassword.css';
 
-const ForgotPassword = ({ onNavigate }) => {
+const ForgotPassword = () => {
   const [step, setStep] = useState(0); // 0: form, 1: reset form, 2: success, 3: not found
   const [form, setForm] = useState({ name: '', username: '', email: '', code: '', password: '', password2: '' });
   const [error, setError] = useState('');
+
+  const navigate = useNavigate();
 
   const onChange = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
@@ -85,12 +88,12 @@ const ForgotPassword = ({ onNavigate }) => {
             </div>
           )}
 
-          {step === 2 && (
+            {step === 2 && (
             <div className="findid-result">
               <p>비밀번호가 성공적으로 변경 되었습니다.</p>
               <div className="actions-row">
-                <button className="findid-btn" onClick={() => onNavigate && onNavigate('login')}>로그인 하기</button>
-                <button className="findid-btn-pink" onClick={() => onNavigate && onNavigate('home')}>홈으로 이동</button>
+                <button className="findid-btn" onClick={() => navigate('/login')}>로그인 하기</button>
+                <button className="findid-btn-pink" onClick={() => navigate('/')}>홈으로 이동</button>
               </div>
             </div>
           )}
@@ -100,7 +103,7 @@ const ForgotPassword = ({ onNavigate }) => {
               <p>회원님의 아이디를 찾을 수 없습니다.<br/>회원가입을 해주세요.</p>
               <div className="actions-row">
                 <button className="findid-btn" onClick={() => { setStep(0); setError(''); }}>다시 찾기</button>
-                <button className="findid-btn-pink" onClick={() => onNavigate && onNavigate('signup')}>회원가입</button>
+                <button className="findid-btn-pink" onClick={() => navigate('/signup')}>회원가입</button>
               </div>
             </div>
           )}

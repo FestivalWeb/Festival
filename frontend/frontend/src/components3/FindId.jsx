@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './FindId.css';
 
-const FindId = ({ onNavigate }) => {
+const FindId = () => {
   const [step, setStep] = useState(0); // 0: form, 1: success, 2: not found
   const [form, setForm] = useState({ name: '', email: '' });
   const [error, setError] = useState('');
+
+  const navigate = useNavigate();
 
   const onChange = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
@@ -55,8 +58,8 @@ const FindId = ({ onNavigate }) => {
               <p>아이디 찾기가 완료 되었습니다.</p>
               <input className="findid-id" value={'123156456'} readOnly />
               <div className="actions-row">
-                <button className="findid-btn" onClick={() => onNavigate && onNavigate('login')}>로그인</button>
-                <button className="findid-btn-pink" onClick={() => onNavigate && onNavigate('forgotPassword')}>비밀번호 찾기</button>
+                <button className="findid-btn" onClick={() => navigate('/login')}>로그인</button>
+                <button className="findid-btn-pink" onClick={() => navigate('/forgotPassword')}>비밀번호 찾기</button>
               </div>
             </div>
           )}
@@ -66,7 +69,7 @@ const FindId = ({ onNavigate }) => {
               <p>회원님의 아이디를 찾을 수 없습니다.<br/>회원가입을 해주세요.</p>
               <div className="actions-row">
                 <button className="findid-btn" onClick={() => { setStep(0); setError(''); }}>다시 찾기</button>
-                <button className="findid-btn-pink" onClick={() => onNavigate && onNavigate('home')}>홈으로 이동</button>
+                <button className="findid-btn-pink" onClick={() => navigate('/')}>홈으로 이동</button>
               </div>
             </div>
           )}

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Signup.css';
 
 // Multi-step Signup implemented to match PM requirements (terms -> info -> verify -> done)
-const Signup = ({ onNavigate }) => {
+const Signup = () => {
   const [step, setStep] = useState(0);
 
   // form state
@@ -11,6 +12,7 @@ const Signup = ({ onNavigate }) => {
   const [error, setError] = useState('');
   const [sendingCode, setSendingCode] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
+  const navigate = useNavigate();
 
   const onChange = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
@@ -83,11 +85,9 @@ const Signup = ({ onNavigate }) => {
     <div className="signup-wrapper">
       <div className="signup-container full-bleed">
         <div className="signup-form-area">
-          {onNavigate && (
-            <button className="signup-back-btn" onClick={() => onNavigate('login')}>
-              ← 뒤로
-            </button>
-          )}
+          <button className="signup-back-btn" onClick={() => navigate('/login')}>
+            ← 뒤로
+          </button>
 
           <div className="signup-header">
             <h2>세계딸기축제</h2>
@@ -164,7 +164,7 @@ const Signup = ({ onNavigate }) => {
               <div className="done-card">
                 <p>회원가입이 완료되었습니다.</p>
                 <div className="actions-row">
-                  <button className="signup-btn-green" onClick={() => onNavigate && onNavigate('login')}>로그인</button>
+                  <button className="signup-btn-green" onClick={() => navigate('/login')}>로그인</button>
                 </div>
               </div>
             </div>
@@ -172,7 +172,7 @@ const Signup = ({ onNavigate }) => {
 
           <div className="signup-footer">
             이미 계정이 있으신가요?
-            <button className="signup-login-link" onClick={() => onNavigate && onNavigate('login')}>
+            <button className="signup-login-link" onClick={() => navigate('/login')}>
               로그인
             </button>
           </div>
@@ -183,3 +183,4 @@ const Signup = ({ onNavigate }) => {
 };
 
 export default Signup;
+
