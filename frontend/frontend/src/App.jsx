@@ -54,8 +54,9 @@ function AppContent() {
   const location = useLocation();
 
 
-  // 메인 페이지, admin, introdetail에서는 Header 숨김, mainhero1에 이미 자체 Header 코드가 있어서 header가 두번 렌더링됨.
-  const hideHeader = location.pathname === "/" ||
+  // 메인 페이지에서 공용 Header를 사용하도록 변경함 (메인 전용 헤더를 제거했음).
+  // 관리자/로그인 등 일부 경로에서만 헤더를 숨깁니다.
+  const hideHeader =
     location.pathname.startsWith("/admin") ||
     location.pathname === "/intro/detail" ||
     location.pathname.startsWith("/login") ||
