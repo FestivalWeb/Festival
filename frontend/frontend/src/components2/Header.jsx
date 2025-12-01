@@ -89,29 +89,29 @@ export default function Header() {
 
       {/* 오른쪽 - 검색 + 로그인 */}
       <div className="nav-right">
-        {/* 검색 입력 — 항상 노출 */}
-        <input
-          type="text"
-          className="search-input"
-          placeholder="검색어를 입력하세요"
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-        />
+        {/* 검색 그룹: 버튼(왼쪽) + 입력(오른쪽) */}
+        <div className="search-group">
+          <button
+            className="search-icon-button"
+            type="button"
+            onClick={() => {
+              // 현재는 무동작(no-op). 향후 검색페이지로 연결하기 쉽게 유지.
+            }}
+            aria-label="search-button"
+          >
+            <span role="img" aria-label="search">
+              🔍
+            </span>
+          </button>
 
-        {/* 돋보기 버튼 (클릭 시 향후 검색 페이지로 이동하도록 처리) */}
-        <button
-          className="search-icon-button"
-          type="button"
-          onClick={() => {
-            // 향후 검색 페이지로 연결하기 쉬우므로 쿼리 포함 네비게이트
-            const q = searchText ? `?q=${encodeURIComponent(searchText)}` : "";
-            navigate(`/search${q}`);
-          }}
-        >
-          <span role="img" aria-label="search">
-            🔍
-          </span>
-        </button>
+          <input
+            type="text"
+            className="search-input"
+            placeholder="검색어를 입력하세요"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
+        </div>
 
         {/* 로그인 상태에 따라: 로그인 전에는 로그인 버튼, 로그인 후에는 마이페이지 + 로그아웃 */}
         {user ? (

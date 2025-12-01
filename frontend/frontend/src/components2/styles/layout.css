@@ -43,7 +43,7 @@ html, body, #root {
 
 /* Search input next to search button */
 .search-input {
-  width: 180px;
+  width: 160px;
   padding: 6px 10px;
   border-radius: 18px;
   border: 1px solid #f1c7d1;
@@ -66,6 +66,14 @@ html, body, #root {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+
+/* wrapper for search button + input, provides spacing before login area */
+.search-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 18px; /* spacing between search and auth buttons */
 }
 
 .nav-right .mypage-button {
