@@ -37,6 +37,10 @@ public class popup extends BaseEntity { // BaseEntity 상속
     @Column(name = "priority")
     private Long priority;
 
+    // 상태: true = 사용, false = 중지
+    @Column(name = "status", nullable = false)
+    private boolean status = true;
+
     // 1:N 관계 (PopUp 1 : PopupSchedule N)
     // 'mappedBy'는 PopupSchedule 클래스의 'popUp' 필드 이름을 가리킴
     @OneToMany(mappedBy = "popUp", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -57,5 +61,9 @@ public class popup extends BaseEntity { // BaseEntity 상속
         this.content = content;
         this.imageUri = imageUri;
         this.priority = priority;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
     }
 }

@@ -11,5 +11,5 @@ public class AdminSignupResponse {
     private String username;
     private String name;
     private String email;
-    private boolean active;   // 승인 여부(지금은 항상 false)
+    private boolean active;
 }
