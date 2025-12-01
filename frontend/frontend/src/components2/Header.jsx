@@ -34,8 +34,13 @@ export default function Header() {
       // 다른 페이지면 홈으로 이동하면서 스크롤 타겟을 전달
       navigate('/', { state: { scrollTo: className } });
     } else {
-      // 이미 HomePage면 바로 스크롤
-      scrollToSection(className);
+      // 이미 HomePage면 HomePage의 ref 기반 스크롤을 트리거하도록 이벤트 전송
+      try {
+        window.dispatchEvent(new CustomEvent('app-scroll-to', { detail: { target: className } }));
+      } catch (e) {
+        // fallback: DOM 기반 스크롤
+        scrollToSection(className);
+      }
     }
   };
 
@@ -66,9 +71,9 @@ export default function Header() {
         <button className="sf-nav-item" onClick={() => handleScrollClick("festivalintro")}>
           축제소개
         </button>
-        <button className="sf-nav-item" onClick={() => navigate("/notice")} >공지사항/게시물</button>
-        <button className="sf-nav-item" onClick={() => navigate("/gallery")}>갤러리</button>
-        <button className="sf-nav-item" onClick={() => navigate("/booth")}>
+        <button className="sf-nav-item" onClick={() => handleScrollClick("notice")} >공지사항/게시물</button>
+        <button className="sf-nav-item" onClick={() => handleScrollClick("gallery")}>갤러리</button>
+        <button className="sf-nav-item" onClick={() => handleScrollClick("booth")}>
           체험부스
         </button>
 
@@ -132,5 +137,3 @@ export default function Header() {
     </header>
   );
 }
-
-// debug/fallback removed

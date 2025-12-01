@@ -59,6 +59,21 @@ function HomePage() {
     setTimeout(run, 80);
   }, [location.state]);
 
+  useEffect(() => {
+    const listener = (e) => {
+      const target = e?.detail?.target;
+      if (!target) return;
+      if (target === 'festivalintro') handleScrollToIntro();
+      if (target === 'notice') handleScrollToNotice();
+      if (target === 'gallery') handleScrollToGallery();
+      if (target === 'booth') handleScrollToBooth();
+      if (target === 'directions-section' || target === 'directions') handleScrollToDirections();
+    };
+
+    window.addEventListener('app-scroll-to', listener);
+    return () => window.removeEventListener('app-scroll-to', listener);
+  }, []);
+
   return (
     <div>
       {/* 메인 히어로 + 상단 메뉴 */}
