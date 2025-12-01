@@ -29,17 +29,22 @@ export default function Header() {
     }
   };
 
-  const handleScrollClick = (className) => {
-    if (location.pathname !== "/") {
-      // 다른 페이지면 홈으로 이동하면서 스크롤 타겟을 전달
-      navigate('/', { state: { scrollTo: className } });
-    } else {
-      // 이미 HomePage면 HomePage의 ref 기반 스크롤을 트리거하도록 이벤트 전송
+  // target: scroll target class name used by HomePage refs
+  // fallbackPath: when not on home, navigate to this path instead of navigating to home
+  const navOrScroll = (target, fallbackPath) => {
+    if (location.pathname === "/") {
+      // same page -> use event to trigger ref-based scroll
       try {
-        window.dispatchEvent(new CustomEvent('app-scroll-to', { detail: { target: className } }));
+        window.dispatchEvent(new CustomEvent('app-scroll-to', { detail: { target } }));
       } catch (e) {
-        // fallback: DOM 기반 스크롤
-        scrollToSection(className);
+        scrollToSection(target);
+      }
+    } else {
+      if (fallbackPath) {
+        navigate(fallbackPath);
+      } else {
+        // navigate to home and request scroll
+        navigate('/', { state: { scrollTo: target } });
       }
     }
   };
@@ -68,12 +73,12 @@ export default function Header() {
 
       {/* 가운데 메뉴 */}
       <nav className="sf-nav-right">
-        <button className="sf-nav-item" onClick={() => handleScrollClick("festivalintro")}>
+        <button className="sf-nav-item" onClick={() => navOrScroll("festivalintro") }>
           축제소개
         </button>
-        <button className="sf-nav-item" onClick={() => handleScrollClick("notice")} >공지사항/게시물</button>
-        <button className="sf-nav-item" onClick={() => handleScrollClick("gallery")}>갤러리</button>
-        <button className="sf-nav-item" onClick={() => handleScrollClick("booth")}>
+        <button className="sf-nav-item" onClick={() => navOrScroll("notice", "/notice") } >공지사항/게시물</button>
+        <button className="sf-nav-item" onClick={() => navOrScroll("gallery", "/gallery") }>갤러리</button>
+        <button className="sf-nav-item" onClick={() => navOrScroll("booth", "/booth") }>
           체험부스
         </button>
 
