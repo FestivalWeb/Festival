@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from "rea
 
 import Layout from "./components2/layout/Layout";
 import Header from "./components2/Header";
+import { AuthProvider } from './context/AuthContext';
 import Footer from "./components2/Footer";
 
 import HomePage from "./components/home/HomePage.jsx";
@@ -51,18 +52,7 @@ const HomeLayout = () => (
 // 메인페이지의 Header의 경우 스크롤기능 때문에 다른 페이지에 따로 적용할 수 없어 AppContent() 조건 함수로 표현
 function AppContent() {
   const location = useLocation();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  useEffect(() => {
-}, [location.pathname]);
-
-
-  useEffect(() => {
-    const user = sessionStorage.getItem("user");
-    setIsLoggedIn(!!user);
-  }, [location.pathname]);
-
-  // NOTE: temporary debug click listener removed.
 
   // 메인 페이지, admin, introdetail에서는 Header 숨김, mainhero1에 이미 자체 Header 코드가 있어서 header가 두번 렌더링됨.
   const hideHeader = location.pathname === "/" ||
@@ -71,8 +61,7 @@ function AppContent() {
     location.pathname.startsWith("/login") ||
     location.pathname.startsWith("/signup") ||
     location.pathname.startsWith("/findId") ||
-    location.pathname.startsWith("/forgotPassword") ||
-    location.pathname.startsWith("/mypage");
+    location.pathname.startsWith("/forgotPassword");
 
   return (
     <>
@@ -98,11 +87,11 @@ function AppContent() {
         {/* 로그인 관련 */}
         {/* 상운님, 기존의 onNavigate방식에서 react-router-dom방식으로 변경하면서 코드 바뀌었습니다. */}
         {/* 컴포넌트(ex)login.jsx)부분의 onNavigate방식을 goto로 바꾸셔야 라우팅이 될 것 같습니다. - 수빈 */}
-        <Route path="/login" element={<Login onLoginSuccess={() => setIsLoggedIn(true)} />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/findId" element={<FindId />} />
         <Route path="/forgotPassword" element={<ForgotPassword />} />
-        <Route path="/mypage" element={<MyPage onLogout={() => setIsLoggedIn(false)} />} />
+        <Route path="/mypage" element={<MyPage />} />
 
         {/* 게시판 */}
 
@@ -136,7 +125,9 @@ const BoothDetailWrapper = () => {
 function App() {
   return (
     <Router>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </Router>
   );
 }

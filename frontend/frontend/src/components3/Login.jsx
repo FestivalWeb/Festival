@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import './Login.css';
 import kakaoIcon from '../assets/카카오톡 아이콘.png';
 
-const Login = ({ onLoginSuccess }) => {
+const Login = () => {
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const goTo = (path) => {
     // map simple page keys used in old onNavigate to router paths
@@ -30,9 +32,9 @@ const Login = ({ onLoginSuccess }) => {
 
     setTimeout(() => {
       if (id === 'admin' && password === 'admin') {
-        // 로그인 성공: 세션에 사용자 저장
-        sessionStorage.setItem('user', JSON.stringify({ id: 'admin', name: '관리자' }));
-        onLoginSuccess && onLoginSuccess();
+        // 로그인 성공: auth context에 사용자 저장
+        const userObj = { id: 'admin', name: '관리자' };
+        login(userObj);
         navigate('/mypage');
       } else {
         setError('아이디 또는 비밀번호가 올바르지 않습니다.');

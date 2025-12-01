@@ -1,5 +1,6 @@
 // src/components/HomePage.jsx
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
+import { useLocation } from 'react-router-dom';
 import MainHero1 from "./MainHero1.jsx";
 import FestivalIntro from "./FestivalIntro.jsx";
 import NoticeSection from "./NoticeSection.jsx";
@@ -8,6 +9,7 @@ import ExperienceBoothSection from "./ExperienceBoothSection.jsx";
 import DirectionsSection from "./DirectionsSection.jsx";
 
 function HomePage() {
+  const location = useLocation();
   const introRef = useRef(null);
   const noticeRef = useRef(null);
   const galleryRef = useRef(null);
@@ -36,6 +38,26 @@ function HomePage() {
       block: "start",
     });
   };
+
+  useEffect(() => {
+    // If a navigation provided a scroll target (via location.state.scrollTo), run the corresponding scroll handler
+    const target = location.state?.scrollTo;
+    if (!target) return;
+    const run = () => {
+      if (target === 'festivalintro') handleScrollToIntro();
+      if (target === 'notice') handleScrollToNotice();
+      if (target === 'gallery') handleScrollToGallery();
+      if (target === 'booth') handleScrollToBooth();
+      if (target === 'directions-section' || target === 'directions') handleScrollToDirections();
+      try {
+        // Clear state so back/refresh doesn't re-trigger
+        window.history.replaceState({}, document.title);
+      } catch (e) {}
+    };
+
+    // slight delay to allow page render
+    setTimeout(run, 80);
+  }, [location.state]);
 
   return (
     <div>

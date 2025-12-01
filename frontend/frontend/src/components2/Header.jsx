@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import "../components/home/MainHero.css"
 import "./styles/layout.css";
 
 export default function Header() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user, logout } = useAuth();
 
 
   // 🔍 검색 상태
@@ -27,10 +30,9 @@ export default function Header() {
   };
 
   const handleScrollClick = (className) => {
-    if (window.location.pathname !== "/") {
-      // 다른 페이지면 먼저 '/'로 이동 후 잠시 기다렸다가 스크롤
-      navigate("/");
-      setTimeout(() => scrollToSection(className), 300); // 300ms 후 실행 (페이지 렌더링 후)
+    if (location.pathname !== "/") {
+      // 다른 페이지면 홈으로 이동하면서 스크롤 타겟을 전달
+      navigate('/', { state: { scrollTo: className } });
     } else {
       // 이미 HomePage면 바로 스크롤
       scrollToSection(className);
@@ -105,14 +107,27 @@ export default function Header() {
           />
         )}
 
-        {/* 로그인 버튼 */}
-        <button
-          className="login-button"
-          type="button"
-          onClick={() => navigate('/login')}
-        >
-          로그인
-        </button>
+        {/* 로그인 / 로그아웃 버튼 */}
+        {user ? (
+          <button
+            className="login-button"
+            type="button"
+            onClick={() => {
+              logout();
+              navigate('/');
+            }}
+          >
+            로그아웃
+          </button>
+        ) : (
+          <button
+            className="login-button"
+            type="button"
+            onClick={() => navigate('/login')}
+          >
+            로그인
+          </button>
+        )}
       </div>
     </header>
   );

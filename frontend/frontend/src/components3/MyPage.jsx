@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import './MyPage.css';
 import instaIcon from '../assets/인스타그램.png';
 import ytIcon from '../assets/유튜브.png';
@@ -9,8 +10,7 @@ import PostsList from './PostsList';
 import ConfirmModal from './ConfirmModal';
 
 const MyPage = ({ onLogout }) => {
-  const usr = sessionStorage.getItem('user');
-  const user = usr ? JSON.parse(usr) : null;
+  const { user, logout, updateUser } = useAuth();
 
   const navigate = useNavigate();
 
@@ -28,7 +28,7 @@ const MyPage = ({ onLogout }) => {
   const [showNewConfirm, setShowNewConfirm] = useState(false);
 
   const handleLogout = () => {
-    sessionStorage.removeItem('user');
+    logout();
     onLogout && onLogout();
     navigate('/');
   };
@@ -55,14 +55,14 @@ const MyPage = ({ onLogout }) => {
   const handleSave = (e) => {
     e.preventDefault();
     const updated = { ...(user || {}), ...form };
-    sessionStorage.setItem('user', JSON.stringify(updated));
+    updateUser(updated);
     alert('정보가 저장되었습니다.');
     setView('info');
   };
 
   const handleDelete = () => {
     if (window.confirm('정말 계정을 삭제하시겠습니까?')) {
-      sessionStorage.removeItem('user');
+      logout();
       alert('계정이 삭제되었습니다.');
       navigate('/');
     }
