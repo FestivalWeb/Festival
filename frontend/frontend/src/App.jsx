@@ -63,6 +63,8 @@ function AppContent() {
     setIsLoggedIn(!!user);
   }, [location.pathname]);
 
+  // NOTE: temporary debug click listener removed.
+
   // 메인 페이지, admin, introdetail에서는 Header 숨김, mainhero1에 이미 자체 Header 코드가 있어서 header가 두번 렌더링됨.
   const hideHeader = location.pathname === "/" ||
     location.pathname.startsWith("/admin") ||

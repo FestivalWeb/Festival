@@ -1,10 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../components/home/MainHero.css"
 import "./styles/layout.css";
 
 export default function Header() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    try {
+      console.log('[debug] Header mounted. navigate type:', typeof navigate);
+    } catch (e) {
+      console.error('[debug] Header mount log failed', e);
+    }
+  }, []);
 
   // 🔍 검색 상태
   const [showSearch, setShowSearch] = useState(false);
@@ -105,10 +113,24 @@ export default function Header() {
         )}
 
         {/* 로그인 버튼 */}
-        <button className="login-button" type="button" onClick={() => navigate('/login')}>
+        <button
+          className="login-button"
+          type="button"
+          onClick={() => {
+            console.log('[debug] Header login clicked, calling navigate');
+            try {
+              navigate('/login');
+            } catch (e) {
+              console.error('[debug] navigate threw', e);
+              window.location.href = '/login';
+            }
+          }}
+        >
           로그인
         </button>
       </div>
     </header>
   );
 }
+
+// debug/fallback removed

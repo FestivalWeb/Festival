@@ -17,7 +17,8 @@ html, body, #root {
   align-items: center;
   padding: 0 20px;
   box-sizing: border-box;
-  z-index: 2000;
+  z-index: 99999; /* Ensure header is on top */
+  pointer-events: auto; /* Ensure clicks reach header */
 }
 
 /* 내부 영역: 화면 전체 사용 */
@@ -38,6 +39,13 @@ html, body, #root {
   display: flex;
   align-items: center;
   gap: 15px;
+}
+
+/* Ensure header controls accept pointer events even if other elements overlay */
+.sf-header *,
+.sf-nav-right *,
+.nav-right * {
+  pointer-events: auto !important;
 }
 
 .layout-container {
