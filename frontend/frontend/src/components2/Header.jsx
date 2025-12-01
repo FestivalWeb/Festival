@@ -6,13 +6,6 @@ import "./styles/layout.css";
 export default function Header() {
   const navigate = useNavigate();
 
-  useEffect(() => {
-    try {
-      console.log('[debug] Header mounted. navigate type:', typeof navigate);
-    } catch (e) {
-      console.error('[debug] Header mount log failed', e);
-    }
-  }, []);
 
   // 🔍 검색 상태
   const [showSearch, setShowSearch] = useState(false);
@@ -116,15 +109,7 @@ export default function Header() {
         <button
           className="login-button"
           type="button"
-          onClick={() => {
-            console.log('[debug] Header login clicked, calling navigate');
-            try {
-              navigate('/login');
-            } catch (e) {
-              console.error('[debug] navigate threw', e);
-              window.location.href = '/login';
-            }
-          }}
+          onClick={() => navigate('/login')}
         >
           로그인
         </button>

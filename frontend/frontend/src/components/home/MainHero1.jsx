@@ -112,7 +112,11 @@ function MainHero1({
             )}
 
             {/* 로그인 버튼 */}
-            <button className="login-button" type="button">
+            <button
+              className="login-button"
+              type="button"
+              onClick={() => navigate('/login')}
+            >
               로그인
             </button>
           </div>

@@ -54,7 +54,6 @@ function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-  console.log("Current Path:", location.pathname); // 경로가 정확히 무엇인지 출력
 }, [location.pathname]);
 
 
