@@ -36,4 +36,12 @@ public abstract class BaseEntity {
     @LastModifiedBy
     @Column(name = "updated_by", nullable = false)
     private Long updatedBy; // 수정자 ID
+
+    public void setCreatedBy(Long createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public void setUpdatedBy(Long updatedBy) {
+        this.updatedBy = updatedBy;
+    }
 }

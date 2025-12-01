@@ -32,6 +32,10 @@ public class popupschedule {
     @Column(name = "end_at", nullable = false) // 컬럼명: 소문자 end_at
     private LocalDateTime endAt;
 
+    public void updatePeriod(LocalDateTime startAt, LocalDateTime endAt) {
+    this.startAt = startAt;
+    this.endAt = endAt;
+}
     // --- 생성자 ---
     @Builder
     public popupschedule(popup popUp, LocalDateTime startAt, LocalDateTime endAt) {

@@ -33,7 +33,7 @@ public class AdminAuthService {
     private final AdminIpWhitelistRepository adminIpWhitelistRepository;
     private final AdminSessionRepository adminSessionRepository;
     private final PasswordEncoder passwordEncoder;
-
+    private final AdminLogWriter adminLogWriter;
     
     // 세션 유지 시간 (슬라이딩 기준)
     private static final long SESSION_HOURS = 2L;
@@ -104,7 +104,10 @@ public class AdminAuthService {
 
         // 1. 계정 조회 (아이디 기준으로 관리자 조회)
         AdminUser adminUser = adminUserRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다."));
+                .orElseThrow(() -> {
+                    adminLogWriter.logLoginFailure(request.getUsername(), "존재하지 않는 계정", httpRequest);
+                    return new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다.");
+                });
 
         // 2. 계정 활성 상태 확인 (비활성 계정 로그인 방지)
         if (!adminUser.isActive()) {
@@ -113,6 +116,7 @@ public class AdminAuthService {
 
         // 3. 비밀번호 검증 (입력한 비번과 DB에 저장된 해시)
         if (!passwordEncoder.matches(request.getPassword(), adminUser.getPasswordHash())) {
+            adminLogWriter.logLoginFailure(request.getUsername(), "비밀번호 불일치", httpRequest);
             throw new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다.");
         }
 
@@ -147,11 +151,14 @@ public class AdminAuthService {
         if (opt.isPresent()) {
             // 유효한 세션이 존재 → 이 세션 "재사용"
             AdminSession session = opt.get();
-
+            
             // 마지막 접근 시간, 만료 시간 갱신 
             session.setLastAccessAt(now);
             session.setExpiresAt(now.plusHours(SESSION_HOURS));
             adminSessionRepository.save(session);
+
+            // 로그인 성공 로그
+        adminLogWriter.logLoginSuccess(adminUser.getUsername(), httpRequest);
 
             // 쿠키도 다시 내려서 브라우저 쪽 만료시간 연장
             setSessionCookie(httpResponse, existingSessionId);
@@ -182,6 +189,9 @@ public class AdminAuthService {
 
         // DB에 세션 저장
         adminSessionRepository.save(session);
+
+        // 로그인 성공 로그
+    adminLogWriter.logLoginSuccess(adminUser.getUsername(), httpRequest);
 
         // 8. 새 세션 ID를 쿠키로 브라우저에 심기
         setSessionCookie(httpResponse, sessionId);
