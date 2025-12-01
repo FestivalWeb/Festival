@@ -11,7 +11,6 @@ export default function Header() {
 
 
   // 🔍 검색 상태
-  const [showSearch, setShowSearch] = useState(false);
   const [searchText, setSearchText] = useState("");
 
   // 오시는 길 클릭 시 스크롤 함수
@@ -90,45 +89,47 @@ export default function Header() {
 
       {/* 오른쪽 - 검색 + 로그인 */}
       <div className="nav-right">
-        {/* 돋보기 버튼 */}
+        {/* 검색 입력 — 항상 노출 */}
+        <input
+          type="text"
+          className="search-input"
+          placeholder="검색어를 입력하세요"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+
+        {/* 돋보기 버튼 (클릭 시 향후 검색 페이지로 이동하도록 처리) */}
         <button
           className="search-icon-button"
           type="button"
-          onClick={() => setShowSearch((prev) => !prev)}
+          onClick={() => {
+            // 향후 검색 페이지로 연결하기 쉬우므로 쿼리 포함 네비게이트
+            const q = searchText ? `?q=${encodeURIComponent(searchText)}` : "";
+            navigate(`/search${q}`);
+          }}
         >
           <span role="img" aria-label="search">
             🔍
           </span>
         </button>
 
-        {/* 🔽 돋보기 눌렀을 때만 보이는 입력창 */}
-        {showSearch && (
-          <input
-            type="text"
-            className="search-input"
-            placeholder="검색어를 입력하세요"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            /* 눈에 확 보이게 테스트용 스타일 */
-            style={{
-              border: "2px solid red",
-              background: "white",
-            }}
-          />
-        )}
-
-        {/* 로그인 / 로그아웃 버튼 */}
+        {/* 로그인 상태에 따라: 로그인 전에는 로그인 버튼, 로그인 후에는 마이페이지 + 로그아웃 */}
         {user ? (
-          <button
-            className="login-button"
-            type="button"
-            onClick={() => {
-              logout();
-              navigate('/');
-            }}
-          >
-            로그아웃
-          </button>
+          <>
+            <button className="mypage-button" type="button" onClick={() => navigate('/mypage')}>
+              마이페이지
+            </button>
+            <button
+              className="login-button"
+              type="button"
+              onClick={() => {
+                logout();
+                navigate('/');
+              }}
+            >
+              로그아웃
+            </button>
+          </>
         ) : (
           <button
             className="login-button"
