@@ -24,12 +24,12 @@ function FestivalIntroDetail() {
       <div className="detail-container">
         {/* 상단 타이틀 */}
         <header className="detail-header">
-          <div className="detail-header-row">
+          {/* <div className="detail-header-row">
             <div className="detail-logo">
               <span className="detail-logo-icon">🍓</span>
               <span className="detail-logo-text">논산딸기축제</span>
             </div>
-          </div>
+          </div> */}
 
           {/* 상단 탭 메뉴 3개 */}
           <nav className="detail-top-tabs">

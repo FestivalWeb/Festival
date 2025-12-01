@@ -36,11 +36,22 @@ export default function Header() {
     }
   };
 
+   // 로고 클릭 시 홈 이동 + 맨 위 스크롤
+  const handleLogoClick = () => {
+    if (window.location.pathname !== "/") {
+      navigate("/");
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   return (
     <header className="sf-header">
       {/* 왼쪽 로고 영역 */}
-      <div className="sf-logo-area">
+      <div className="sf-logo-area"
+      onClick={handleLogoClick} // 클릭 이벤트 추가
+      style={{ cursor: "pointer" }}
+      >
         <div className="sf-logo-mark">🍓</div>
         <div className="sf-logo-text">
           <span className="sf-logo-title">논산딸기축제</span>

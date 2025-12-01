@@ -1,6 +1,6 @@
 // src/components/MainHero1.jsx
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./MainHero.css";
 
 function MainHero1({
@@ -14,18 +14,30 @@ function MainHero1({
   const [showSearch, setShowSearch] = useState(false);
   const [searchText, setSearchText] = useState("");
 
+  const navigate = useNavigate(); // 클릭 시 이동
+
   return (
     <div className="sf-page">
       {/* 상단 헤더 */}
       <header className="sf-header">
         <div className="sf-header-inner">
           {/* 왼쪽 로고 */}
-          <Link to="/" className="sf-logo-area">
-  <div className="sf-logo-mark">🍓</div>
-  <div className="sf-logo-text">
-    <span className="sf-logo-title">논산딸기축제</span>
-    </div>
-</Link>
+          <div
+            className="sf-logo-area"
+            onClick={() => {
+              if (window.location.pathname === "/") {
+                window.scrollTo({ top: 0, behavior: "smooth" }); // HomePage일 때 맨 위로 스크롤
+              } else {
+                navigate("/"); // 다른 페이지면 HomePage로 이동
+              }
+            }}
+            style={{ cursor: "pointer" }}
+          >
+            <div className="sf-logo-mark">🍓</div>
+            <div className="sf-logo-text">
+              <span className="sf-logo-title">논산딸기축제</span>
+            </div>
+          </div>
 
           {/* 가운데 메뉴 */}
           <nav className="sf-nav">
@@ -136,7 +148,11 @@ function MainHero1({
               >
                 축제 안내 보기
               </button>
-              <button className="sf-outline-button" type="button">
+              <button
+                className="sf-outline-button"
+                type="button"
+                onClick={() => navigate("/booth")}   // ← 체험부스 페이지로 이동
+              >
                 체험 프로그램 신청
               </button>
             </div>
@@ -153,8 +169,8 @@ function MainHero1({
 
       {/* 챗봇 버튼 */}
       <div className="sf-chatbot-floating" aria-label="챗봇 열기">
-  <span className="sf-chatbot-icon" role="img" aria-label="chatbot">🤖</span>
-</div>
+        <span className="sf-chatbot-icon" role="img" aria-label="chatbot">🤖</span>
+      </div>
     </div>
   );
 }

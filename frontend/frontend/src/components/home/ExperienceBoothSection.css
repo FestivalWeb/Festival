@@ -39,6 +39,7 @@
   padding: 20px 22px;
   background: linear-gradient(135deg, #fff9fb, #ffeef5);
   box-shadow: 0 10px 24px rgba(255, 150, 190, 0.25);
+  cursor: pointer;
 }
 
 .booth-name {

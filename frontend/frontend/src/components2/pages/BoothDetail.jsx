@@ -1,10 +1,19 @@
 import React, { useState } from "react";
+import { useLocation, useParams } from "react-router-dom";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "../styles/booth.css";
+import { boothResData } from "../data/boothResData";
 
 // 체험부스 예약 탭 상세페이지
-const BoothDetail = ({ booth }) => {
+const BoothDetail = () => {
+   const { state } = useLocation();
+  const { id } = useParams();
+
+  const booth = state?.booth ?? BoothResData.find((item) => item.id === Number(id));
+
+  if (!booth) return <p>부스 정보를 찾을 수 없습니다.</p>;
+
   const activeDates = ["2025-11-21", "2025-11-22", "2025-11-23"];
 
   const [selectedDate, setSelectedDate] = useState(activeDates[0]);
@@ -101,7 +110,7 @@ const BoothDetail = ({ booth }) => {
 
         <div className="detail-row">
           <span className="emoji-icon">💰</span>
-          <span>금액: {booth.price}17000원</span>
+          <span>금액: {booth.price}원</span>
         </div>
 
         <div className="detail-row">

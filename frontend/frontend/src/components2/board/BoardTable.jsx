@@ -4,7 +4,7 @@ import "../styles/board.css";
 // 공지사항, 게시판에서 공통으로 사용하는 파일 틀
 export default function BoardTable({ data, onTitleClick }) {
   return (
-    <table className="board-table">
+    <table className="board-table2">
       <thead>
         <tr>
           <th>글 번호</th>

@@ -61,3 +61,13 @@
   font-size: 13px;
   cursor: pointer;
 }
+.notice-title-link {
+  cursor: pointer; /* 마우스를 올렸을 때 손가락 모양으로 변경 */
+  color: #007bff; /* 링크 스타일 (필요한 경우) */
+  text-decoration: none; /* 제목에 밑줄을 추가해서 링크처럼 보이게 할 수도 있습니다. */
+}
+
+.notice-title-link:hover {
+  color: #0056b3; /* 마우스를 올렸을 때 색상 변경 */
+  text-decoration: underline; /* hover 시 밑줄 없애기 */
+}

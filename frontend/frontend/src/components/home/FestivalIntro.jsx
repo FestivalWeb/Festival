@@ -67,17 +67,17 @@ function FestivalIntro() {
 
           <article className="intro-card">
             <div className="intro-card-image">이미지 2</div>
-            <p className="intro-card-caption">딸기 수확 체험 프로그램</p>
+            <p className="intro-card-caption">딸기 수확 체험</p>
           </article>
 
           <article className="intro-card">
             <div className="intro-card-image">이미지 3</div>
-            <p className="intro-card-caption">야간 공연 &amp; 푸드트럭</p>
+            <p className="intro-card-caption">딸기 떡 메치기</p>
           </article>
 
           <article className="intro-card">
             <div className="intro-card-image">이미지 4</div>
-            <p className="intro-card-caption">포토존 &amp; 가족 체험</p>
+            <p className="intro-card-caption">케이크 공방</p>
           </article>
         </section>
 

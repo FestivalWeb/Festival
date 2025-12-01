@@ -10,7 +10,7 @@
   margin-bottom: 20px;
 }
 
- .notice-page2 .board-table {
+ .notice-page2 .board-table2 {
   width: 100%;
   max-width: 100%;
   margin: 0; 
@@ -18,7 +18,7 @@
   background: white;
 }
 
-.post-page .board-table {
+.post-page .board-table2 {
   width: 100%;
   max-width: 100%;
   margin: 0; 
@@ -26,7 +26,7 @@
   background: white;
 }
 
-.board-table th, .board-table td {
+.board-table2 th, .board-table2 td {
   border-bottom: 1px solid #ddd;
   padding: 12px;
   text-align: center;
