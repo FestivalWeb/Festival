@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import './MyPage.css';
 import instaIcon from '../assets/인스타그램.png';
 import ytIcon from '../assets/유튜브.png';
