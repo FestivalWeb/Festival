@@ -3,21 +3,30 @@ package org.zerock.backend.config;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    /**
-     * CORS (Cross-Origin Resource Sharing) 설정을 추가합니다.
-     * (test.html 같은 외부에서의 API 요청을 허용)
-     */
+    // CORS 설정 (기존 그대로)
     @Override
     public void addCorsMappings(@NonNull CorsRegistry registry) {
-        registry.addMapping("/**") // 1. 모든 API 경로(/users/**, /map/** 등)에 대해
-                // 2. test.html 파일이 열린 주소(로컬 파일 'null' 또는 Live Server 'http://127.0.0.1:5500')를 허용
-                .allowedOrigins("http://127.0.0.1:5500", "null") 
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS") // 3. 허용할 HTTP 메소드
-                .allowCredentials(true); 
+        registry.addMapping("/api/**")
+                .allowedOrigins(
+                        "http://localhost:3000",
+                        "http://127.0.0.1:5500",
+                        "http://localhost:5500"
+                )
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowCredentials(true); // 세션 쿠키 전달
+    }
+
+    // 정적 리소스 매핑: /uploads/** → 실제 uploads 폴더
+    @Override
+    public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/uploads/**")      
+                // 프로젝트 루트 기준으로 "uploads" 디렉터리
+                .addResourceLocations("file:uploads/");
     }
 }

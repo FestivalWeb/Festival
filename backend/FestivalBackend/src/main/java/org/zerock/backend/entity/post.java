@@ -2,6 +2,7 @@ package org.zerock.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,9 +13,12 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-
+import java.util.LinkedHashSet;
+import java.util.Set;
 @Entity
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @DynamicInsert // Default 값(view=0) 적용을 위해
 @EntityListeners(AuditingEntityListener.class) // BaseEntity 상속 안 하므로 직접 리스너 추가
@@ -43,6 +47,9 @@ public class post {
     @Column(name = "update_date")
     private LocalDateTime updateDate;
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<PostImgMapping> images = new LinkedHashSet<>();
     //--- 기타 컬럼 ---
 
     @ColumnDefault("0") // 조회수 기본값 0

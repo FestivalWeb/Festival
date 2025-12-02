@@ -23,7 +23,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // [수정됨] "/api/auth/**" -> "/auth/**" 로 변경!
                 // AuthController의 @RequestMapping("/auth")와 일치해야 합니다.
-                .requestMatchers( "/map/**", "/weather/**", "/auth/**", "/login/**").permitAll()
+                .requestMatchers( "/map/**", "/weather/**", "/auth/**", "/login/**","/**").permitAll()
                 .anyRequest().authenticated() // 나머지는 로그인 필요
             );
 
@@ -34,4 +34,6 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
+   
 }
