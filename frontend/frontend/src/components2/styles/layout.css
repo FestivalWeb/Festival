@@ -5,6 +5,12 @@ html, body, #root {
   padding: 0;
 }
 
+/* 헤더 오른쪽 요소가 페이지에 따라 좌/우로 튀는 현상 보정을 위한 전역 변수
+   값은 스크롤바 너비(예: 8px) 정도로 설정하세요. 필요 시 팀과 협의해 조정. */
+:root {
+  --header-scroll-comp: 8px;
+}
+
 .sf-header {
   position: fixed;
   top: 0;
@@ -84,6 +90,10 @@ html, body, #root {
   display: flex;
   align-items: center;
   gap: 16px; /* 필요시 12/20/24로 조정 */
+  /* 스크롤바(또는 페이지 레이아웃 차이)로 인해 헤더 우측 요소가 튀는 현상 보정
+     음수 마진을 사용해 우측 요소들을 소폭 왼쪽으로 이동시킴.
+     --header-scroll-comp 값을 조정하면 이동량을 쉽게 변경할 수 있음 */
+  margin-left: calc(var(--header-scroll-comp) * -1);
 }
 
 .nav-right .mypage-button {
