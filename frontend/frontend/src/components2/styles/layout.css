@@ -142,9 +142,16 @@ html, body, #root {
 }
 
 .layout-container {
+  display: grid;
+  flex-direction: column;  /* 사이드바 왼쪽, 콘텐츠 오른쪽 */
+  min-height: 100vh;
+}
+
+/* 사이드바 + 메인 가로 정렬 */
+.content-row {
   display: flex;
-  flex-direction: row;  /* 사이드바 왼쪽, 콘텐츠 오른쪽 */
-  min-height: 100%;   
+  flex-direction: row;
+  width: 100%;
 }
 
 /* 사이드바 메뉴 글자 색상, 손가락 모양, hover */
@@ -183,13 +190,16 @@ html, body, #root {
   margin-right: 20px;
 }
 
+.sidebar li {
+  white-space: pre-line;       /* \n 줄바꿈 적용 */
+}
+
 /* 오른쪽 영역 */
 .layout-content {
   padding: 20px;
+  min-height: calc(100vh + 200px); 
   flex: 1;
-  width: 100%;    
   background: #faf1f1;
-  padding: 20px;
   box-sizing: border-box;
 }
 

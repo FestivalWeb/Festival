@@ -10,19 +10,21 @@ const BoothDetail = () => {
    const { state } = useLocation();
   const { id } = useParams();
 
-  const booth = state?.booth ?? BoothResData.find((item) => item.id === Number(id));
+  const booth = state?.booth ?? boothResData.find((item) => item.id === Number(id));
 
   if (!booth) return <p>부스 정보를 찾을 수 없습니다.</p>;
 
-  const activeDates = ["2025-11-21", "2025-11-22", "2025-11-23"];
+  // 부스의 예약 가능한 날짜로 설정
+  const activeDates = booth.availableDates;
 
   const [selectedDate, setSelectedDate] = useState(activeDates[0]);
   const [people, setPeople] = useState(1);
-  const [reservations, setReservations] = useState({
-    "2025-11-21": 0,
-    "2025-11-22": 0,
-    "2025-11-23": 0
-  });
+  const [reservations, setReservations] = useState(
+    activeDates.reduce((acc, date) => {
+      acc[date] = 0;
+      return acc;
+    }, {})
+  );
 
   const [showCalendar, setShowCalendar] = useState(false);
 
@@ -89,7 +91,7 @@ const BoothDetail = () => {
           </span>
 
           {/* 선택 날짜 */}
-          <span>선택 날짜: {selectedDate} (예약 {reservations[selectedDate]}명)</span>
+          <span>선택 날짜: {selectedDate} (현재 예약 {reservations[selectedDate]}명)</span>
         </div>
 
         {/* 달력: showCalendar가 true일 때만 */}
@@ -99,6 +101,8 @@ const BoothDetail = () => {
               onClickDay={handleDateClick}
               tileDisabled={tileDisabled}
               minDetail="month"
+              value={new Date(2025, 2, 1)} // 2025년 3월 1일을 기본값으로 설정
+              defaultView="month"
             />
           </div>
         )}

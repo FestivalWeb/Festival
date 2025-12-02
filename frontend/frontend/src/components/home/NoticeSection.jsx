@@ -9,6 +9,7 @@ function NoticeSection() {
 
   const handleMoreClick = () => {
     navigate("/notice"); // /notice 경로로 이동
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
   };
 
   // 제목 클릭 시 해당 공지사항 상세 페이지로 이동
@@ -57,7 +58,7 @@ function NoticeSection() {
                 <td>1</td>
                 <td
                   className="notice-title-link"
-                  onClick={() => handleTitleClick(2)} // 1번 공지사항의 상세 페이지로 이동
+                  onClick={() => handleTitleClick(1)} // 1번 공지사항의 상세 페이지로 이동
                 >
                   자원봉사자 모집 공고
                 </td>

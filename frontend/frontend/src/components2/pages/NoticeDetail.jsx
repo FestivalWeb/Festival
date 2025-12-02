@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import noticeData from "../data/noticeData";
 import PageLayout from "../layout/PageLayout";
@@ -6,8 +6,12 @@ import PageLayout from "../layout/PageLayout";
 // 공지사항 상세페이지
 export default function NoticeDetail() {
   const { id } = useParams(); // URL에서 id 가져오기
-
   const navigate = useNavigate();
+
+  // 페이지 마운트 시 스크롤 맨 위로
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  }, []);
 
   const notice = noticeData.find((n) => n.id === parseInt(id));
 
@@ -28,21 +32,11 @@ export default function NoticeDetail() {
         작성자: {notice.dept} | 조회수: {notice.views} | 날짜: {notice.date}
       </div>
       <div style={{ marginBottom: "20px" }}>
-        {/* 실제 내용 예시 */}
-        2025 논산 딸기 축제
-        'K-POP SHOW' 공연 취소 안내
-
-        산불로 인한 국가 재난 상황이 발생하여
-        29~30일 공연이 예정되었던
-        'K-POP SHOW'가 전면 취소되어 안내해드립니다.
-        시민 여러분의 양해 부탁드립니다.
-
-        산불로 피해를 보신 분들께 위로의 말씀을 드리며
-        하루빨리 상황이 안정되기를 진심으로 바랍니다.
+        {notice.content}
       </div>
       {notice.file && (
         <img
-          src={`/images/k-popfestival.jpg`}         // noticeData에서 file 경로 가져오기
+          src={notice.file}         // noticeData에서 file 경로 가져오기
           alt="공지 이미지"
           style={{ width: "50%", height: "50%", marginTop: "20px" }}
         />

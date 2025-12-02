@@ -30,7 +30,9 @@ const BoothSection = () => {
 
             <div className="booth2-info-list">
               <div className="booth2-info-row">📌 참가자: {booth.people}</div>
-              <div className="booth2-info-row">📅 {booth.date}</div>
+              <div className="booth2-info-row">
+                📅 {`${booth.availableDates[0].replace(/-/g, ".")}~${booth.availableDates[booth.availableDates.length - 1].slice(5).replace(/-/g, ".")}`}
+              </div>
               <div className="booth2-info-row">⏰ {booth.time}</div>
               <div className="booth2-info-row">📍 {booth.location}</div>
             </div>

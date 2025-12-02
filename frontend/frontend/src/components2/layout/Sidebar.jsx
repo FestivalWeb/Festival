@@ -8,9 +8,10 @@ export default function Sidebar({ type }) {
 
   // 갤러리의 체험부스 상세 메뉴
   const boothDetailMenu = [
-    { label: "체험부스 1", path: "/booth-images/1" },
-    { label: "체험부스 2", path: "/booth-images/2" },
-    { label: "체험부스 3", path: "/booth-images/3" },
+    { label: "딸기 수확 체험", path: "/booth-images/1" },
+    { label: "딸기 떡 메치기", path: "/booth-images/2" },
+    { label: "케이크 공방", path: "/booth-images/3" },
+    { label: "지역 농특산물\n판매존", path: "/booth-images/4" }
   ];
 
   // 갤러리 상세 메뉴
@@ -50,7 +51,7 @@ export default function Sidebar({ type }) {
             ].map((item) => (
               <li
                 key={item.label}
-                className={location.pathname === item.path ? "active" : ""}
+                className={location.pathname.startsWith(item.path) ? "active" : ""}
               >
                 <Link to={item.path}>{item.label}</Link>
               </li>

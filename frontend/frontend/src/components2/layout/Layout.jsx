@@ -1,6 +1,7 @@
 import React from "react";
 import Sidebar from "./Sidebar";
 import "../styles/layout.css";
+import Footer from "../Footer";
 
 // sidebar에서 하위메뉴로 넘어가기 위해서 layout으로 감싸서 사용
 function Layout({ children, sidebarType }) {
@@ -9,6 +10,7 @@ function Layout({ children, sidebarType }) {
   return (
     <div className="layout-container">
       {/* Sidebar에도 Header 높이만큼 margin-top 적용 */}
+       <div className="content-row">
       <Sidebar
         type={sidebarType}
         style={{ marginTop: `${headerHeight}px` }} // 추가
@@ -21,6 +23,8 @@ function Layout({ children, sidebarType }) {
       >
         {children}
       </main>
+    </div>
+    <Footer />
     </div>
   );
 }
