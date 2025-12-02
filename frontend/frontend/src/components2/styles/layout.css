@@ -73,7 +73,17 @@ html, body, #root {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-right: 100px; /* spacing between search and auth buttons */
+  /* margin-right 대신 고정(min)너비로 설정하여
+     로그인 상태에 따라 옆 버튼이 생겨도 검색 그룹 폭이 변하지 않도록 함 */
+  min-width: 220px; /* 검색 아이콘(40) + 입력(160) + 간격 여유 */
+}
+
+/* 오른쪽 영역 컨테이너: 요소 간격을 일괄 제어 (gap 사용 권장)
+   - 검색그룹과 인증 버튼 사이 간격을 이곳에서 조정하세요 */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px; /* 필요시 12/20/24로 조정 */
 }
 
 .nav-right .mypage-button {
