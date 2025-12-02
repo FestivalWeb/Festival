@@ -9,6 +9,29 @@ export default function Header() {
   const location = useLocation();
   const { user, logout } = useAuth();
 
+  // 스크롤바 너비를 계산해서 CSS 변수로 세팅합니다.
+  // 이유: 브라우저/페이지에 따라 스크롤바가 생기면 레이아웃이 미세하게 이동하므로
+  // JS로 실제 스크롤바 폭을 계산해 `--header-scroll-comp`에 반영하면 일관성 유지가 쉬워집니다.
+  useEffect(() => {
+    function setScrollbarComp() {
+      // window.innerWidth - documentElement.clientWidth = scrollbar width (px)
+      const docEl = document.documentElement;
+      const scrollbarWidth = Math.max(0, window.innerWidth - docEl.clientWidth);
+      // 안전하게 픽셀값으로 설정
+      docEl.style.setProperty('--header-scroll-comp', `${scrollbarWidth}px`);
+    }
+
+    // 초기 설정
+    setScrollbarComp();
+    // 리사이즈나 스크롤바 변동 시 재계산
+    window.addEventListener('resize', setScrollbarComp);
+    // 일부 환경에서 스크롤바가 동적으로 변할 수 있어 focus/visibilitychange 등도 고려 가능
+
+    return () => {
+      window.removeEventListener('resize', setScrollbarComp);
+    };
+  }, []);
+
 
   // 🔍 검색 상태
   const [searchText, setSearchText] = useState("");
