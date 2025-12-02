@@ -2,6 +2,9 @@ package org.zerock.backend.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.zerock.backend.entity.AdminUser;
+import org.zerock.backend.entity.AdminApproveStatus;   
+
+import java.util.List;
 
 import java.util.Optional;
 
@@ -13,4 +16,8 @@ public interface AdminUserRepository extends JpaRepository<AdminUser, Long> {
     boolean existsByUsername(String username);
 
     boolean existsByEmail(String email);
+
+    // ✅ 승인 상태별 목록 조회 (승인 대기 목록용)
+    List<AdminUser> findByApproveStatusOrderByRequestedAtAsc(AdminApproveStatus approveStatus);
+
 }

@@ -11,4 +11,7 @@ public interface AdminRoleRepository extends JpaRepository<AdminRole, AdminRoleI
     List<AdminRole> findByAdminUser(AdminUser adminUser);
 
     void deleteByAdminUser(AdminUser adminUser);
+
+    // 로그인한 adminId가 SUPER 권한을 가지고 있는지 여부
+    boolean existsByAdminUser_AdminIdAndRole_RoleCode(Long adminId, String roleCode);
 }

@@ -11,6 +11,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.zerock.backend.entity.AdminSession;
+import org.zerock.backend.entity.AdminUser;
 import org.zerock.backend.repository.AdminSessionRepository;
 
 import java.io.IOException;
@@ -64,12 +65,10 @@ public class AdminSessionFilter extends OncePerRequestFilter {
 
                     // 쿠키도 다시 내려서 브라우저 쪽 만료 시간 연장
                     refreshSessionCookie(response, sessionId);
-                    
-                    // 🔥 여기서 엔티티 전체가 아니라 adminId만 심는다
-                    request.setAttribute("loginAdminId", session.getAdminUser().getAdminId());
 
                     // (선택) 필요하다면 요청에 현재 관리자 정보 심어줄 수도 있음
-                    // request.setAttribute("adminUser", session.getAdminUser());
+                    AdminUser loginAdmin = session.getAdminUser();
+                    request.setAttribute("loginAdminId", loginAdmin.getAdminId());
                 }
             } else {
                 // DB에 없는 sessionId면, 쿠키만 떠돌고 있는 상태 → 쿠키 정리

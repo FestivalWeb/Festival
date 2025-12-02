@@ -4,14 +4,18 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import org.zerock.backend.admin.dto.AdminLoginRequest;
 import org.zerock.backend.admin.dto.AdminLoginResponse;
 import org.zerock.backend.admin.dto.AdminSignupRequest;
 import org.zerock.backend.admin.dto.AdminSignupResponse;
+import org.zerock.backend.admin.dto.PendingAdminResponse;
+import org.zerock.backend.entity.AdminApproveStatus;
 import org.zerock.backend.entity.AdminIpWhitelist;
 import org.zerock.backend.entity.AdminSession;
 import org.zerock.backend.entity.AdminUser;
@@ -64,6 +68,8 @@ public class AdminAuthService {
         .passwordHash(encodedPassword)
         .email(request.getEmail())
         .isActive(false)
+        .approveStatus(AdminApproveStatus.PENDING)    // 승인 대기 상태
+        .requestedAt(LocalDateTime.now())                             // 가입 요청 시간
         .createdAt(LocalDateTime.now())
         .updatedAt(LocalDateTime.now())
         .build();
@@ -87,6 +93,8 @@ public class AdminAuthService {
                 .name(savedUser.getName())
                 .email(savedUser.getEmail())
                 .active(savedUser.isActive())
+                .approveStatus(savedUser.getApproveStatus())
+                .message("가입 요청이 완료되었습니다. SUPER 관리자의 승인을 기다려주세요.")
                 .build();
     }
 
@@ -108,6 +116,25 @@ public class AdminAuthService {
                     adminLogWriter.logLoginFailure(request.getUsername(), "존재하지 않는 계정", httpRequest);
                     return new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다.");
                 });
+        
+        // 승인 상태 확인 
+        switch (adminUser.getApproveStatus()) {
+            case PENDING -> {
+                adminLogWriter.logLoginFailure(request.getUsername(), "승인 대기 계정 로그인 시도", httpRequest);
+                throw new IllegalStateException("승인 대기 중인 관리자 계정입니다. SUPER 관리자의 승인을 기다려주세요.");
+            }
+            case REJECTED -> {
+                adminLogWriter.logLoginFailure(request.getUsername(), "승인 거절된 계정 로그인 시도", httpRequest);
+                throw new IllegalStateException("승인 거절된 관리자 계정입니다. 관리자에게 문의하세요.");
+            }
+            case BLOCKED -> {
+                adminLogWriter.logLoginFailure(request.getUsername(), "차단된 계정 로그인 시도", httpRequest);
+                throw new IllegalStateException("차단된 관리자 계정입니다. 관리자에게 문의하세요.");
+            }
+            case APPROVED -> {
+                // 통과
+            }
+        }        
 
         // 2. 계정 활성 상태 확인 (비활성 계정 로그인 방지)
         if (!adminUser.isActive()) {
@@ -191,7 +218,7 @@ public class AdminAuthService {
         adminSessionRepository.save(session);
 
         // 로그인 성공 로그
-    adminLogWriter.logLoginSuccess(adminUser.getUsername(), httpRequest);
+        adminLogWriter.logLoginSuccess(adminUser.getUsername(), httpRequest);
 
         // 8. 새 세션 ID를 쿠키로 브라우저에 심기
         setSessionCookie(httpResponse, sessionId);
@@ -204,6 +231,88 @@ public class AdminAuthService {
                 .adminName(adminUser.getName())
                 .ipAddress(clientIp)
                 .build();
+    }
+
+    /**
+     * 승인 대기중(PENDING)인 관리자 목록 조회
+     */
+    public java.util.List<PendingAdminResponse> getPendingAdmins() {
+
+        java.util.List<AdminUser> pendingUsers =
+                adminUserRepository.findByApproveStatusOrderByRequestedAtAsc(
+                        org.zerock.backend.entity.AdminApproveStatus.PENDING
+                );
+
+        return pendingUsers.stream()
+                .map(user -> PendingAdminResponse.builder()
+                        .adminId(user.getAdminId())
+                        .username(user.getUsername())
+                        .name(user.getName())
+                        .email(user.getEmail())
+                        .active(user.isActive())
+                        .approveStatus(user.getApproveStatus())
+                        .requestedAt(user.getRequestedAt())
+                        .build()
+                )
+                .toList();
+    }
+
+    /**
+     * SUPER 계정이 관리자 가입을 승인하는 로직
+     */
+    @Transactional
+    public void approveAdmin(Long targetAdminId, AdminUser approver) {
+
+        AdminUser target = adminUserRepository.findById(targetAdminId)
+                .orElseThrow(() -> new IllegalArgumentException("대상 관리자를 찾을 수 없습니다."));
+
+        // 이미 승인/거절된 계정에 다시 승인 걸지 않도록 체크 (선택)
+        if (target.getApproveStatus() == AdminApproveStatus.APPROVED) {
+            throw new IllegalStateException("이미 승인된 관리자 계정입니다.");
+        }
+        if (target.getApproveStatus() == AdminApproveStatus.REJECTED) {
+            throw new IllegalStateException("이미 거절된 관리자 계정입니다.");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+
+        target.setApproveStatus(AdminApproveStatus.APPROVED);
+        target.setActive(true);                 // 이제 로그인 가능
+        target.setApprovedAt(now);
+        target.setApprovedBy(approver);
+        target.setUpdatedAt(now);
+
+        adminUserRepository.save(target);
+
+        // 필요하면 여기서 활동 로그 추가 가능
+        // adminLogWriter.logAdminApproved(approver, target, ...);
+    }
+
+    /**
+     * SUPER 계정이 관리자 가입을 거절하는 로직
+     */
+    @Transactional
+    public void rejectAdmin(Long targetAdminId, AdminUser approver) {
+
+        AdminUser target = adminUserRepository.findById(targetAdminId)
+                .orElseThrow(() -> new IllegalArgumentException("대상 관리자를 찾을 수 없습니다."));
+
+        if (target.getApproveStatus() == AdminApproveStatus.APPROVED) {
+            throw new IllegalStateException("이미 승인된 계정은 거절할 수 없습니다.");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+
+        target.setApproveStatus(AdminApproveStatus.REJECTED);
+        target.setActive(false);        // 거절된 계정은 로그인 불가 유지
+        target.setApprovedAt(null);   // 승인 날짜는 없으니 null (원하면 별도 rejectedAt 만들어도 됨)
+        target.setApprovedBy(approver);
+        target.setUpdatedAt(now);
+
+        adminUserRepository.save(target);
+
+        // 필요하면 여기서도 로그 추가 가능
+        // adminLogWriter.logAdminRejected(approver, target, ...);
     }
 
     /**
