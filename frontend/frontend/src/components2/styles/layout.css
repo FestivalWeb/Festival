@@ -73,16 +73,36 @@ html, body, #root {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-right: 18px; /* spacing between search and auth buttons */
+  margin-right: 100px; /* spacing between search and auth buttons */
 }
 
 .nav-right .mypage-button {
-  background: transparent;
-  border: 1px solid transparent;
-  padding: 6px 10px;
-  border-radius: 18px;
+  /* 마이페이지 버튼 (디자인 개선)
+     - 배경: 왼쪽에서 오른쪽으로 흐르는 핑크 계열 그라데이션
+     - 텍스트는 흰색, 볼드체, 부드러운 그림자와 hover/active 효과 적용
+     - 기존 주석은 유지하면서 변경사항은 한국어로 기록함
+  */
+  background: linear-gradient(90deg, #ff8ab8 0%, #ff5e99 100%);
+  color: #ffffff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 20px;
   cursor: pointer;
-  margin-right: 8px;
+  margin-right: 12px;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(255, 110, 150, 0.25);
+  transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+}
+
+.nav-right .mypage-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(255, 110, 150, 0.30);
+  opacity: 0.98;
+}
+
+.nav-right .mypage-button:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(255, 110, 150, 0.18);
 }
 
 .nav-right .login-button {
