@@ -1,32 +1,26 @@
 package org.zerock.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
-@Getter
+@Getter @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@IdClass(PostImgMappingId.class) // [중요] 아까 만든 복합 키 클래스 연결
-@Table(name = "post_img_mapping") // 테이블 이름 소문자
+@AllArgsConstructor
+@Builder
+@Table(name = "post_img_mapping")
 public class PostImgMapping {
 
-    @Id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id")
-    private post post;
+    @EmbeddedId
+    private PostImgMappingId id;
 
-    @Id
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "file_id")
+    @MapsId("post")
+    @JoinColumn(name = "post_id", nullable = false)
+    private post post; // [수정] 타입 변경: Post -> post
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("file")
+    @JoinColumn(name = "file_id", nullable = false)
     private MediaFile file;
-
-    // 생성자
-    @Builder
-    public PostImgMapping(post post, MediaFile file) {
-        this.post = post;
-        this.file = file;
-    }
 }
