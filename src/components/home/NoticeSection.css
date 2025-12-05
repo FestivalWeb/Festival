@@ -1,0 +1,63 @@
+/* 공지사항 전체 영역 */
+.notice-page {
+  margin-top: 40px;
+  padding: 0 16px 80px;
+}
+
+/* MainHero / 축제소개와 같은 폭(1200px) */
+.notice-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 24px 28px 32px;
+  box-shadow: 0 16px 40px rgba(255, 130, 170, 0.16);
+}
+
+/* 타이틀 */
+.notice-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #ff2f72;
+  margin-bottom: 18px;
+}
+
+/* 카드 박스 */
+.notice-card {
+  background: #fff9fc;
+  border-radius: 18px;
+  padding: 18px 20px 22px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.04);
+}
+
+/* 테이블 스타일 */
+.notice-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.notice-table thead {
+  background: #ffe5f0;
+}
+
+.notice-table th,
+.notice-table td {
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.notice-table tbody tr + tr {
+  border-top: 1px solid #f3d7e5;
+}
+
+.notice-more-button {
+  margin-top: 12px;
+  margin-left: auto;
+  display: block;
+  border: none;
+  background: none;
+  color: #ff2f72;
+  font-size: 13px;
+  cursor: pointer;
+}
