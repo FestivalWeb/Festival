@@ -18,8 +18,9 @@ public class AdminSession {
     private String sessionId;
 
     
-    @Column(name = "admin_id", nullable = false)
-    private Long adminId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id", nullable = false)
+    private AdminUser adminUser;   // ← adminId → admin 으로 타입/이름 변경
 
    
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -29,6 +30,8 @@ public class AdminSession {
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
 
+    @Column(name = "last_access_at", nullable = false)
+    private LocalDateTime lastAccessAt;
     
     @Column(name = "user_agent", length = 255)
     private String userAgent;
@@ -44,6 +47,10 @@ public class AdminSession {
    
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        createdAt = now;
+        if (lastAccessAt == null) {
+            lastAccessAt = now;
+        }
     }
 }

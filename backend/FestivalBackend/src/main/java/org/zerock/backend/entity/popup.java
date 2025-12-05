@@ -1,9 +1,12 @@
 package org.zerock.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicInsert; // Default 값 적용을 위해
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,13 +14,13 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@DynamicInsert
-@Table(name = "popup") // DB 테이블명 소문자 통일 (권장)
-public class Popup extends BaseEntity {
+@DynamicInsert // DB에 정의된 Default 값(priority=1)이 INSERT 시 적용되도록
+@Table(name = "pop_up")
+public class Popup extends BaseEntity { // BaseEntity 상속
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "popup_id") // 컬럼명 소문자 통일
+    @Column(name = "popup_id")
     private Long popupId;
 
     @Column(name = "title", nullable = false, length = 128)
@@ -29,14 +32,21 @@ public class Popup extends BaseEntity {
     @Column(name = "image_uri", length = 255)
     private String imageUri;
 
-    @ColumnDefault("1")
+    // 스키마의 'Default: 1'을 어노테이션으로 명시
+    @ColumnDefault("1") 
     @Column(name = "priority")
     private Long priority;
 
-    // [수정] mappedBy는 PopupSchedule의 'popUp' 필드명과 일치해야 함 (대소문자 주의)
+    // 상태: true = 사용, false = 중지
+    @Column(name = "status", nullable = false)
+    private boolean status = true;
+
+    // 1:N 관계 (PopUp 1 : PopupSchedule N)
+    // 'mappedBy'는 PopupSchedule 클래스의 'popUp' 필드 이름을 가리킴
     @OneToMany(mappedBy = "popUp", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PopupSchedule> schedules = new ArrayList<>();
 
+    // 생성자 (Builder)
     @Builder
     public Popup(String title, String content, String imageUri, Long priority) {
         this.title = title;
@@ -45,10 +55,15 @@ public class Popup extends BaseEntity {
         this.priority = priority;
     }
 
+    // 수정 메서드 (예시)
     public void updateDetails(String title, String content, String imageUri, Long priority) {
         this.title = title;
         this.content = content;
         this.imageUri = imageUri;
         this.priority = priority;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
     }
 }

@@ -39,13 +39,10 @@ public class GalleryItem {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @ManyToMany
-    @JoinTable(
-        name = "item_media",
-        joinColumns = @JoinColumn(name = "item_id"),
-        inverseJoinColumns = @JoinColumn(name = "file_id")
-    )
-    private Set<MediaFile> mediaFiles = new LinkedHashSet<>();
+   @OneToMany(mappedBy = "item",
+               cascade = CascadeType.ALL,
+               orphanRemoval = true)
+    private Set<ItemMedia> mediaMappings = new LinkedHashSet<>();
 
     public Long getId() { return id; }
     public GalleryAlbum getAlbum() { return album; }
@@ -64,6 +61,8 @@ public class GalleryItem {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-    public Set<MediaFile> getMediaFiles() { return mediaFiles; }
-    public void setMediaFiles(Set<MediaFile> mediaFiles) { this.mediaFiles = mediaFiles; }
+    public Set<ItemMedia> getMediaMappings() { return mediaMappings; }
+    public void setMediaMappings(Set<ItemMedia> mediaMappings) {
+        this.mediaMappings = mediaMappings;
+    }
 }

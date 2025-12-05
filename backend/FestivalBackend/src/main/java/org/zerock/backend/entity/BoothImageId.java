@@ -1,19 +1,19 @@
 package org.zerock.backend.entity;
 
-import lombok.*;
-import jakarta.persistence.Embeddable;
 import jakarta.persistence.Column;
-import java.io.Serializable;
+import jakarta.persistence.Embeddable;
+import lombok.*;
 
+import java.io.Serializable;
 @Embeddable
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PostImgMappingId implements Serializable {
+public class BoothImageId implements Serializable {
 
-    @Column(name = "post_id")
-    private Long postId;
+    @Column(name = "booth_id")
+    private Long boothId;
 
     @Column(name = "file_id")
     private Long fileId;

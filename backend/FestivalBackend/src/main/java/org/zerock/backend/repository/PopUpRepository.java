@@ -8,7 +8,7 @@ import org.zerock.backend.entity.Popup;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface PopupRepository extends JpaRepository<Popup, Long> {
+public interface PopUpRepository extends JpaRepository<Popup, Long> {
 
     // 1) 현재 활성화된 팝업 조회 (스케줄 날짜 기준)
     // 우선순위(priority)가 높은 순서대로 정렬 (숫자가 클수록 높은지 작을수록 높은지는 정책에 따라 DESC/ASC 조정)

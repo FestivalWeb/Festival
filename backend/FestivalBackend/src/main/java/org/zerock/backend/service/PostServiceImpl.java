@@ -25,6 +25,8 @@ public class PostServiceImpl implements PostService {
     private final MediaFileRepository mediaFileRepository;
     private final UserRepository userRepository;
 
+    // ---------------- 변환 메서드 ----------------
+
     private PostImageResponse toImageResponse(MediaFile file) {
         return PostImageResponse.builder()
                 .fileId(file.getFileId())
@@ -38,7 +40,7 @@ public class PostServiceImpl implements PostService {
                 .build();
     }
 
-    private PostSummaryResponse toSummaryResponse(post p) { // [수정] 타입 post
+    private PostSummaryResponse toSummaryResponse(post p) {
         Long thumbnailId = null;
         String thumbnailUri = null;
 
@@ -54,7 +56,7 @@ public class PostServiceImpl implements PostService {
         return PostSummaryResponse.builder()
                 .postId(p.getPostId())
                 .title(p.getTitle())
-                .userId(p.getUser().getUserId())
+                .userId(p.getUser().getUserId()) // [수정] 객체 탐색 (getUserId() -> getUser().getUserId())
                 .view(p.getView())
                 .createDate(p.getCreateDate())
                 .thumbnailFileId(thumbnailId)
@@ -62,21 +64,25 @@ public class PostServiceImpl implements PostService {
                 .build();
     }
 
+    // ---------------- 기능 구현 ----------------
+
     @Override
-    @SuppressWarnings("null")
     public PostCreateResponse createPost(String loginUserId, PostCreateRequest request) {
+        
+        // 1. 작성자 찾기
         UserEntity writer = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
-        // [수정] post 빌더 사용
+        // 2. 게시글 생성 (객체 주입)
         post newPost = post.builder()
                 .title(request.getTitle())
                 .context(request.getContext())
-                .user(writer)
+                .user(writer) // [수정] user 객체 넣기
                 .build();
 
-        post savedPost = postRepository.save(newPost); // [수정] 타입 post
+        post savedPost = postRepository.save(newPost);
 
+        // 3. 이미지 저장
         List<Long> fileIds = request.getFileIds();
         if (fileIds != null && !fileIds.isEmpty()) {
             List<MediaFile> files = mediaFileRepository.findAllById(fileIds);
@@ -96,11 +102,10 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = true)
-    @SuppressWarnings("null")
     public Page<PostSummaryResponse> getPostPage(int page, int size, String sortBy, Sort.Direction direction, String keyword, String type) {
         Sort sort = Sort.by(direction, sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<post> postPage; // [수정] 타입 post
+        Page<post> postPage;
 
         if (keyword == null || keyword.isBlank()) {
             postPage = postRepository.findAll(pageable);
@@ -111,6 +116,7 @@ public class PostServiceImpl implements PostService {
             } else if ("CONTENT".equalsIgnoreCase(type)) {
                 postPage = postRepository.findByContextContainingIgnoreCase(k, pageable);
             } else if ("USER".equalsIgnoreCase(type)) {
+                // [수정] Repository 메서드명 변경 반영
                 postPage = postRepository.findByUser_UserIdContainingIgnoreCase(k, pageable);
             } else {
                 postPage = postRepository.findByTitleContainingIgnoreCaseOrContextContainingIgnoreCase(k, k, pageable);
@@ -121,9 +127,8 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    @SuppressWarnings("null")
     public PostDetailResponse getPostDetail(Long postId) {
-        post entity = postRepository.findById(postId) // [수정] 타입 post
+        post entity = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
 
         postRepository.increaseViewCount(postId);
@@ -137,7 +142,7 @@ public class PostServiceImpl implements PostService {
                 .postId(entity.getPostId())
                 .title(entity.getTitle())
                 .context(entity.getContext())
-                .userId(entity.getUser().getUserId())
+                .userId(entity.getUser().getUserId()) // [수정] 객체 탐색
                 .view(entity.getView() + 1)
                 .createDate(entity.getCreateDate())
                 .updateDate(entity.getUpdateDate())
@@ -146,11 +151,11 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @SuppressWarnings("null")
     public PostDetailResponse updatePost(String loginUserId, Long postId, PostUpdateRequest request) {
-        post entity = postRepository.findById(postId) // [수정] 타입 post
+        post entity = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
 
+        // [수정] 작성자 확인 (객체 탐색)
         if (!entity.getUser().getUserId().equals(loginUserId)) {
             throw new IllegalStateException("본인 글만 수정 가능합니다.");
         }
@@ -170,11 +175,11 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @SuppressWarnings("null")
     public void deletePost(String loginUserId, Long postId) {
-        post entity = postRepository.findById(postId) // [수정] 타입 post
+        post entity = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
 
+        // [수정] 작성자 확인 (객체 탐색)
         if (!entity.getUser().getUserId().equals(loginUserId)) {
             throw new IllegalStateException("본인 글만 삭제 가능합니다.");
         }

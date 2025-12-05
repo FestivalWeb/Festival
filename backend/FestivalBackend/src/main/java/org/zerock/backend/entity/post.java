@@ -14,13 +14,13 @@ import java.util.Set;
 
 @Entity
 @Getter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder // [중요] 클래스 레벨 빌더
+@AllArgsConstructor // [중요] 모든 필드 생성자 (빌더용)
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA용 기본 생성자
 @DynamicInsert
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "post")
-public class post { // [수정] 클래스 이름을 소문자 post로 변경
+public class post {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,6 +41,7 @@ public class post { // [수정] 클래스 이름을 소문자 post로 변경
     @Column(name = "update_date")
     private LocalDateTime updateDate;
 
+    // [수정] 빌더 패턴 사용 시 초기화 유지를 위해 @Builder.Default 필수
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<PostImgMapping> images = new LinkedHashSet<>();
@@ -50,6 +51,7 @@ public class post { // [수정] 클래스 이름을 소문자 post로 변경
     @Builder.Default
     private Long view = 0L;
 
+    // [핵심 수정] 단순 String이 아니라 객체로 연결해야 Service 오류가 안 납니다.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private UserEntity user;
