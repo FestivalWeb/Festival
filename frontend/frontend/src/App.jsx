@@ -92,7 +92,10 @@ function AppContent() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/findId" element={<FindId />} />
         <Route path="/forgotPassword" element={<ForgotPassword />} />
-        <Route path="/mypage" element={<MyPage />} />
+        <Route
+          path="/mypage"
+          element={<div style={{ paddingTop: 80 }}><MyPage /></div>}
+        />
 
         {/* 게시판 */}
 
