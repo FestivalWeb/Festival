@@ -1,8 +1,39 @@
 // src/components/DirectionsSection.jsx
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "./DirectionsSection.css";
 
 function DirectionsSection() {
+  // 🔥 날씨 상태
+  const [weather, setWeather] = useState(null);
+  const [weatherLoading, setWeatherLoading] = useState(true);
+  const [weatherError, setWeatherError] = useState(null);
+
+  useEffect(() => {
+    // ✅ 여기 엔드포인트를 실제 백엔드에서 만든 주소로 바꿔줘!
+    const WEATHER_API_URL = "/api/weather"; // 예시: "/api/weather/today"
+
+    const fetchWeather = async () => {
+      try {
+        setWeatherLoading(true);
+        const res = await fetch(WEATHER_API_URL);
+        if (!res.ok) {
+          throw new Error("날씨 정보를 불러오지 못했습니다.");
+        }
+        const data = await res.json();
+
+        // ✅ 백엔드 응답 형태에 맞게 이 부분 필드 이름만 맞춰주면 됨
+        // 예시는 { temp, minTemp, maxTemp, description, rainProb, updatedAt }
+        setWeather(data);
+      } catch (err) {
+        setWeatherError(err.message);
+      } finally {
+        setWeatherLoading(false);
+      }
+    };
+
+    fetchWeather();
+  }, []);
+
   return (
     <section className="directions-page">
       <div className="directions-container">
@@ -11,7 +42,7 @@ function DirectionsSection() {
           논산딸기축제가 열리는 행사장 위치와 교통편을 안내해 드립니다.
         </p>
 
-        {/* 상단: 지도 + 기본 정보 */}
+        {/* 상단: 지도 + 날씨 정보 */}
         <div className="directions-top">
           <div className="directions-map">
             <span className="directions-map-placeholder">
@@ -19,19 +50,43 @@ function DirectionsSection() {
             </span>
           </div>
 
-          <div className="directions-info-card">
-            <h3 className="directions-info-title">행사장 정보</h3>
-            <ul className="directions-info-list">
-              <li>
-                <strong>주소</strong> : 충남 논산시 ○○로 123, 논산시관광단지 일원
-              </li>
-              <li>
-                <strong>문의처</strong> : 논산딸기축제 조직위원회 (☎ 041-000-0000)
-              </li>
-              <li>
-                <strong>행사기간</strong> : 2025. 3. 27(목) ~ 3. 30(일)
-              </li>
-            </ul>
+          {/* 🔥 여기: 행사장 정보 → 오늘의 날씨 카드 */}
+          <div className="directions-info-card directions-weather-card">
+            <h3 className="directions-info-title">오늘의 날씨</h3>
+
+            {weatherLoading && (
+              <p className="weather-text">날씨 정보를 불러오는 중입니다...</p>
+            )}
+
+            {weatherError && (
+              <p className="weather-text weather-error">
+                날씨 정보를 불러오지 못했어요.
+              </p>
+            )}
+
+            {!weatherLoading && !weatherError && weather && (
+              <div className="weather-content">
+                <div className="weather-main-row">
+                  {/* 백엔드 필드 이름에 맞춰서 수정! */}
+                  <span className="weather-temp">{weather.temp}°C</span>
+                  <span className="weather-desc">{weather.description}</span>
+                </div>
+
+                <ul className="weather-detail-list">
+                  <li>최저 {weather.minTemp}°C</li>
+                  <li>최고 {weather.maxTemp}°C</li>
+                  {weather.rainProb != null && (
+                    <li>강수확률 {weather.rainProb}%</li>
+                  )}
+                </ul>
+
+                {weather.updatedAt && (
+                  <p className="weather-updated">
+                    기준 시각: {weather.updatedAt}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

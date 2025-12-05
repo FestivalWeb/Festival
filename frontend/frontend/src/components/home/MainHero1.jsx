@@ -18,7 +18,7 @@ function MainHero1({
 
   return (
     <div className="sf-page">
-      {/* Header is provided globally by shared Header component; removed duplicate header here */}
+      {/* 헤더는 공용 Header 컴포넌트로 제공되므로 여기서 중복된 헤더를 제거함 */}
 
       {/* 메인 히어로 영역 */}
       <main className="sf-hero">

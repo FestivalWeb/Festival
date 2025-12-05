@@ -40,7 +40,7 @@ function HomePage() {
   };
 
   useEffect(() => {
-    // If a navigation provided a scroll target (via location.state.scrollTo), run the corresponding scroll handler
+    // location.state.scrollTo로 스크롤 대상이 전달되었으면 해당 스크롤 핸들러를 실행
     const target = location.state?.scrollTo;
     if (!target) return;
     const run = () => {
@@ -50,12 +50,12 @@ function HomePage() {
       if (target === 'booth') handleScrollToBooth();
       if (target === 'directions-section' || target === 'directions') handleScrollToDirections();
       try {
-        // Clear state so back/refresh doesn't re-trigger
+        // 뒤로가기나 새로고침으로 인해 다시 실행되지 않도록 상태를 초기화
         window.history.replaceState({}, document.title);
       } catch (e) {}
     };
 
-    // slight delay to allow page render
+    // 렌더가 끝나도록 약간의 지연을 둠
     setTimeout(run, 80);
   }, [location.state]);
 

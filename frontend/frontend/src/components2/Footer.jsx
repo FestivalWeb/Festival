@@ -31,7 +31,7 @@ export default function Footer() {
           {/* 인스타그램 */}
           <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
             <img
-              src="/icons/instagram.jpg"
+              src="/icons/Instagram.jpg"
               alt="instagram"
               style={{ width: "28px", marginLeft: "20px" }}
             />

@@ -8,20 +8,22 @@ function ExperienceBoothSection() {
 
   const navigate = useNavigate();
 
-  const handleMoreClick = () => {
-    // 1. /booth 페이지로 이동
-    navigate("/booth");
+  const navigateWithScroll = (path, state = null) => {
+  navigate(path, { state });
+  // 페이지가 렌더링 된 후 스크롤 맨 위로
+  setTimeout(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, 100);
+};
 
-    // 2. 이동 후 잠시 기다렸다가 최상단으로 스크롤
-    setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }, 100); // 100ms 정도 기다리면 충분
+  const handleMoreClick = () => {
+    navigateWithScroll("/booth");
   };
 
   const handleBoothClick = (id) => {
     const booth = boothResData.find((b) => b.id === id);
     if (!booth) return;
-    navigate(`/booth/${booth.id}`, { state: { booth } });
+    navigateWithScroll(`/booth/${booth.id}`, { booth } );
   };
 
   return (

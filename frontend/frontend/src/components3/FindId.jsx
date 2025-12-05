@@ -18,7 +18,7 @@ const FindId = () => {
       return;
     }
 
-    // Simulate API: if name or email contains "found" => success, else not found
+    // 임시 API 시뮬레이션: 이름이나 이메일에 "found"가 포함되어 있으면 성공으로 처리, 아니면 미발견
     const isFound = (form.name + form.email).toLowerCase().includes('found');
     setTimeout(() => {
       if (isFound) {

@@ -18,7 +18,7 @@ const ForgotPassword = () => {
       setError('이름, 아이디, 이메일을 모두 입력하세요.');
       return;
     }
-    // Simulate API: if any field contains 'found' then treat as existing
+    // 임시 API 시뮬레이션: 입력값 중 하나라도 'found'를 포함하면 존재하는 계정으로 처리
     const isFound = (form.name + form.username + form.email).toLowerCase().includes('found');
     setTimeout(() => {
       if (isFound) {
@@ -43,7 +43,7 @@ const ForgotPassword = () => {
       setError('비밀번호가 일치하지 않습니다.');
       return;
     }
-    // Simulate API success
+    // 임시 API 성공 시뮬레이션
     setTimeout(() => setStep(2), 400);
   };
 

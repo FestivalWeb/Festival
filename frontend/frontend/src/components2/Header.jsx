@@ -28,11 +28,11 @@ export default function Header() {
     }
   };
 
-  // target: scroll target class name used by HomePage refs
-  // fallbackPath: when not on home, navigate to this path instead of navigating to home
+  // target: HomePage의 ref에서 사용하는 스크롤 대상 클래스명
+  // fallbackPath: (홈이 아닐 때) 홈으로 이동하는 대신 이 경로로 네비게이트
   const navOrScroll = (target, fallbackPath) => {
     if (location.pathname === "/") {
-      // same page -> use event to trigger ref-based scroll
+      // 같은 페이지일 경우 -> ref 기반 스크롤을 트리거하기 위해 이벤트 사용
       try {
         window.dispatchEvent(new CustomEvent('app-scroll-to', { detail: { target } }));
       } catch (e) {
@@ -42,7 +42,7 @@ export default function Header() {
       if (fallbackPath) {
         navigate(fallbackPath);
       } else {
-        // navigate to home and request scroll
+        // 홈으로 이동한 뒤 스크롤 요청
         navigate('/', { state: { scrollTo: target } });
       }
     }

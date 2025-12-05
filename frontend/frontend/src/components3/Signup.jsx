@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Signup.css';
 
-// Multi-step Signup implemented to match PM requirements (terms -> info -> verify -> done)
+// 회원가입은 PM 요구사항에 맞춰 다단계로 구현됨 (약관 -> 정보 -> 인증 -> 완료)
 const Signup = () => {
   const [step, setStep] = useState(0);
 
-  // form state
+  // 폼 상태
   const [agreeTerms, setAgreeTerms] = useState({ terms: false, privacy: false, marketing: false });
   const [form, setForm] = useState({ name: '', username: '', password: '', password2: '', email: '', code: '' });
   const [error, setError] = useState('');
@@ -51,7 +51,7 @@ const Signup = () => {
     if (!validateInfo()) return;
     setError('');
     setSendingCode(true);
-    // Simulate API call to send code
+    // 인증번호 발송 API 호출을 시뮬레이션
     setTimeout(() => {
       setSendingCode(false);
       setCodeSent(true);
@@ -64,7 +64,7 @@ const Signup = () => {
       setError('인증번호를 입력하세요.');
       return;
     }
-    // Simulate code verification
+    // 인증번호 검증을 시뮬레이션
     if (form.code === '123456') {
       setError('');
       setStep(3);
@@ -77,7 +77,7 @@ const Signup = () => {
     if (!validateInfo()) return;
     // TODO: 실제 백엔드 호출로 교체 (POST /api/auth/signup)
     setError('');
-    // fake success
+    // 가짜 성공 처리
     setTimeout(() => setStep(4), 600);
   };
 

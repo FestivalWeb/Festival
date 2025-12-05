@@ -14,13 +14,13 @@ const Login = () => {
   const { login } = useAuth();
 
   const goTo = (path) => {
-    // map simple page keys used in old onNavigate to router paths
+    // 이전 onNavigate에서 사용되던 간단한 페이지 키를 라우터 경로로 매핑
     if (path === 'home') return navigate('/');
     if (path === 'mypage') return navigate('/mypage');
     if (path === 'findId') return navigate('/findId');
     if (path === 'forgotPassword') return navigate('/forgotPassword');
     if (path === 'signup') return navigate('/signup');
-    // fallback: treat as path
+    // 대체 동작: 전달된 값을 경로로 처리
     return navigate(path.startsWith('/') ? path : `/${path}`);
   };
 

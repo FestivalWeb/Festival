@@ -36,28 +36,34 @@
 }
 
 .gallery-card {
-  width: 237px; 
+  width: 237px;
   background: #fff8fb;
   border-radius: 16px;
   padding: 12px;
   box-shadow: 0 6px 16px rgba(255, 160, 200, 0.18);
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  
+  gap: 12px;
 }
 
+/* 사진이 들어가는 영역 */
 .gallery-thumb {
-  height: 120px;
+  width: 100%;
+  height: 140px;           /* 카드 안에서 보일 이미지 높이 */
   border-radius: 12px;
-  background: #e5e5e5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #999;
-  font-size: 13px;
+  overflow: hidden;        /* 넘치는 부분 잘라내기 */
+  background: #e5e5e5;     /* 로딩 전 회색 배경 톤 유지 */
 }
 
+/* 실제 이미지 */
+.gallery-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;       /* 비율 유지하면서 영역에 꽉 차게 */
+  display: block;
+}
+
+/* 캡션(설명 글씨) */
 .gallery-caption {
   text-align: center;
   font-size: 13px;
@@ -82,5 +88,9 @@
 @media (max-width: 900px) {
   .gallery-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gallery-card {
+    width: 100%;
   }
 }

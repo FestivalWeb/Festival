@@ -12,7 +12,7 @@
   border-radius: 24px;
   background: #ffffff;
   box-shadow: 0 18px 40px rgba(255, 140, 180, 0.25);
-   --bottom-card-min-height: auto; 
+  --bottom-card-min-height: auto;
 }
 
 .directions-title {
@@ -28,14 +28,13 @@
   color: #666;
 }
 
-/* 상단: 지도 + 행사 정보 */
+/* 상단: 지도 + 날씨 정보 */
 .directions-top {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr)); /* 1:1로 변경 */
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* 1:1 비율 */
   gap: 20px;
   margin-bottom: 20px;
 }
-
 
 .directions-map {
   border-radius: 18px;
@@ -51,6 +50,7 @@
   color: #aa6680;
 }
 
+/* 상단 오른쪽 카드 공통 (날씨 카드) */
 .directions-info-card {
   border-radius: 18px;
   padding: 18px 20px;
@@ -58,6 +58,12 @@
   box-shadow: 0 10px 24px rgba(255, 180, 210, 0.3);
 }
 
+/* 날씨 카드 전용 (이름만 붙여둔 느낌, 필요하면 따로 커스터마이징 가능) */
+.directions-weather-card {
+  background: #fff9fb;
+}
+
+/* 카드 제목 */
 .directions-info-title {
   margin: 0 0 10px;
   font-size: 16px;
@@ -65,6 +71,7 @@
   color: #e41c54;
 }
 
+/* 기존 행사장 정보 목록 쓰던 스타일 (남겨둠) */
 .directions-info-list {
   margin: 0;
   padding-left: 16px;
@@ -76,7 +83,61 @@
   margin-top: 4px;
 }
 
-/* 하단: 카드 2개 */
+/* ─────────────── 날씨 텍스트 ─────────────── */
+
+.weather-text {
+  font-size: 13px;
+  color: #555;
+  margin-top: 4px;
+}
+
+.weather-text.weather-error {
+  color: #e2354f;
+}
+
+.weather-content {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.weather-main-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.weather-temp {
+  font-size: 26px;
+  font-weight: 800;
+  color: #ff2f65;
+}
+
+.weather-desc {
+  font-size: 14px;
+  color: #444;
+}
+
+.weather-detail-list {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #666;
+}
+
+.weather-detail-list li + li {
+  margin-top: 2px;
+}
+
+.weather-updated {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #999;
+}
+
+/* 하단: 카드 2개 (대중교통 / 자가용) */
 .directions-bottom {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -121,9 +182,12 @@
   }
 
   .directions-bottom {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-  align-items: stretch; /* 카드 높이 동일하게 늘리기 */
-}
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .directions-card {
+    height: auto;
+    min-height: 180px;
+  }
 }
