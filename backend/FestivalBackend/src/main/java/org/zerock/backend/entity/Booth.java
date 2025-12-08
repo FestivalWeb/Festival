@@ -1,12 +1,22 @@
 package org.zerock.backend.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.DynamicInsert;
+
 import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "booth") 
+@Getter  // [중요] 이게 있으면 밑에 getTitle() 같은거 안 써도 됨!
+@Setter  // [중요] 이게 있으면 밑에 setTitle() 같은거 안 써도 됨!
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@DynamicInsert
+@Table(name = "booth")
 public class Booth {
 
     @Id
@@ -35,29 +45,12 @@ public class Booth {
     @Column(nullable = false, length = 200)
     private String location;
 
-    @ManyToMany
-    @JoinTable(
-        name = "booth_img_mapping",
-        joinColumns = @JoinColumn(name = "booth_id"),
-        inverseJoinColumns = @JoinColumn(name = "file_id")
-    )
-    private Set<MediaFile> images = new LinkedHashSet<>();
+    @ColumnDefault("true")
+    @Column(name = "status")
+    @Builder.Default
+    private boolean status = true; 
 
-    public Long getId() { return id; }
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-    public String getContext() { return context; }
-    public void setContext(String context) { this.context = context; }
-    public String getImg() { return img; }
-    public void setImg(String img) { this.img = img; }
-    public LocalDate getEventDate() { return eventDate; }
-    public void setEventDate(LocalDate eventDate) { this.eventDate = eventDate; }
-    public Long getPrice() { return price; }
-    public void setPrice(Long price) { this.price = price; }
-    public Long getMaxPerson() { return maxPerson; }
-    public void setMaxPerson(Long maxPerson) { this.maxPerson = maxPerson; }
-    public String getLocation() { return location; }
-    public void setLocation(String location) { this.location = location; }
-    public Set<MediaFile> getImages() { return images; }
-    public void setImages(Set<MediaFile> images) { this.images = images; }
+    @OneToMany(mappedBy = "booth", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<BoothImage> images = new LinkedHashSet<>();
 }
