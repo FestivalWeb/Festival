@@ -1,0 +1,35 @@
+.findid-wrapper {
+  min-height: 100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:64px 16px;
+  box-sizing:border-box;
+}
+.findid-container { width:100%; max-width:900px; display:flex; justify-content:center }
+.findid-card {
+  width:100%; max-width:760px; background:#fdeff3; border-radius:18px; padding:40px; box-sizing:border-box; border:1px solid rgba(0,0,0,0.06);
+}
+.findid-header { text-align:center; margin-bottom:18px }
+.findid-header h2 { margin:0; font-size:20px; font-weight:700 }
+
+.findid-form-area { display:flex; flex-direction:column; align-items:center; gap:18px }
+.findid-form-card { width:100%; max-width:420px; background:#fff; border-radius:10px; padding:20px; box-sizing:border-box; border:1px solid rgba(0,0,0,0.04) }
+.findid-form-card label { display:block; text-align:left; margin:6px 0 4px; font-size:13px; color:#666 }
+.findid-input { width:100%; padding:10px 12px; border-radius:6px; border:1px solid #e6e6e6; background:#fafafa }
+.findid-small-btn { padding:8px 10px; border-radius:8px; border:1px solid #e6e6e6; background:#fff }
+
+.actions-row { display:flex; gap:12px; justify-content:center; margin-top:10px }
+.findid-btn { padding:10px 20px; border-radius:8px; background:linear-gradient(90deg,#a4c639,#87b13a); color:#fff; border:none; cursor:pointer }
+.findid-btn-pink { padding:10px 20px; border-radius:8px; background:#ff9cc0; color:#333; border:none; cursor:pointer }
+
+.findid-result { display:flex; flex-direction:column; align-items:center; gap:12px }
+.findid-id { width:240px; padding:8px 10px; border-radius:6px; border:1px solid #ccc; background:#fff }
+.findid-notfound { text-align:center; color:#333 }
+.findid-notfound p { margin:0 0 12px }
+.error { color:#d32f2f; text-align:center; font-size:13px; min-height:18px }
+
+@media (max-width:768px) {
+  .findid-card { padding:24px }
+  .findid-form-card { max-width:90vw }
+}
