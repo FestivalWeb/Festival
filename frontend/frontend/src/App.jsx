@@ -16,6 +16,8 @@ import AccountMgmt from "./components/admin/AccountMgmt/AccountMgmt";
 import BoardMgmt from "./components/admin/BoardMgmt/BoardMgmt";
 import PopupMgmt from "./components/admin/PopupMgmt/PopupMgmt";
 import LogDetail from "./components/admin/LogDetail/LogDetail";
+import AdminLogin from "./components/admin/AdminAuth/AdminLogin"; 
+import AdminSignup from "./components/admin/AdminAuth/AdminSignup";
 
 import NoticePage from "./components2/pages/NoticePage";
 import NoticeDetail from "./components2/pages/NoticeDetail";
@@ -76,6 +78,9 @@ function AppContent() {
         {/* =================================
             관리자 그룹
            ================================= */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/signup" element={<AdminSignup />} />
+
         <Route path="/admin" element={<AdminPage />}>
           <Route index element={<AdminDashboard />} />
           <Route path="dashboard" element={<AdminDashboard />} />

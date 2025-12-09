@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.zerock.backend.admin.dto.AdminLoginRequest;
 import org.zerock.backend.admin.dto.AdminLoginResponse;
+import org.zerock.backend.admin.dto.AdminMeResponse;
 import org.zerock.backend.admin.dto.AdminSignupRequest;
 import org.zerock.backend.admin.dto.AdminSignupResponse;
 import org.zerock.backend.admin.dto.PendingAdminResponse;
@@ -140,4 +141,17 @@ public class AdminAuthController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<AdminMeResponse> getMe(HttpServletRequest request) {
+        // 필터에서 검증 후 넣어준 adminId 꺼내기
+        Long adminId = (Long) request.getAttribute("loginAdminId");
+
+        if (adminId == null) {
+            // 세션이 없거나 만료됨 -> 401 응답
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        AdminMeResponse response = adminAuthService.getMe(adminId);
+        return ResponseEntity.ok(response);
+    }
 }

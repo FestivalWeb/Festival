@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import org.zerock.backend.admin.dto.AdminLoginRequest;
 import org.zerock.backend.admin.dto.AdminLoginResponse;
+import org.zerock.backend.admin.dto.AdminMeResponse;
 import org.zerock.backend.admin.dto.AdminSignupRequest;
 import org.zerock.backend.admin.dto.AdminSignupResponse;
 import org.zerock.backend.admin.dto.PendingAdminResponse;
@@ -20,11 +21,15 @@ import org.zerock.backend.entity.AdminIpWhitelist;
 import org.zerock.backend.entity.AdminSession;
 import org.zerock.backend.entity.AdminUser;
 import org.zerock.backend.repository.AdminIpWhitelistRepository;
+import org.zerock.backend.repository.AdminRoleRepository;
 import org.zerock.backend.repository.AdminSessionRepository;
 import org.zerock.backend.repository.AdminUserRepository;
+import org.zerock.backend.entity.AdminRole;
+import org.zerock.backend.entity.RoleEntity;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.List;
 
 import java.util.Optional;
 import jakarta.servlet.http.Cookie;
@@ -38,7 +43,8 @@ public class AdminAuthService {
     private final AdminSessionRepository adminSessionRepository;
     private final PasswordEncoder passwordEncoder;
     private final AdminLogWriter adminLogWriter;
-    
+    private final AdminRoleRepository adminRoleRepository;
+
     // 세션 유지 시간 (슬라이딩 기준)
     private static final long SESSION_HOURS = 2L;
 
@@ -46,6 +52,7 @@ public class AdminAuthService {
      * 관리자 회원가입 처리
      * 
      */
+    @Transactional
     public AdminSignupResponse signup(AdminSignupRequest request,
                                       HttpServletRequest httpRequest) {
 
@@ -69,10 +76,11 @@ public class AdminAuthService {
         .email(request.getEmail())
         .isActive(false)
         .approveStatus(AdminApproveStatus.PENDING)    // 승인 대기 상태
-        .requestedAt(LocalDateTime.now())                             // 가입 요청 시간
+        .requestedAt(LocalDateTime.now())             // 가입 요청 시간
         .createdAt(LocalDateTime.now())
         .updatedAt(LocalDateTime.now())
         .build();
+        
         // 5. DB 저장
         AdminUser savedUser = adminUserRepository.save(adminUser);
 
@@ -107,7 +115,8 @@ public class AdminAuthService {
      * - 없으면 새 AdminSession 생성
      * - 세션 ID를 쿠키와 응답 DTO로 내려줌
      */
-
+    
+    @Transactional
     public AdminLoginResponse login(AdminLoginRequest request, HttpServletRequest httpRequest,  HttpServletResponse httpResponse) {
 
         // 1. 계정 조회 (아이디 기준으로 관리자 조회)
@@ -363,6 +372,23 @@ public class AdminAuthService {
                 .sameSite("Lax")
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
+    }
+
+    public AdminMeResponse getMe(Long adminId) {
+        AdminUser user = adminUserRepository.findById(adminId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
+
+        // [수정] AdminRole -> RoleEntity -> roleCode 순서로 접근
+        List<String> roles = adminRoleRepository.findByAdminUser(user).stream()
+                .map(adminRole -> adminRole.getRole().getRoleCode()) 
+                .toList();
+
+        return AdminMeResponse.builder()
+                .adminId(user.getAdminId())
+                .username(user.getUsername())
+                .name(user.getName())
+                .roles(roles)
+                .build();
     }
 
     /**

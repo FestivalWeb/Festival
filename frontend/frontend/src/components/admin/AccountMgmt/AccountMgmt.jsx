@@ -1,30 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import adminApi from '../../../api/api'; // [중요] 아까 만든 axios 인스턴스 import
 import './AccountMgmt.css';
 
 const AccountMgmt = () => {
-  // --- 1. 상태 관리 (검색, 필터, 페이지네이션, 선택된 항목) ---
+  // Mock Data 삭제하고 빈 배열로 시작
+  const [accounts, setAccounts] = useState([]);
+  
+  // 나머지 상태들(검색, 필터 등)은 그대로 유지...
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // 5개씩 보기
-  const [selectedIds, setSelectedIds] = useState([]); // 체크박스 선택된 ID들
-
-  // 모달 상태
+  const itemsPerPage = 5;
+  const [selectedIds, setSelectedIds] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showRoleModal, setShowRoleModal] = useState(false);
-  const [targetUser, setTargetUser] = useState(null); // 역할 변경 대상
+  const [targetUser, setTargetUser] = useState(null);
 
-  // --- 2. Mock Data (테스트 데이터) ---
-  const [accounts, setAccounts] = useState([
-    { id: 'admin01', name: '김관리', email: 'admin@test.com', role: 'SUPER', state: '활성', lastLogin: '2025-11-03 09:12', regDate: '2024-06-01' },
-    { id: 'staff02', name: '이운영', email: 'op22@test.com', role: 'STAFF', state: '활성', lastLogin: '2025-11-03 08:45', regDate: '2025-01-20' },
-    { id: 'guest01', name: '박게스트', email: 'shk@test.com', role: 'VIEWER', state: '잠금', lastLogin: '-', regDate: '2025-08-20' },
-    { id: 'mod07', name: '정관리', email: 'mgt07@test.com', role: 'MANAGER', state: '활성', lastLogin: '2025-11-02 21:33', regDate: '2024-10-18' },
-    { id: 'staff31', name: '유직원', email: 'jui31@test.com', role: 'STAFF', state: '활성', lastLogin: '2025-11-02 19:10', regDate: '2025-02-14' },
-    { id: 'user88', name: '홍길동', email: 'hong@test.com', role: 'VIEWER', state: '활성', lastLogin: '2025-11-01 10:00', regDate: '2025-09-01' },
-    { id: 'user99', name: '김철수', email: 'cheol@test.com', role: 'VIEWER', state: '활성', lastLogin: '2025-10-30 14:20', regDate: '2025-09-02' },
-  ]);
+  // [추가] 백엔드 데이터 불러오기 함수
+  const fetchAccounts = async () => {
+    try {
+      // 백엔드: GET /api/admin/accounts
+      const response = await adminApi.get('/api/admin/accounts');
+      
+      // 백엔드 데이터(DTO)를 화면용 데이터로 변환 (매핑)
+      const mappedData = response.data.map(user => ({
+        id: user.adminId,            // 실제 DB PK (수정/삭제용)
+        loginId: user.username,      // 화면 표시용 아이디
+        name: user.name,
+        email: user.email,
+        // roles는 리스트로 오므로 첫 번째 것만 쓰거나 join
+        role: user.roles && user.roles.length > 0 ? user.roles[0] : 'VIEWER', 
+        state: user.status,          // "ACTIVE", "INACTIVE" 등
+        lastLogin: user.lastLoginAt ? user.lastLoginAt.replace('T', ' ').substring(0, 16) : '-',
+        regDate: user.createdAt ? user.createdAt.replace('T', ' ').substring(0, 10) : '-'
+      }));
+      
+      setAccounts(mappedData);
+    } catch (error) {
+      console.error("계정 목록 로딩 실패:", error);
+      if (error.response && error.response.status === 401) {
+          alert("세션이 만료되었습니다.");
+          // 로그인 페이지로 튕겨내기 로직 추가 가능
+      }
+    }
+  };
 
+  // 화면 켜지자마자 실행
+  useEffect(() => {
+    fetchAccounts();
+  }, []);
   // --- 3. 핸들러 함수들 ---
 
   // 검색 및 필터링 로직
