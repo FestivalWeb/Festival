@@ -5,7 +5,7 @@ export default function Footer() {
     <footer
       style={{
         backgroundColor: "#f8d7dd", // 사진과 비슷한 연분홍
-        marginTop: 0, 
+        marginTop: 0,
         padding: "20px 0",
         width: "100%",
         fontFamily: "Arial, sans-serif",
@@ -30,36 +30,45 @@ export default function Footer() {
         >
           {/* 인스타그램 */}
           <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-            <img
-              src="/icons/Instagram.jpg"
-              alt="instagram"
-              style={{ width: "28px", marginLeft: "20px" }}
-            />
-            <span style={{ width: "120px", fontWeight: "600", marginLeft: "10px" }}>인스타그램</span>
-            <a
-              href="https://instagram.com/nonsan.korea"
-              target="_blank"
-              style={{ color: "#000", textDecoration: "none", marginLeft: "458px" }} // 오른쪽으로 이동
-            >
-              instagram.com/nonsan.korea
+            <a href="https://instagram.com/nonsan.korea" target="_blank">
+              <img
+                src="/icons/Instagram.jpg"
+                alt="instagram"
+                style={{ width: "28px", marginLeft: "20px", cursor: "pointer" }}
+              />
             </a>
+            {/* 일반 텍스트 */}
+            <span style={{ width: "120px", fontWeight: "600", marginLeft: "10px" }}>
+              인스타그램
+            </span>
+
+            {/* 오른쪽 URL은 링크 ❌, 텍스트만 유지 */}
+            <span style={{ marginLeft: "458px", color: "#000" }}>
+              instagram.com/nonsan.korea
+            </span>
           </div>
+
 
           {/* 유튜브 */}
           <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-            <img
-              src="/icons/youtube.png"
-              alt="youtube"
-              style={{ width: "28px", marginLeft: "20px" }}
-            />
-            <span style={{ width: "120px", fontWeight: "600", marginLeft: "10px" }}>유튜브</span>
-            <a
-              href="https://www.youtube.com/@Nonsan"
-              target="_blank"
-              style={{ color: "#000", textDecoration: "none", marginLeft: "460px" }} // 오른쪽으로 이동
-            >
-              youtube.com/@Nonsan
+            {/* 로고 클릭 → 이동 */}
+            <a href="https://www.youtube.com/@Nonsan" target="_blank">
+              <img
+                src="/icons/youtube.png"
+                alt="youtube"
+                style={{ width: "28px", marginLeft: "20px", cursor: "pointer" }}
+              />
             </a>
+
+            {/* 일반 텍스트 */}
+            <span style={{ width: "120px", fontWeight: "600", marginLeft: "10px" }}>
+              유튜브
+            </span>
+
+            {/* 오른쪽 URL은 링크 ❌, 텍스트만 유지 */}
+            <span style={{ marginLeft: "460px", color: "#000" }}>
+              www.youtube.com/@Nonsan
+            </span>
           </div>
 
           {/* 이메일 */}
@@ -70,12 +79,16 @@ export default function Footer() {
               style={{ width: "28px", marginLeft: "20px" }}
             />
             <span style={{ width: "120px", fontWeight: "600", marginLeft: "10px" }}>이메일</span>
-            <a
-              href="mailto:nonsan@nonsan.com"
-              style={{ color: "#000", textDecoration: "none", marginLeft: "460px" }} // 오른쪽으로 이동
+            {/* 링크 제거하고 일반 텍스트만 표시 */}
+            <span
+              style={{
+                color: "#000",
+                textDecoration: "none",
+                marginLeft: "460px"
+              }}
             >
               nonsan@nonsan.com
-            </a>
+            </span>
           </div>
         </div>
 
