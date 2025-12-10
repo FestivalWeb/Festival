@@ -37,6 +37,7 @@ export default function Footer() {
                 style={{ width: "28px", marginLeft: "20px", cursor: "pointer" }}
               />
             </a>
+      
             {/* 일반 텍스트 */}
             <span style={{ width: "120px", fontWeight: "600", marginLeft: "10px" }}>
               인스타그램
