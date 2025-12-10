@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../components/home/MainHero.css"
 import "./styles/layout.css";
+import api from "../api/api";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -57,6 +58,16 @@ export default function Header() {
     }
   };
 
+  // [추가] 게시판 목록 상태
+  const [boardMenus, setBoardMenus] = useState([]);
+
+  // [추가] 메뉴 데이터 로드
+  useEffect(() => {
+    api.get('/api/boards')
+      .then(res => setBoardMenus(res.data)) // [{boardId:1, name:"공지"}, ...]
+      .catch(err => console.error("메뉴 로드 실패", err));
+  }, []);
+
   return (
     <header className="sf-header">
       {/* 왼쪽 로고 영역 */}
@@ -75,7 +86,35 @@ export default function Header() {
         <button className="sf-nav-item" onClick={() => navOrScroll("festivalintro") }>
           축제소개
         </button>
-        <button className="sf-nav-item" onClick={() => navOrScroll("notice", "/notice") } >공지사항/게시물</button>
+        {/* 2. [수정됨] 드롭다운 메뉴 (게시판 목록) */}
+        <div className="sf-dropdown">
+          {/* 드롭다운 트리거 버튼 */}
+          <button className="sf-nav-item">
+            커뮤니티 ▾
+          </button>
+          
+          {/* 펼쳐지는 목록 */}
+          <div className="sf-dropdown-menu">
+            {boardMenus.length > 0 ? (
+              boardMenus.map((board) => (
+                <button
+                  key={board.boardId}
+                  className="sf-dropdown-item" // 새로 만든 CSS 클래스 사용
+                  onClick={() => {
+                    navigate(`/board/${board.boardId}`);
+                    window.scrollTo({ top: 0, behavior: 'smooth' }); // 페이지 이동 시 스크롤 위로
+                  }}
+                >
+                  {board.name}
+                </button>
+              ))
+            ) : (
+              <div style={{ padding: '10px', color: '#999', fontSize: '13px', textAlign: 'center' }}>
+                게시판 없음
+              </div>
+            )}
+          </div>
+        </div>
         <button className="sf-nav-item" onClick={() => navOrScroll("gallery", "/gallery") }>갤러리</button>
         <button className="sf-nav-item" onClick={() => navOrScroll("booth", "/booth") }>
           체험부스

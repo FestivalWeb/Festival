@@ -36,18 +36,24 @@ public class post {
 
     //--- 날짜 관련 (이전 BaseEntity와 이름이 달라서 직접 선언) ---
     
-    @CreatedDate // 생성 시 날짜 자동 저장
-    @Column(name = "create_date", updatable = false)
-    private LocalDateTime createDate; // DB 타입이 date라도 보통 LocalDateTime 권장 (필요시 LocalDate로 변경)
+    @CreatedDate
+    @Column(name = "`create`", updatable = false) 
+    private LocalDateTime createDate;
 
-    @LastModifiedDate // 수정 시 날짜 자동 저장
-    @Column(name = "update_date")
+    // [수정] DB 컬럼명이 'update' 이므로 name을 "update"로 변경
+    @LastModifiedDate
+    @Column(name = "`update`")
     private LocalDateTime updateDate;
+
+    // ▼ [추가됨] 게시판과의 관계 설정 (N:1)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id") // DB 컬럼명
+    private Board board;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<PostImgMapping> images = new LinkedHashSet<>();
     //--- 기타 컬럼 ---
-
+    
     @ColumnDefault("0") // 조회수 기본값 0
     @Column(name = "view")
     private Long view;
@@ -63,11 +69,12 @@ public class post {
 
     // 생성자 (Builder)
     @Builder
-    public post(String title, String context, String userId, Long adminId) {
+    public post(String title, String context, String userId, Long adminId, Board board) {
         this.title = title;
         this.context = context;
         this.userId = userId;
         this.adminId = adminId;
+        this.board = board; // 게시판 정보 저장
         this.view = 0L; // 기본값 초기화
     }
 
@@ -80,5 +87,14 @@ public class post {
     public void updatePost(String title, String context) {
         this.title = title;
         this.context = context;
+    }
+
+    // ▼ [추가] 편의 메서드 (게시판 변경 등 필요할 경우)
+    public void setBoard(Board board) {
+        this.board = board;
+        // 양방향 연관관계 편의 메서드 패턴 (선택사항)
+        if (!board.getPosts().contains(this)) {
+            board.getPosts().add(this);
+        }
     }
 }

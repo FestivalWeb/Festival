@@ -39,6 +39,8 @@ import MyPage from "./components3/MyPage";
 import FindId from "./components3/FindId";
 import ForgotPassword from "./components3/ForgotPassword";
 
+import BoardPage from "./pages/BoardPage"; // [추가]
+
 // ------------------------
 // 레이아웃 정의
 // ------------------------
@@ -103,7 +105,10 @@ function AppContent() {
         />
 
         {/* 게시판 */}
-
+        {/* ▼ [추가됨] 동적 게시판 라우팅 (핵심!) */}
+        {/* Layout 컴포넌트로 감싸서 사이드바도 같이 나오게 설정 */}
+        <Route path="/board/:boardId" element={<Layout><BoardPage /></Layout>} />
+        
         <Route path="/notice" element={<Layout><NoticePage /></Layout>} />
         <Route path="/notice/:id" element={<Layout><NoticeDetail /></Layout>} />
         <Route path="/post" element={<Layout><PostPage /></Layout>} />
@@ -134,6 +139,7 @@ const BoothDetailWrapper = () => {
 function App() {
   return (
     <Router>
+      
       <AuthProvider>
         <AppContent />
       </AuthProvider>

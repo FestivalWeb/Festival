@@ -5,6 +5,8 @@ import lombok.Setter;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList; // 추가
+import java.util.List;      // 추가
 
 @Entity
 @Getter
@@ -49,6 +51,10 @@ public class Board {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    // ▼ [추가됨] 게시글들과의 관계 설정 (1:N)
+    // mappedBy = "board"는 post 엔티티에 있는 필드명입니다.
+    @OneToMany(mappedBy = "board")
+    private List<post> posts = new ArrayList<>();
     
     @PrePersist
     protected void onCreate() {

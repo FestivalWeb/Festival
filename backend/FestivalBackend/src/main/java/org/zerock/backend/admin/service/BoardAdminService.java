@@ -46,7 +46,7 @@ public class BoardAdminService {
         }
     }
 
-    /** 로그인 관리자 조회 + roleCode 얻기 */
+    /** 로그인 관리자 조회 */
     private AdminUser getLoginAdmin(HttpServletRequest request) {
         Long loginAdminId = (Long) request.getAttribute("loginAdminId");
         if (loginAdminId == null) {
@@ -57,9 +57,12 @@ public class BoardAdminService {
                 .orElseThrow(() -> new IllegalStateException("로그인 관리자 정보를 찾을 수 없습니다."));
     }
 
+    /** * 관리자 권한 코드(RoleCode) 조회
+     * AdminUser -> AdminRole -> RoleEntity -> roleCode 순서로 접근
+     */
     private String getRoleCode(AdminUser adminUser) {
         return adminUser.getRoles().stream()
-                .map(ar -> ar.getRole().getRoleCode())
+                .map(ar -> ar.getRole().getRoleCode()) 
                 .findFirst()
                 .orElse(null);
     }
@@ -67,7 +70,7 @@ public class BoardAdminService {
     /** 전체 게시판 목록 (관리자 화면용) */
     @Transactional(readOnly = true)
     public List<BoardSummaryResponse> getBoardList() {
-
+        // [참고] 데이터가 많아지면 repository에서 @EntityGraph(attributePaths = "createdBy") 사용 권장
         List<Board> boards = boardRepository.findAllByOrderByBoardIdAsc();
 
         return boards.stream()
@@ -78,14 +81,13 @@ public class BoardAdminService {
     /** 단일 게시판 상세 (수정 진입 시) */
     @Transactional(readOnly = true)
     public BoardSummaryResponse getBoard(Long boardId) {
-
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다. id=" + boardId));
 
         return BoardSummaryResponse.from(board);
     }
 
-    /** 게시판 생성 (게시판명, 권한, 상태, 스킨) */
+    /** 게시판 생성 */
     @Transactional
     public BoardSummaryResponse createBoard(BoardCreateRequest request, HttpServletRequest httpRequest) {
 
@@ -93,10 +95,10 @@ public class BoardAdminService {
         String loginRoleCode = getRoleCode(loginAdmin);
 
         if (loginRoleCode == null) {
-            throw new IllegalStateException("로그인 관리자에게 권한(Role)이 설정되어 있지 않습니다.");
+            throw new IllegalStateException("권한이 설정되지 않은 관리자입니다.");
         }
 
-        // 권한 규칙: SUPER, MANAGER만 게시판 생성 가능 (원하면 STAFF도 열어줄 수 있음)
+        // 권한 체크: SUPER, MANAGER만 생성 가능
         if (!"SUPER".equals(loginRoleCode) && !"MANAGER".equals(loginRoleCode)) {
             throw new IllegalStateException("게시판 생성은 SUPER 또는 MANAGER만 가능합니다.");
         }
@@ -110,25 +112,22 @@ public class BoardAdminService {
         board.setStatus(request.isStatus());
         board.setSkin(request.getSkin());
         board.setPostCount(0L);
-        board.setCreatedBy(loginAdmin);
+        
+        // [중요] Board 엔티티의 @ManyToOne createdBy 필드에 매핑
+        board.setCreatedBy(loginAdmin); 
 
         Board saved = boardRepository.save(board);
 
         return BoardSummaryResponse.from(saved);
     }
 
-    /** 게시판 수정 (게시판명, 권한, 상태, 스킨) */
+    /** 게시판 수정 */
     @Transactional
     public BoardSummaryResponse updateBoard(Long boardId, BoardUpdateRequest request, HttpServletRequest httpRequest) {
 
         AdminUser loginAdmin = getLoginAdmin(httpRequest);
         String loginRoleCode = getRoleCode(loginAdmin);
 
-        if (loginRoleCode == null) {
-            throw new IllegalStateException("로그인 관리자에게 권한(Role)이 설정되어 있지 않습니다.");
-        }
-
-        // 권한 규칙: SUPER, MANAGER만 수정 가능
         if (!"SUPER".equals(loginRoleCode) && !"MANAGER".equals(loginRoleCode)) {
             throw new IllegalStateException("게시판 수정은 SUPER 또는 MANAGER만 가능합니다.");
         }
@@ -144,16 +143,12 @@ public class BoardAdminService {
         board.setStatus(request.isStatus());
         board.setSkin(request.getSkin());
 
-        // PreUpdate 에서 updatedAt 처리됨
+        // PreUpdate에 의해 updatedAt 자동 갱신됨
         return BoardSummaryResponse.from(board);
     }
 
-    /** 게시판 삭제
-     *
-     *  여기서는 안전하게:
-     *   - SUPER만 삭제 가능
-     *   - 실제로는 status=false 로 "비활성" 처리
-     *  (진짜 DB에서 지우고 싶으면 hardDeleteBoard 사용)
+    /** * 게시판 상태 변경 (소프트 삭제)
+     * - 실제 삭제 대신 '중지(status=false)' 처리
      */
     @Transactional
     public void deleteBoard(Long boardId, HttpServletRequest httpRequest) {
@@ -162,73 +157,60 @@ public class BoardAdminService {
         String loginRoleCode = getRoleCode(loginAdmin);
 
         if (!"SUPER".equals(loginRoleCode)) {
-            throw new IllegalStateException("게시판 삭제는 SUPER 관리자만 가능합니다.");
+            throw new IllegalStateException("게시판 삭제(비활성)는 SUPER 관리자만 가능합니다.");
         }
 
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다. id=" + boardId));
 
-        // 소프트 삭제: 사용 여부 false
-        board.setStatus(false);
+        board.setStatus(false); // 비활성 처리
     }
 
-    /** 정말 물리 삭제가 필요하면 별도로 */
+    /** * 게시판 물리 삭제 (주의!!)
+     * - DB FK Cascade 설정이 되어 있어야 하위 글(Post)도 함께 삭제됨
+     */
     @Transactional
     public void hardDeleteBoard(Long boardId, HttpServletRequest httpRequest) {
-
         AdminUser loginAdmin = getLoginAdmin(httpRequest);
-        String loginRoleCode = getRoleCode(loginAdmin);
-
-        if (!"SUPER".equals(loginRoleCode)) {
-            throw new IllegalStateException("게시판 삭제는 SUPER 관리자만 가능합니다.");
+        if (!"SUPER".equals(getRoleCode(loginAdmin))) {
+            throw new IllegalStateException("게시판 완전 삭제는 SUPER 관리자만 가능합니다.");
         }
-
         boardRepository.deleteById(boardId);
     }
 
-    /** 게시판 상태 변경 (1건씩) */
+    /** 게시판 상태 변경 (활성/비활성 토글 등) */
     @Transactional
     public void changeBoardStatus(Long boardId, boolean active, HttpServletRequest httpRequest) {
 
         AdminUser loginAdmin = getLoginAdmin(httpRequest);
         String loginRoleCode = getRoleCode(loginAdmin);
 
-        if (loginRoleCode == null) {
-            throw new IllegalStateException("로그인 관리자에게 권한(Role)이 설정되어 있지 않습니다.");
-        }
-
-        // 권한 규칙: SUPER, MANAGER만 상태 변경 가능
         if (!"SUPER".equals(loginRoleCode) && !"MANAGER".equals(loginRoleCode)) {
-            throw new IllegalStateException("게시판 상태 변경은 SUPER 또는 MANAGER만 가능합니다.");
+            throw new IllegalStateException("게시판 상태 변경 권한이 없습니다.");
         }
 
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다. id=" + boardId));
 
         board.setStatus(active);
-        // @Transactional 이라 save 안 해도 flush 시점에 반영됨
     }
 
-    /** 게시판 여러 개 한 번에 삭제 (다건) */
+    /** * 게시판 다건 물리 삭제 
+     * [주의] 이 메서드는 JPA 엔티티 관계를 무시하고 DB 쿼리를 직접 날립니다.
+     * DB 테이블 생성 시 'ON DELETE CASCADE' 옵션을 주었으므로
+     * 게시판 삭제 시 소속된 Post들도 DB 레벨에서 자동으로 삭제됩니다.
+     */
     @Transactional
     public void deleteBoardsBulk(List<Long> boardIds, HttpServletRequest httpRequest) {
 
         AdminUser loginAdmin = getLoginAdmin(httpRequest);
-        String loginRoleCode = getRoleCode(loginAdmin);
-
-        if (!"SUPER".equals(loginRoleCode)) {
+        if (!"SUPER".equals(getRoleCode(loginAdmin))) {
             throw new IllegalStateException("게시판 삭제는 SUPER 관리자만 가능합니다.");
         }
 
-        if (boardIds == null || boardIds.isEmpty()) {
-            return; // 지울 게 없으면 그냥 통과
-        }
+        if (boardIds == null || boardIds.isEmpty()) return;
 
-        // 필요하면 여기서 "존재하지 않는 id" 체크도 가능
-        // 예: boardRepository.findAllById(boardIds) 크기 비교 등
-
-        // ⚠ 여기서는 **물리 삭제** (DB에서 실제 삭제)
-        // 게시글(Post)와 FK 관계가 있다면 제약조건 맞춰줘야 함
+        // DB Cascade 설정에 의존하여 삭제
         boardRepository.deleteAllByIdInBatch(boardIds);
     }
 }

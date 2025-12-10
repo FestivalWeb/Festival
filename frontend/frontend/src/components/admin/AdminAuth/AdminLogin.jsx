@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import adminApi from "../../../api/api";
 import './AdminAuth.css';
@@ -7,6 +7,27 @@ const AdminLogin = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ id: '', password: '' });
   const [error, setError] = useState('');
+
+  // [추가] 로딩 상태 (체크하는 동안 깜빡임 방지용)
+  const [isLoading, setIsLoading] = useState(true);
+
+  // [추가] 1. 컴포넌트가 열리자마자 로그인 상태인지 체크
+  useEffect(() => {
+    const checkAlreadyLoggedIn = async () => {
+      try {
+        // 내 정보 조회 API 호출 (쿠키가 있다면 백엔드가 200 OK와 정보를 줌)
+        await adminApi.get('/api/admin/auth/me');
+        
+        // 에러 없이 성공했다면 이미 로그인된 상태임 -> 대시보드로 이동
+        navigate('/admin/dashboard'); 
+      } catch (error) {
+        // 401 에러 등이 나면 로그인이 안 된 상태 -> 그냥 로그인 폼 보여주면 됨
+        setIsLoading(false);
+      }
+    };
+
+    checkAlreadyLoggedIn();
+  }, [navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -47,6 +68,11 @@ const AdminLogin = () => {
     }
   };
 
+  // [추가] 로딩 중이면 화면을 비워둠 (로그인 폼이 잠깐 번쩍이는 것 방지)
+  if (isLoading) {
+    return <div className="auth-container" style={{ color: 'white' }}></div>; 
+  }
+  
   return (
     <div className="auth-container">
       <div className="auth-card">
