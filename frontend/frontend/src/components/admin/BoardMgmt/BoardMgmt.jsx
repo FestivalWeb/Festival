@@ -18,11 +18,12 @@ const BoardMgmt = () => {
   const [showModal, setShowModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   
-  // 입력 폼 상태 (생성/수정 공용)
+  // [수정] 입력 폼 상태 (visibility 삭제 -> readRole, writeRole 추가)
   const [formData, setFormData] = useState({
     id: null,
     name: '',
-    visibility: 'PUBLIC',
+    readRole: 'PUBLIC',  // 읽기 권한 기본값
+    writeRole: 'MEMBER', // 쓰기 권한 기본값
     skin: 'basic',
     status: true
   });
@@ -37,7 +38,8 @@ const BoardMgmt = () => {
       const mappedData = response.data.map(board => ({
         id: board.boardId,
         name: board.name,
-        scope: board.visibility, // PUBLIC, MEMBER ...
+        readRole: board.readRole,   // [추가]
+        writeRole: board.writeRole, // [추가]
         state: board.status === 'ACTIVE' ? '사용' : '중지', // 상태 문자열 변환
         count: board.postCount,
         skin: board.skin,
@@ -57,10 +59,10 @@ const BoardMgmt = () => {
 
   const filteredBoards = boards.filter(item => {
     const matchSearch = item.name.includes(searchTerm);
-    // scopeFilter가 'ALL'이 아니면 정확히 일치하는지 확인
-    const matchScope = scopeFilter === 'ALL' || item.scope === scopeFilter;
+    // [참고] 필터링 로직은 필요에 따라 readRole 또는 writeRole 기준으로 수정 가능
+    // const matchRole = roleFilter === 'ALL' || item.readRole === roleFilter; 
     const matchState = stateFilter === 'ALL' || item.state === stateFilter;
-    return matchSearch && matchScope && matchState;
+    return matchSearch && matchState;
   });
 
   const totalPages = Math.ceil(filteredBoards.length / itemsPerPage);
@@ -82,7 +84,15 @@ const BoardMgmt = () => {
   // 모달 열기 (생성)
   const openCreateModal = () => {
     setIsEditMode(false);
-    setFormData({ id: null, name: '', visibility: 'PUBLIC', skin: 'basic', status: true });
+    // [수정] 초기값 설정
+    setFormData({ 
+      id: null, 
+      name: '', 
+      readRole: 'PUBLIC', 
+      writeRole: 'MEMBER', 
+      skin: 'basic', 
+      status: true 
+    });
     setShowModal(true);
   };
 
@@ -94,10 +104,12 @@ const BoardMgmt = () => {
     }
     const board = boards.find(b => b.id === selectedIds[0]);
     setIsEditMode(true);
+    // [수정] 기존 데이터 불러오기
     setFormData({
       id: board.id,
       name: board.name,
-      visibility: board.scope,
+      readRole: board.readRole,
+      writeRole: board.writeRole,
       skin: board.skin,
       status: board.state === '사용'
     });
@@ -109,7 +121,8 @@ const BoardMgmt = () => {
     try {
       const payload = {
         name: formData.name,
-        visibility: formData.visibility,
+        readRole: formData.readRole,
+        writeRole: formData.writeRole,
         skin: formData.skin,
         status: formData.status
       };
@@ -203,7 +216,8 @@ const BoardMgmt = () => {
                 />
               </th>
               <th>게시판명</th>
-              <th>권한</th>
+              <th>읽기 권한</th> 
+              <th>쓰기 권한</th> 
               <th>상태</th>
               <th>게시물수</th>
               <th>스킨</th>
@@ -222,7 +236,9 @@ const BoardMgmt = () => {
                     />
                   </td>
                   <td>{board.name}</td>
-                  <td><span className="badge">{board.scope}</span></td>
+                  {/* [수정] 권한 뱃지 표시 */}
+                  <td><span className="badge">{board.readRole}</span></td>
+                  <td><span className="badge">{board.writeRole}</span></td>
                   <td>
                     <span className={`status-pill ${board.state === '사용' ? 'active' : 'stopped'}`}>
                       {board.state}
@@ -274,13 +290,29 @@ const BoardMgmt = () => {
                     placeholder="예: 공지사항" 
                   />
                 </div>
+                {/* [수정] 읽기 권한 선택 */}
                 <div className="form-group">
-                  <label>권한 *</label>
+                  <label>읽기 권한 (Read) *</label>
                   <select 
-                    value={formData.visibility}
-                    onChange={(e) => setFormData({...formData, visibility: e.target.value})}
+                    value={formData.readRole}
+                    onChange={(e) => setFormData({...formData, readRole: e.target.value})}
                   >
                     <option value="PUBLIC">전체 공개 (PUBLIC)</option>
+                    <option value="MEMBER">회원 전용 (MEMBER)</option>
+                    <option value="STAFF">직원 전용 (STAFF)</option>
+                    <option value="MANAGER">매니저 전용 (MANAGER)</option>
+                    <option value="SUPER">관리자 전용 (SUPER)</option>
+                  </select>
+                </div>
+
+                {/* [수정] 쓰기 권한 선택 */}
+                <div className="form-group">
+                  <label>쓰기 권한 (Write) *</label>
+                  <select 
+                    value={formData.writeRole}
+                    onChange={(e) => setFormData({...formData, writeRole: e.target.value})}
+                  >
+                    {/* 쓰기는 보통 전체공개 잘 안 함 (스팸 방지) */}
                     <option value="MEMBER">회원 전용 (MEMBER)</option>
                     <option value="STAFF">직원 전용 (STAFF)</option>
                     <option value="MANAGER">매니저 전용 (MANAGER)</option>

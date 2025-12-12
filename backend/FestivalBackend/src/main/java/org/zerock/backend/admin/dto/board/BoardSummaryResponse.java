@@ -12,7 +12,10 @@ public class BoardSummaryResponse {
 
     private Long boardId;
     private String name;
-    private String visibility;
+    // [삭제] private String visibility;
+    // [추가]
+    private String readRole;
+    private String writeRole;
     private String status;        // "ACTIVE" / "INACTIVE"
     private String skin;
     private Long postCount;
@@ -27,7 +30,9 @@ public class BoardSummaryResponse {
         return BoardSummaryResponse.builder()
                 .boardId(board.getBoardId())
                 .name(board.getName())
-                .visibility(board.getVisibility())
+                .readRole(board.getReadRole())   // [추가]
+                .writeRole(board.getWriteRole()) // [추가]
+                // .visibility(...) [삭제]
                 .status(statusStr)
                 .skin(board.getSkin())
                 .postCount(board.getPostCount())

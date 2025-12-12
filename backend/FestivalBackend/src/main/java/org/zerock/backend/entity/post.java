@@ -37,12 +37,11 @@ public class post {
     //--- 날짜 관련 (이전 BaseEntity와 이름이 달라서 직접 선언) ---
     
     @CreatedDate
-    @Column(name = "`create`", updatable = false) 
+    @Column(name = "create_date", updatable = false) // ✅ DB 컬럼명(create_date)과 일치시킴
     private LocalDateTime createDate;
 
-    // [수정] DB 컬럼명이 'update' 이므로 name을 "update"로 변경
     @LastModifiedDate
-    @Column(name = "`update`")
+    @Column(name = "update_date")                    // ✅ DB 컬럼명(update_date)과 일치시킴
     private LocalDateTime updateDate;
 
     // ▼ [추가됨] 게시판과의 관계 설정 (N:1)

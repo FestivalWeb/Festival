@@ -30,9 +30,15 @@ public class Board {
     private String name;
 
     
-    @Column(name = "visibility", length = 7, nullable = false)
-    private String visibility; 
+    // [삭제] private String visibility;
 
+    // [추가] 읽기 권한
+    @Column(name = "read_role", length = 20, nullable = false)
+    private String readRole = "PUBLIC";
+
+    // [추가] 쓰기 권한
+    @Column(name = "write_role", length = 20, nullable = false)
+    private String writeRole = "MEMBER";
     
     @Column(name = "status", nullable = false)
     private boolean status = false; 
@@ -41,9 +47,10 @@ public class Board {
     private String skin = "basic"; 
 
     
-    @Column(name = "post_count", nullable = false)
-    private Long postCount = 0L; 
-   
+    // [추가] 하이버네이트가 조회할 때마다 서브쿼리를 날려서 개수를 가져옵니다.
+    @org.hibernate.annotations.Formula("(SELECT COUNT(*) FROM post p WHERE p.board_id = board_id)")
+    private Long postCount;
+    
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

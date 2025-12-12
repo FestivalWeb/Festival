@@ -115,6 +115,7 @@ export default function Header() {
             )}
           </div>
         </div>
+        
         <button className="sf-nav-item" onClick={() => navOrScroll("gallery", "/gallery") }>갤러리</button>
         <button className="sf-nav-item" onClick={() => navOrScroll("booth", "/booth") }>
           체험부스

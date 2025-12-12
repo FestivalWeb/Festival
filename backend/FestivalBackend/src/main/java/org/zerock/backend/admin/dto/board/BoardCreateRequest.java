@@ -13,9 +13,10 @@ public class BoardCreateRequest {
     @Size(max = 100)
     private String name;          // 게시판명
 
-    @NotBlank
-    @Size(max = 7)
-    private String visibility;    // PUBLIC, MEMBER, STAFF, MANAGER, SUPER
+    // [삭제] private String visibility;
+    // [추가]
+    private String readRole;
+    private String writeRole;
 
     // true = 사용, false = 중지
     private boolean status = true;

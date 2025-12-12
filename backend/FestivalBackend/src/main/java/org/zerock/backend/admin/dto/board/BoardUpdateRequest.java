@@ -13,9 +13,10 @@ public class BoardUpdateRequest {
     @Size(max = 100)
     private String name;
 
-    @NotBlank
-    @Size(max = 7)
-    private String visibility;
+    // [삭제] private String visibility;
+    // [추가]
+    private String readRole;
+    private String writeRole;
 
     private boolean status;
 
