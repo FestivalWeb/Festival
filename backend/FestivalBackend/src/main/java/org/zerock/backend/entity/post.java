@@ -20,7 +20,7 @@ import java.util.Set;
 @DynamicInsert
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "post")
-public class post {
+public class Post {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
