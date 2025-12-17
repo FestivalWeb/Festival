@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>회원가입 API 테스트 (potibeo)</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        fieldset { margin-bottom: 20px; }
+        legend { font-weight: bold; font-size: 1.2em; }
+        input { margin: 5px; width: 300px; }
+        button { margin: 5px; }
+        pre { background-color: #f4f4f4; padding: 10px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+
+    <h1>회원가입 API 테스트</h1>
+    <p>(BackendApplication.java 서버가 http://localhost:8080에서 실행 중이어야 합니다)</p>
+
+    <fieldset>
+        <legend>1 & 2. 이메일 인증 / 인증번호 확인</legend>
+        <input type="email" id="email" placeholder="인증받을 이메일 (예: dogsond1@gmail.com)" value="dogsond1@gmail.com">
+        <button id="btn-send-email">1. 인증번호 전송</button>
+        <br>
+        <input type="text" id="code" placeholder="메일로 받은 6자리 인증번호">
+        <button id="btn-verify-code">2. 인증번호 확인</button>
+    </fieldset>
+
+    <fieldset>
+        <legend>3. 아이디 중복 확인</legend>
+        <input type="text" id="checkUserId" placeholder="사용할 아이디 (예: test1234)">
+        <button id="btn-check-id">중복 확인 (GET)</button>
+    </fieldset>
+
+    <fieldset>
+        <legend>4. 최종 회원가입</legend>
+        <input type="text" id="name" placeholder="이름" value="논산딸기"><br>
+        <input type="text" id="userId" placeholder="아이디" value="test1234"><br>
+        <input type="password" id="password" placeholder="비밀번호" value="Password123!"><br>
+        <input type="text" id="sex" placeholder="성별" value="남자"><br>
+        <input type="text" id="nationality" placeholder="국적" value="내국인"><br>
+        <label><input type="checkbox" id="termsOfServiceAgreed" checked> (필수) 이용약관 동의</label><br>
+        <label><input type="checkbox" id="privacyPolicyAgreed" checked> (필수) 개인정보 동의</label><br>
+        <button id="btn-signup">4. 최종 회원가입 (POST)</button>
+    </fieldset>
+
+    <h3>API 응답 결과:</h3>
+    <pre id="result">여기에 결과가 표시됩니다.</pre>
+
+    <script>
+        const API_URL = "http://localhost:8080/users";
+        const resultBox = document.getElementById("result");
+
+        // 1. 이메일 발송
+        document.getElementById("btn-send-email").onclick = async () => {
+            const email = document.getElementById("email").value;
+            const response = await fetch(`${API_URL}/send-email`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email })
+            });
+            resultBox.textContent = `[${response.status}] ${await response.text()}`;
+        };
+
+        // 2. 인증번호 확인
+        document.getElementById("btn-verify-code").onclick = async () => {
+            const email = document.getElementById("email").value;
+            const code = document.getElementById("code").value;
+            const response = await fetch(`${API_URL}/verify-code`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, code: code })
+            });
+            resultBox.textContent = `[${response.status}] 인증 결과: ${await response.text()}`;
+        };
+
+        // 3. 아이디 중복 확인
+        document.getElementById("btn-check-id").onclick = async () => {
+            const userId = document.getElementById("checkUserId").value;
+            // GET 요청은 브라우저 주소창처럼 쿼리 파라미터로 보냅니다.
+            const response = await fetch(`${API_URL}/check-id?userId=${userId}`);
+            resultBox.textContent = `[${response.status}] '${userId}' 사용 가능 여부: ${await response.text()}`;
+        };
+
+        // 4. 최종 회원가입
+        document.getElementById("btn-signup").onclick = async () => {
+            const data = {
+                name: document.getElementById("name").value,
+                userId: document.getElementById("userId").value,
+                password: document.getElementById("password").value,
+                email: document.getElementById("email").value,
+                sex: document.getElementById("sex").value,
+                nationality: document.getElementById("nationality").value,
+                termsOfServiceAgreed: document.getElementById("termsOfServiceAgreed").checked,
+                privacyPolicyAgreed: document.getElementById("privacyPolicyAgreed").checked,
+                marketingOptIn: false // 예시
+            };
+
+            const response = await fetch(`${API_URL}/signup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            resultBox.textContent = `[${response.status}] ${await response.text()}`;
+        };
+    </script>
+</body>
+</html>

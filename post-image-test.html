@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>이미지 게시판 통합 테스트</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; background-color: #f4f4f9; }
+        .section { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h2 { margin-top: 0; color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { margin-top: 15px; padding: 10px 20px; background-color: #28a745; color: white; border: none; cursor: pointer; border-radius: 4px; font-size: 1em; }
+        button.blue { background-color: #007bff; }
+        .preview-box { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .preview-img { width: 100px; height: 100px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; }
+        .post-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; gap: 15px; }
+        .post-thumb { width: 80px; height: 80px; background: #eee; border-radius: 4px; object-fit: cover; }
+    </style>
+</head>
+<body>
+
+    <h1>🍓 웹 브라우저 통합 테스트</h1>
+
+    <div class="section">
+        <h2>1. 로그인 (필수)</h2>
+        <p>1. 버튼 클릭 -> 카카오 로그인 -> 흰 화면(JSON) 뜨면 성공</p>
+        <p>2. <b>뒤로 가기</b> 누르고 -> <b>새로고침(F5)</b> 필수!</p>
+        <a href="http://localhost:8080/login/page">
+            <button class="blue">카카오 로그인 하러 가기</button>
+        </a>
+    </div>
+
+    <div class="section">
+        <h2>2. 이미지 업로드</h2>
+        <input type="file" id="fileInput" multiple accept="image/*">
+        <button onclick="uploadFiles()">이미지 서버에 올리기</button>
+        <div class="preview-box" id="previewBox"></div>
+    </div>
+
+    <div class="section">
+        <h2>3. 게시글 작성</h2>
+        <label>제목</label>
+        <input type="text" id="title" placeholder="제목">
+        <label>내용</label>
+        <textarea id="context" rows="3" placeholder="내용"></textarea>
+        <button onclick="createPost()">글 작성 완료</button>
+    </div>
+
+    <div class="section">
+        <h2>4. 결과 확인</h2>
+        <button class="blue" onclick="getPostList()">목록 불러오기</button>
+        <div id="postList"></div>
+    </div>
+
+    <script>
+        const BASE_URL = "http://localhost:8080/api";
+        let uploadedFileIds = [];
+
+        // 1. 파일 업로드
+        async function uploadFiles() {
+            const fileInput = document.getElementById("fileInput");
+            if (fileInput.files.length === 0) return alert("파일을 선택하세요.");
+
+            const formData = new FormData();
+            for (let i = 0; i < fileInput.files.length; i++) {
+                formData.append("files", fileInput.files[i]);
+            }
+
+            try {
+                const res = await fetch(`${BASE_URL}/media/upload`, {
+                    method: "POST",
+                    body: formData,
+                    credentials: 'include' // [중요] 쿠키 포함 전송
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    data.forEach(file => uploadedFileIds.push(file.fileId));
+                    
+                    const previewBox = document.getElementById("previewBox");
+                    data.forEach(file => {
+                        const img = document.createElement("img");
+                        img.src = "http://localhost:8080" + file.url;
+                        img.className = "preview-img";
+                        previewBox.appendChild(img);
+                    });
+                    alert("업로드 성공! (메모리에 ID 저장됨)");
+                } else {
+                    alert("업로드 실패");
+                }
+            } catch (e) { alert("에러: " + e); }
+        }
+
+        // 2. 글 작성
+        async function createPost() {
+            const title = document.getElementById("title").value;
+            const context = document.getElementById("context").value;
+
+            const data = {
+                title: title,
+                context: context,
+                fileIds: uploadedFileIds
+            };
+
+            try {
+                const res = await fetch(`${BASE_URL}/posts`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                    credentials: 'include' // [중요] 쿠키(세션) 포함 전송!
+                });
+
+                if (res.ok) {
+                    alert("성공! 게시글이 등록되었습니다.");
+                    getPostList();
+                } else if (res.status === 401) {
+                    alert("로그인이 필요합니다. 1번 과정을 다시 해주세요.");
+                } else {
+                    const txt = await res.text();
+                    alert("실패: " + txt);
+                }
+            } catch (e) { alert("에러: " + e); }
+        }
+
+        // 3. 목록 조회
+        async function getPostList() {
+            try {
+                const res = await fetch(`${BASE_URL}/posts?size=10&sort=postId,desc`, {
+                    credentials: 'include' // [중요]
+                });
+                const data = await res.json();
+                
+                const listDiv = document.getElementById("postList");
+                listDiv.innerHTML = "";
+
+                data.content.forEach(post => {
+                    const thumbSrc = post.thumbnailUri 
+                        ? "http://localhost:8080" + post.thumbnailUri 
+                        : "https://via.placeholder.com/80?text=No+Img";
+
+                    const item = document.createElement("div");
+                    item.className = "post-item";
+                    item.innerHTML = `
+                        <img src="${thumbSrc}" class="post-thumb">
+                        <div>
+                            <b>#${post.postId} ${post.title}</b><br>
+                            <small>${post.userId}</small>
+                        </div>
+                    `;
+                    listDiv.appendChild(item);
+                });
+            } catch (e) { console.error(e); }
+        }
+    </script>
+</body>
+</html>

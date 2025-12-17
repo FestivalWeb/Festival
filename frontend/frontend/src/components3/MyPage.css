@@ -1,0 +1,242 @@
+/*
+  Cleaned MyPage styles
+  - removed legacy .site-footer/.sf-* rules
+  - removed duplicated container-copy and redundant helpers
+*/
+
+.mypage-outer {
+  display: flex;
+  justify-content: center;
+  padding: 0 28px;
+  box-sizing: border-box;
+  background: #faf4f6;
+}
+
+.mypage-container {
+  display: flex;
+  box-sizing: border-box;
+  max-width: 1150px;
+  width: 100%;
+  border: 1px solid rgba(0,0,0,0.06);
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+  background: #fff6f6;
+  align-items: stretch;
+}
+
+.mypage-sidebar {
+  width: 220px;
+  background: #f4e9eb;
+  padding: 36px 18px;
+  border-right: 1px solid rgba(0,0,0,0.03);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.avatar-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.avatar-circle {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 20%, #ffd1dc, #ff8aa2);
+  box-shadow: inset 0 -8px 16px rgba(255,255,255,0.2);
+}
+
+.side-nav {
+  width: 100%;
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.side-nav button {
+  background: transparent;
+  border: none;
+  text-align: left;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: #333;
+  cursor: pointer;
+}
+
+.side-nav button.active {
+  background: #ffe9f1;
+  color: #d60042;
+  font-weight: 700;
+}
+
+.side-footer {
+  margin-top: auto;
+  font-size: 12px;
+  color: #999;
+  padding-top: 18px;
+}
+
+.mypage-main {
+  flex: 1;
+  background: transparent;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+}
+
+.main-header .title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #222;
+}
+
+.btn-logout {
+  background: #ff6a86;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.main-content {
+  flex: 1;
+  padding: 18px;
+}
+
+.content-bottom {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  padding: 28px 0;
+  border-top: 1px solid rgba(0,0,0,0.03);
+}
+
+/* Reservations */
+.reservations-list h3 { margin-bottom: 12px }
+.reservation-cards { display:flex; flex-direction:column; gap:12px }
+.reservation-card { display:flex; align-items:flex-start; gap:12px; padding:12px; border:1px solid rgba(0,0,0,0.08); border-radius:10px; background:#fff }
+.reservation-index { width:28px; font-weight:700; color:#444 }
+.reservation-body { display:flex; gap:12px; align-items:center; flex:1 }
+.reservation-thumb { width:72px; height:56px; border:2px dashed #d3c7c9; border-radius:8px; background:linear-gradient(180deg,#fff,#fff6f6) }
+.reservation-meta .reservation-title { font-weight:700; color:#222 }
+.reservation-meta .reservation-desc { color:#777; font-size:13px }
+.reservation-actions { display:flex; align-items:center }
+.btn-outline { background:transparent; border:1px solid #ddd; padding:6px 10px; border-radius:12px; cursor:pointer }
+.pager { text-align:center; color:#333; margin-top:18px }
+
+/* Reservation detail */
+.reservation-detail .detail-card { display:flex; gap:18px; align-items:flex-start; padding:16px; border-radius:8px; border:1px solid rgba(0,0,0,0.06); background:#fff }
+.detail-thumb { width:160px; height:120px; border-radius:6px; border:2px dashed #d3c7c9 }
+.detail-info { flex:1 }
+.detail-info dl { display:flex; gap:8px; flex-wrap:wrap }
+.detail-info dt { width:120px; font-weight:700 }
+.detail-actions { margin-top:12px; display:flex; gap:8px }
+
+/* Posts */
+.posts-list h3 { margin-bottom:12px }
+.posts-table { width:100%; border-collapse:collapse; margin-bottom:12px }
+.posts-table th, .posts-table td { border-bottom:1px solid rgba(0,0,0,0.06); padding:10px 8px; text-align:left }
+.posts-table .post-title { color:#444 }
+.posts-actions { display:flex; justify-content:space-between; align-items:center }
+
+/* Confirm modal */
+.confirm-modal-backdrop { position:fixed; left:0; top:0; right:0; bottom:0; background:rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; z-index:1200 }
+.confirm-modal { background:#fff6f6; padding:28px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.12); min-width:320px; text-align:center }
+.confirm-buttons { display:flex; gap:16px; justify-content:center; margin-top:18px }
+.confirm-yes { background:#9bdc3b; border:none; padding:8px 18px; border-radius:16px; color:#fff }
+.confirm-no { background:#ff6a86; border:none; padding:8px 18px; border-radius:16px; color:#fff }
+
+.cb-left { width:220px; display:flex; gap:12px; align-items:flex-start; padding-left:8px }
+.avatar-small { width:64px; height:64px; border-radius:50%; background:radial-gradient(circle at 30% 20%, #ffd1dc, #ff8aa2) }
+.cb-links { display:flex; flex-direction:column; gap:8px; color:#666; font-size:13px }
+.cb-center { flex:1; color:#444; font-size:14px; display:flex; flex-direction:column; gap:8px; padding-left:12px }
+.cb-right { width:260px; display:flex; flex-direction:column; align-items:center; gap:10px }
+.cb-right a { color:#1fa73a; text-decoration:none; font-weight:700 }
+
+.policy-links { display:grid; grid-template-columns:1fr 1fr 1fr; align-items:center; padding:8px 0 6px }
+.policy-links .pl-col { display:flex }
+.policy-links .pl-left { justify-content:flex-start }
+.policy-links .pl-center { justify-content:center }
+.policy-links .pl-right { justify-content:flex-end }
+.policy-links a { color:#1fa73a; font-weight:700; text-decoration:none; font-size:16px }
+
+.address-row { display:flex; gap:12px; justify-content:space-between; padding:6px 0 18px; color:#444; font-size:13px; align-items:center }
+.address-row .addr-left { flex:1; text-align:left }
+.address-row .addr-center { flex:1; text-align:center }
+.address-row .addr-right { flex:1; text-align:right }
+
+/* icon list in left column */
+.icon-list { display:flex; flex-direction:column; gap:12px }
+.icon-row { display:flex; align-items:center; gap:10px; color:#333 }
+.icon-row span { display:inline-block }
+.footer-icon { width:22px; height:22px; object-fit:contain }
+.footer-contact .contact-list { padding-left:6px }
+.footer-contact .cb-right.empty-col { width:220px }
+
+.container-copy { text-align:center; color:#b0b0b0; font-size:12px; padding:6px 0 24px }
+
+/* Ensure full-page background matches the mypage background so there is no white bar */
+html, body { height:100%; margin:0; background:#faf4f6 }
+
+.mypage-outer, .mypage-container { margin-bottom:0 }
+
+.mypage-center { display:flex; align-items:center; justify-content:center; height:220px; color:#444; font-size:18px }
+
+.mypage-info h3, .mypage-edit h3, .mypage-delete h3 { margin:0 0 6px 0 }
+
+.hint { color:#666; font-size:13px; margin-bottom:12px }
+
+.info-row { display:flex; align-items:flex-start; gap:20px; padding:16px 0; border-bottom:1px solid rgba(0,0,0,0.03) }
+.info-row .label { width:160px; color:#222; font-weight:700; font-size:16px; padding-top:6px }
+.info-row .field { flex:1 }
+.info-input { width:100%; border:none; border-bottom:1px solid #d3c7c9; padding:8px 6px; background:transparent; color:#666; font-size:15px }
+.info-input::placeholder { color:#bfb7b7 }
+.info-input[readonly] { color:#8b8b8b }
+
+.actions-right { display:flex; justify-content:flex-end; gap:8px; margin-top:18px }
+
+:root { --mp-label-width:140px }
+
+.mypage-edit label { display:grid; grid-template-columns:var(--mp-label-width) 1fr; gap:12px; align-items:center; margin:10px 0 }
+.mypage-edit input { width:100%; padding:10px 12px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box }
+.mypage-delete label { display:grid; grid-template-columns:140px 1fr; gap:12px; align-items:center; margin:10px 0 }
+.mypage-delete input { width:100%; padding:10px 12px; border:1px solid #ccc; border-radius:6px }
+.input-with-toggle { display:flex; gap:8px; align-items:center }
+.input-with-toggle .toggle-btn { padding:6px 10px; border-radius:8px; border:1px solid rgba(0,0,0,0.08); background:#fff6f6; cursor:pointer }
+.input-with-toggle input { flex:1; width:100% }
+
+.mypage-edit, .mypage-delete, .mypage-info { max-width:540px; width:100%; margin:0 auto; box-sizing:border-box; padding:0 12px }
+
+.actions { margin-top:18px }
+
+.btn-primary { background:#9bdc3b; border:none; padding:8px 14px; border-radius:16px; color:#fff; cursor:pointer }
+.btn-ghost { background:transparent; border:1px solid rgba(0,0,0,0.06); padding:8px 14px; border-radius:14px; cursor:pointer; margin-left:8px }
+.btn-danger { background:#444; color:#fff; border:none; padding:8px 14px; border-radius:6px }
+.placeholder { padding:40px; color:#777 }
+
+@media (max-width:1100px) {
+  .mypage-container { max-width:960px }
+}
+
+@media (max-width:900px) {
+  .mypage-outer { padding:12px }
+  .mypage-container { flex-direction:column; border-radius:14px }
+  .mypage-sidebar { width:100%; flex-direction:row; gap:12px; padding:12px; border-radius:12px }
+  .side-nav { flex-direction:row; gap:8px; overflow:auto }
+  .mypage-main { border-radius:12px; padding:16px; margin-top:12px }
+  .mypage-edit input { width:100% }
+}
