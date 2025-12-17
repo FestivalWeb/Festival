@@ -278,10 +278,7 @@ const Signup = () => {
               <div className="verify-card">
                 <p>이메일로 발송된 인증번호를 입력하세요.</p>
                 <input value={form.code} onChange={onChange('code')} type="text" placeholder="인증번호" className="signup-input" />
-                
-                <div className="error" style={{visibility: globalError ? 'visible' : 'hidden', textAlign:'center', marginTop:'10px'}}>
-                  {globalError || '\u00A0'}
-                </div>
+              
 
                 <div className="actions-row">
                   {/* [수정] type="button" 추가 */}
@@ -300,9 +297,6 @@ const Signup = () => {
                 <div className="summary-row">아이디: <strong>{form.username}</strong></div>
                 <div className="summary-row">이메일: <strong>{form.email}</strong></div>
                 
-                <div className="error" style={{visibility: globalError ? 'visible' : 'hidden', textAlign:'center', marginTop:'10px'}}>
-                  {globalError || '\u00A0'}
-                </div>
 
                 <div className="actions-row">
                   {/* [수정] type="button" 추가 */}
