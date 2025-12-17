@@ -96,10 +96,13 @@ public class UserController {
     // 6. 아이디 찾기 (인증 후 아이디 반환)
     @PostMapping("/recovery/find-id")
     public ResponseEntity<String> findId(@RequestBody Map<String, String> body) {
+        String name = body.get("name");   // [추가] 프론트에서 보낸 이름 받기
         String email = body.get("email");
         String code = body.get("code");
         
-        String foundId = userService.findUserId(email, code);
+        // 서비스에 이름도 같이 넘김
+        String foundId = userService.findUserId(name, email, code);
+        
         return ResponseEntity.ok(foundId);
     }
 

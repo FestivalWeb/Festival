@@ -279,10 +279,20 @@ public class UserService {
     /**
      * [아이디 찾기] 인증 완료 후 아이디 반환
      */
-    public String findUserId(String email, String code) {
-        verifyEmailCode(email, code); // 인증번호 검증 (기존 메서드 재활용)
+   public String findUserId(String name, String email, String code) {
+        // 1. 인증번호 검증 (틀리면 여기서 에러 발생)
+        verifyEmailCode(email, code); 
+        
+        // 2. 이메일로 유저 찾기
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보가 없습니다."));
+        
+        // 3. [핵심] 입력한 이름과 DB에 저장된 이름이 같은지 확인
+        if (!user.getName().equals(name)) {
+            throw new IllegalArgumentException("사용자 이름이 일치하지 않습니다.");
+        }
+
+        // 4. 아이디 반환
         return user.getUserId();
     }
 
