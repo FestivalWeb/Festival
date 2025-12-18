@@ -1,0 +1,50 @@
+
+.pagination-wrapper {
+  position: relative;        /* 버튼을 절대 위치로 잡기 위한 기준 */
+  margin-top: 20px;
+  text-align: center;        /* 페이지네이션 가운데 정렬 */
+}
+
+.write-button-wrapper {
+  text-align: right; /* 버튼만 오른쪽 */
+  margin-top: 5px;   /* 필요 시 간격 조정 */
+}
+
+.write-fab {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background-color: #007bff;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+   /* 위치 미세 조정 */
+  position: relative;  /* 상대 위치로 이동 가능 */
+  left: -30px;         /* 왼쪽으로 10px 이동 */
+  top: -40px;           /* 위로 5px 이동 */
+}
+
+.write-fab:hover {
+  background-color: #0056b3;
+}
+
+.image-preview {
+  margin-top: 12px;
+}
+
+.image-preview img {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+/* WritePostPage.css 맨 아래에 추가 */
+.write-form input,
+.write-form textarea {
+  background-color: #f5f5f5; /* 연한 회색 */
+  color: black;
+  border: 1px solid #ccc;    /* 테두리 색도 같이 연하게 조정 가능 */
+  border-radius: 4px;         /* 원하면 모서리 둥글게 */
+  padding: 8px;               /* 안쪽 여백 */
+}
+

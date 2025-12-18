@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SearchBar from "../board/SearchBar";
 import BoardTable from "../board/BoardTable";
 import Pagination from "../board/Pagination";
 import postData from "../data/postData"; // 게시글 더미 데이터
+
 
 export default function PostsPage() {
   const navigate = useNavigate();
@@ -25,10 +26,18 @@ export default function PostsPage() {
         data={currentPosts}
         onTitleClick={(id) => navigate(`/post/${id}`)}
       />
-      <Pagination
-        totalPages={totalPages}
-        onPageChange={(page) => setCurrentPage(page)}
-      />
+      {/* 페이지네이션 + 글쓰기 버튼 한 줄로 */}
+      <div className="pagination-wrapper">
+        <Pagination
+          totalPages={totalPages}
+          onPageChange={(page) => setCurrentPage(page)}
+        />
+       <div className="write-button-wrapper">
+    <button className="write-fab" onClick={() => navigate("/write")}>
+      글쓰기
+    </button>
+  </div>
+    </div>
     </div>
   );
 }

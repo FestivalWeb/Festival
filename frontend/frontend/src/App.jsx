@@ -29,7 +29,7 @@ import NoticeImages from "./components2/pages/NoticeImage";
 import PostImages from "./components2/pages/PostImage";
 import BoothImage from "./components2/pages/BoothImage";
 import BoothImageDetail from "./components2/pages/BoothImageDetail";
-import Sidebar from "./components2/layout/Sidebar";
+import WritePostPage from "./components2/pages/WritePostPage";
 
 import Login from "./components3/Login";
 import Signup from "./components3/Signup";
@@ -111,7 +111,7 @@ function AppContent() {
         <Route path="/post-images" element={<Layout sidebarType="galleryDetail"><PostImages /></Layout>} />
         <Route path="/booth-images" element={<Layout sidebarType="galleryDetail"><BoothImage /></Layout>} />
         <Route path="/booth-images/:id" element={<Layout sidebarType="galleryDetail"><BoothImageDetail /></Layout>} />
-
+        <Route path="/write" element={<Layout><WritePostPage /></Layout>} />
       </Routes>
     </>
   );

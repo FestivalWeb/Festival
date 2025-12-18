@@ -51,7 +51,11 @@ export default function Sidebar({ type }) {
             ].map((item) => (
               <li
                 key={item.label}
-                className={location.pathname.startsWith(item.path) ? "active" : ""}
+                className={location.pathname.startsWith(item.path) ||
+              (item.path === "/post" && location.pathname === "/write")
+      ? "active"
+      : ""
+  }
               >
                 <Link to={item.path}>{item.label}</Link>
               </li>
