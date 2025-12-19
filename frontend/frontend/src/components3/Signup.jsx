@@ -38,7 +38,7 @@ const Signup = () => {
       else if (!emailRegex.test(value)) msg = '올바른 이메일 형식이 아닙니다.';
     } 
     else if (name === 'password') {
-        if (value.length < 8) msg = '비밀번호는 8자 이상이어야 합니다.';
+        if (value.length < 8) msg = '비밀번호는 영문, 숫자, 특수문자를 포함하여 8자 이상이어야 합니다.';
     } 
     else if (name === 'password2') {
         if (value !== form.password) msg = '비밀번호가 일치하지 않습니다.';
@@ -179,19 +179,36 @@ const Signup = () => {
         body: JSON.stringify(signupData),
       });
 
-      if (response.ok) setStep(4);
-      else {
-        const errText = await response.text();
-        try {
-            const errObj = JSON.parse(errText);
-            const msg = Object.values(errObj)[0]; 
-            setGlobalError(msg || "회원가입 실패");
-        } catch (e) {
-            setGlobalError(errText || "회원가입 실패");
+      if (response.ok) {
+        setStep(4);
+      } else {
+        // 서버에서 보낸 JSON 에러 받기
+        const errorData = await response.json();
+        
+        // ▼▼▼ [핵심 수정] 에러를 alert가 아니라 'fieldErrors'에 넣기 ▼▼▼
+        
+        // 1. 비밀번호 에러인 경우
+        if (errorData.password) {
+            // (1) 입력 화면(Step 1)으로 강제 이동 (그래야 빨간 글씨가 보임)
+            setStep(1); 
+            
+            // (2) 비밀번호 칸 밑에 에러 메시지 설정
+            setFieldErrors(prev => ({
+                ...prev,
+                password: errorData.password // "비밀번호는 영문, 숫자..." 가 들어감
+            }));
+
+            // (3) 사용자에게 상황 설명 (선택사항)
+            alert("입력하신 비밀번호 형식이 올바르지 않습니다.\n다시 확인해주세요.");
+        } 
+        // 2. 그 외 에러 (전역 에러로 표시)
+        else {
+            let msg = errorData.message || "회원가입 실패";
+            setGlobalError(msg);
         }
       }
     } catch (err) {
-      setGlobalError("가입 요청 중 오류 발생");
+      setGlobalError("서버 통신 오류가 발생했습니다.");
     }
   };
 
