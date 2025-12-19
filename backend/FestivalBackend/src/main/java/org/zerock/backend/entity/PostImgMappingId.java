@@ -10,6 +10,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode // [핵심] 이게 없어서 저장이 안 된 겁니다!
 public class PostImgMappingId implements Serializable {
 
     @Column(name = "post_id")

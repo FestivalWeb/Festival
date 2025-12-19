@@ -67,37 +67,41 @@ const BoothDetail = () => {
   };
 
   const handleReservation = async () => {
-    if (!user) {
-      alert("로그인이 필요합니다.");
-      navigate("/login");
-      return;
-    }
+    // [수정 1] 로컬 스토리지에서 직접 아이디 꺼내오기 (가장 확실한 방법)
+    const loginUserId = localStorage.getItem("userId"); 
 
-    if (window.confirm(`${selectedDate}에 ${people}명 예약하시겠습니까?`)) {
-      try {
-        const response = await fetch("/api/reservations", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            boothId: booth.id,
-            userId: user.id,
-            reserveDate: selectedDate,
-            count: Number(people)
-          })
-        });
+    if (!loginUserId) {
+      alert("로그인이 필요합니다.");
+      navigate("/login");
+      return;
+    }
 
-        if (response.ok) {
-          alert("예약 완료!");
-          navigate("/booth"); // [수정] 예약 성공 시 목록 페이지로 이동
-        } else {
-          const msg = await response.text();
-          alert("예약 실패: " + msg);
-        }
-      } catch (err) {
-        alert("서버 오류");
-      }
-    }
-  };
+    if (window.confirm(`${selectedDate}에 ${people}명 예약하시겠습니까?`)) {
+      try {
+        const response = await fetch("/api/reservations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            boothId: booth.id, // 부스 ID
+            userId: loginUserId, // [수정 2] user.id 대신 로컬스토리지 값 사용!
+            reserveDate: selectedDate,
+            count: Number(people)
+          })
+        });
+
+        if (response.ok) {
+          alert("예약 완료!");
+          navigate("/booth"); 
+        } else {
+          const msg = await response.text();
+          alert("예약 실패: " + msg);
+        }
+      } catch (err) {
+          console.error(err);
+        alert("서버 오류");
+      }
+    }
+  };
 
   return (
     <div className="detail-container">

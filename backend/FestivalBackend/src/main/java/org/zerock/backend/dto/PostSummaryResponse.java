@@ -1,22 +1,23 @@
 package org.zerock.backend.dto;
 
-import lombok.*;
+import com.fasterxml.jackson.annotation.JsonFormat; // [필수] 임포트
+import lombok.Builder;
+import lombok.Getter;
 import java.time.LocalDateTime;
 
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class PostSummaryResponse {
 
     private Long postId;
     private String title;
-    private String userId;          // 작성자 ID
-    private Long view;              // 조회수 
+    private String userId;
+    private Long view;
+
+    // [수정] 날짜 형식을 문자열로 고정!
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createDate;
 
-    // 썸네일용으로 첫 번째 이미지 id만 내려주고 싶다면 (없어도 됨)
     private Long thumbnailFileId;
     private String thumbnailUri;
 }

@@ -13,7 +13,7 @@ const MyPage = ({ onLogout }) => {
   const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
 
-  // ▼▼▼ [핵심] 강력한 카카오 유저 판독기 (Provider가 없어도 잡아냅니다) ▼▼▼
+  // ▼▼▼ [핵심] 카카오 유저 판독 로직 (기존 유지) ▼▼▼
   const isKakao = user && (
     (user.provider === 'KAKAO') || 
     String(user.userId || "").toLowerCase().includes('kakao') ||
@@ -25,6 +25,8 @@ const MyPage = ({ onLogout }) => {
   const [view, setView] = useState('info');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
+  
+  // 예약 관련 state
   const [myReservations, setMyReservations] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,25 +38,31 @@ const MyPage = ({ onLogout }) => {
   const [showNewPwd, setShowNewPwd] = useState(false);
   const [showNewConfirm, setShowNewConfirm] = useState(false);
 
-  // [추가] 비밀번호 변경 폼 데이터 관리
+  // 비밀번호 변경 폼 데이터
   const [pwdForm, setPwdForm] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
 
+  // 내 정보 수정 폼 데이터
   const [form, setForm] = useState({
     name: user?.name || '',
     email: user?.email || '',
     phone: user?.phone || ''
   });
 
+  // ▼▼▼ [추가] 내 게시글 목록 관리용 state ▼▼▼
+  const [myPosts, setMyPosts] = useState([]);         // 게시글 목록
+  const [postPage, setPostPage] = useState(1);        // 게시글 현재 페이지
+  const [postTotalPages, setPostTotalPages] = useState(0); // 게시글 전체 페이지 수
+
   useEffect(() => {
     if (view !== 'delete') setDeletePassword(""); // 뷰 변경 시 탈퇴 비번 초기화
     if (view !== 'pwd') setPwdForm({ currentPassword: '', newPassword: '', confirmPassword: '' }); // 비밀번호 폼 초기화
 
+    // 1. 예약 목록 조회 (기존 로직)
     if (user && view === 'reservations') {
-      // API 호출 시 user.id 없으면 user.userId 사용
       const uid = user.id || user.userId;
       fetch(`/api/reservations/me?userId=${uid}&page=${currentPage - 1}&size=5`)
         .then((res) => {
@@ -67,7 +75,39 @@ const MyPage = ({ onLogout }) => {
         })
         .catch((err) => console.error(err));
     }
-  }, [user, view, currentPage]);
+
+    // ▼▼▼ [추가] '내가 쓴 글' 탭 클릭 시 API 호출 ▼▼▼
+    if (user && view === 'posts') {
+      const userId = user.userId || user.id; // 유저 아이디 확보
+      
+      // type=USER, keyword=내아이디 로 검색하여 내가 쓴 글만 가져옴
+      fetch(`/api/posts?page=${postPage - 1}&size=10&type=USER&keyword=${userId}`)
+        .then(res => {
+          if(!res.ok) throw new Error("게시글 조회 실패");
+          return res.json();
+        })
+        .then(data => {
+          // 1. 전체 게시글 수와 페이지 정보 가져오기
+          const totalElements = data.totalElements; // 전체 글 개수
+          const currentPage = data.number;          // 현재 페이지 (0부터 시작)
+          const pageSize = data.size;               // 한 페이지당 개수 (보통 10개)
+
+          // 2. 목록 변환 (번호 계산 로직 추가)
+          const formatted = data.content.map((p, index) => ({
+             // ▼▼▼ [핵심] 가짜 번호 계산 (전체 - 앞페이지개수 - 현재순서)
+             id: totalElements - (currentPage * pageSize) - index,
+             
+             realId: p.postId, // [중요] 클릭해서 이동할 땐 진짜 ID가 필요하니 따로 저장!
+             title: p.title,
+             date: p.createDate ? p.createDate.split('T')[0] : ''
+          }));
+
+          setMyPosts(formatted);
+          setPostTotalPages(data.totalPages);
+        })
+        .catch(err => console.error(err));
+    }
+  }, [user, view, currentPage, postPage]); // postPage 의존성 추가
 
   const handleLogout = () => {
     logout();
@@ -123,15 +163,20 @@ const MyPage = ({ onLogout }) => {
     setView('info');
   };
 
-  // [추가] 비밀번호 입력 핸들러
+  // 비밀번호 입력 핸들러
   const handleChangePwd = (e) => {
     const { name, value } = e.target;
     setPwdForm(prev => ({ ...prev, [name]: value }));
   };
 
-  // [추가] 비밀번호 변경 API 호출
+  // 비밀번호 변경 API 호출
   const handlePasswordChange = async (e) => {
     e.preventDefault();
+
+    if (pwdForm.currentPassword === pwdForm.newPassword) {
+        alert('새 비밀번호는 현재 비밀번호와 달라야 합니다.');
+        return;
+    }
 
     if (pwdForm.newPassword !== pwdForm.confirmPassword) {
       alert('새 비밀번호가 일치하지 않습니다.');
@@ -140,7 +185,6 @@ const MyPage = ({ onLogout }) => {
 
     try {
       const userId = user.userId || user.id;
-      // UserController의 @PutMapping("/users/password") 호출
       const res = await fetch(`/users/password?userId=${userId}`, {
         method: 'PUT',
         headers: {
@@ -154,7 +198,7 @@ const MyPage = ({ onLogout }) => {
         logout();
         navigate('/login');
       } else {
-        const msg = await res.text(); // 서버에서 보낸 에러 메시지 (예: 현재 비밀번호 불일치)
+        const msg = await res.text(); 
         alert('비밀번호 변경 실패: ' + msg);
       }
     } catch (err) {
@@ -169,7 +213,6 @@ const MyPage = ({ onLogout }) => {
         return;
     }
 
-    // 카카오가 아닌데 비번 없으면 차단
     if (!isKakao && !deletePassword) {
         alert("비밀번호를 입력해주세요.");
         return;
@@ -177,8 +220,6 @@ const MyPage = ({ onLogout }) => {
 
     try {
         const userId = user.userId || user.id;
-        // UserController의 @DeleteMapping("/users/me") 호출
-        // 카카오 유저는 비밀번호 검증을 패스하기 위해 더미값 전송
         const pwdToSend = isKakao ? 'kakao-pass' : deletePassword;
         
         const response = await fetch(`/users/me?userId=${userId}&password=${encodeURIComponent(pwdToSend)}`, {
@@ -285,13 +326,8 @@ const MyPage = ({ onLogout }) => {
         );
     }
 
+    // ▼▼▼ [수정] 내가 쓴 글 목록 (API 데이터 연동) ▼▼▼
     if (view === 'posts') {
-      const mockPosts = [
-        { id: 1, title: '2025 논산딸기축제 너무 기대됩니다!', date: '2025-03-01' },
-        { id: 2, title: '주차장 위치 문의드립니다.', date: '2025-03-05' },
-        { id: 3, title: '체험부스 예약 확인 부탁드려요.', date: '2025-03-10' }
-      ];
-
       return (
         <div className="posts-list">
           <h3>내가 쓴 글 목록</h3>
@@ -300,17 +336,48 @@ const MyPage = ({ onLogout }) => {
               <tr><th>글번호</th><th>제목</th><th>작성일</th></tr>
             </thead>
             <tbody>
-              {mockPosts.map(p => (
-                <tr key={p.id}>
-                  <td>{p.id}</td>
-                  <td className="post-title" style={{cursor:'pointer'}}>{p.title}</td>
-                  <td>{p.date}</td>
-                </tr>
-              ))}
+              {/* API 데이터(myPosts)가 있을 때만 렌더링 */}
+              {myPosts.length > 0 ? (
+                myPosts.map(p => (
+                  // [수정 1] 리액트 내부 성능을 위해 Key는 변하지 않는 '진짜 ID(realId)'를 권장합니다
+                  <tr key={p.realId}>
+                    
+                    {/* 화면에 보이는 번호 (계산된 번호: 8, 7...) */}
+                    <td>{p.id}</td>
+                    
+                    {/* 제목 클릭 시 해당 게시글 상세페이지로 이동 */}
+                    <td 
+                        className="post-title" 
+                        style={{cursor:'pointer'}} 
+                        
+                        // ▼▼▼ [핵심 수정] 이동할 때는 반드시 '진짜 ID(realId)'를 써야 합니다! ▼▼▼
+                        // p.id를 쓰면 "8번 글"을 찾으러 가서 에러가 나지만, 
+                        // p.realId를 쓰면 "20번 글(진짜)"을 찾으러 갑니다.
+                        onClick={() => navigate(`/post/${p.realId}`)}
+                    >
+                        {p.title}
+                    </td>
+                    <td>{p.date}</td>
+                  </tr>
+                ))
+              ) : (
+                // 데이터가 없을 때 메시지 표시
+                <tr><td colSpan="3">작성한 게시글이 없습니다.</td></tr>
+              )}
             </tbody>
           </table>
+          
+          {/* 페이지네이션 연동 */}
           <div className="posts-actions">
-            <div className="pager">&nbsp;|&nbsp; &lt; 1 &gt; &nbsp;|&nbsp;</div>
+            {myPosts.length > 0 && (
+               <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+                 <Pagination 
+                   totalPages={postTotalPages} 
+                   currentPage={postPage}
+                   onPageChange={(page) => setPostPage(page)} 
+                 />
+               </div>
+            )}
             <button className="btn-primary" onClick={() => navigate('/post')}>전체 게시판 가기</button>
           </div>
         </div>
@@ -440,7 +507,6 @@ const MyPage = ({ onLogout }) => {
             <button className={view === 'reservations' || view === 'reservation-detail' ? 'active' : ''} onClick={() => setView('reservations')}>예약 목록</button>
             <button className={view === 'posts' ? 'active' : ''} onClick={() => setView('posts')}>내가 쓴 글</button>
             
-            {/* 카카오 유저가 아닐 때만 버튼 표시 */}
             {!isKakao && (
                 <button className={view === 'pwd' ? 'active' : ''} onClick={() => setView('pwd')}>비밀번호 변경</button>
             )}

@@ -19,7 +19,7 @@ public class ReservationDto {
         private String boothTitle;
         private String boothLocation;
         private LocalDate reserveDate;
-        private int count;
+        private Integer count;
         private String status;
         private String boothImg; // [추가] 썸네일 이미지 경로
     }

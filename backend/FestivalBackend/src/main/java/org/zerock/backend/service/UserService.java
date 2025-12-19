@@ -177,23 +177,28 @@ public class UserService {
 
     /**
      * [3] 비밀번호 변경
+     * 수정됨: 현재 비밀번호와 새 비밀번호가 같으면 변경 불가 처리
      */
     @Transactional
-    @SuppressWarnings("null")
     public void changePassword(String userId, PasswordChangeDto dto) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
 
-        // ▼▼▼ [추가] 소셜 로그인 유저는 비밀번호 변경 불가 처리 ▼▼▼
         if ("KAKAO".equals(user.getProvider())) {
             throw new IllegalArgumentException("카카오 로그인 사용자는 비밀번호를 변경할 수 없습니다.");
         }
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
         // 1. 현재 비밀번호 확인
         if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
             throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
         }
+
+        // ▼▼▼ [추가된 로직] 현재 비밀번호와 새 비밀번호가 같은지 확인 ▼▼▼
+        if (passwordEncoder.matches(dto.getNewPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("현재 사용 중인 비밀번호와 다르게 설정해주세요.");
+        }
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
         // 2. 새 비밀번호 확인
         if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
             throw new IllegalArgumentException("새 비밀번호가 일치하지 않습니다.");

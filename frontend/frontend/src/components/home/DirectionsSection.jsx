@@ -137,20 +137,38 @@ function DirectionsSection() {
           </div>
         </div>
 
-        {/* 하단 교통 안내 */}
+        {/* 하단: 교통 안내 */}
         <div className="directions-bottom">
           <div className="directions-card">
-            <h3 className="directions-card-title">🚍 대중교통</h3>
+            <h3 className="directions-card-title">🚍 대중교통 안내</h3>
             <ul className="directions-card-list">
-              <li>기차: 논산역 하차</li>
-              <li>버스: 터미널 하차</li>
+              <li>
+                <strong>기차</strong> : 논산역 하차 → 셔틀버스 또는 시내버스 이용
+              </li>
+              <li>
+                <strong>버스</strong> : 논산종합버스터미널 하차 → 행사장 순환 버스
+                탑승
+              </li>
+              <li>
+                <strong>시내버스</strong> : ○○번, △△번 탑승 후{" "}
+                <span>관광단지 입구</span> 정류장에서 하차
+              </li>
             </ul>
           </div>
+
           <div className="directions-card">
-            <h3 className="directions-card-title">🚗 자가용</h3>
+            <h3 className="directions-card-title">🚗 자가용 &amp; 주차안내</h3>
             <ul className="directions-card-list">
-              <li>내비: 논산시민운동장</li>
-              <li>주차: 제1주차장</li>
+              <li>
+                <strong>내비게이션</strong> :{" "}
+                <span>&quot;논산딸기축제 주차장&quot;</span> 검색
+              </li>
+              <li>
+                <strong>주차장</strong> : 제1, 제2 임시 주차장 운영 (도보 5~10분)
+              </li>
+              <li>
+                <strong>셔틀버스</strong> : 주차장 ↔ 행사장 간 무료 셔틀 운행
+              </li>
             </ul>
           </div>
         </div>

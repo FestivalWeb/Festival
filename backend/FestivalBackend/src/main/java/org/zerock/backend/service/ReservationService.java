@@ -27,31 +27,47 @@ public class ReservationService {
 
     // 예약하기
     public Long makeReservation(ReservationDto.Request request) {
-        // 1. 유저 조회
+        
+        // ▼▼▼ [범인 색출 코드] 로그를 찍어서 확인해봅시다 ▼▼▼
+        System.out.println("================ 예약 요청 디버깅 ================");
+        System.out.println("받은 UserId: " + request.getUserId());
+        System.out.println("받은 BoothId: " + request.getBoothId());
+        System.out.println("================================================");
+
+        // 1. 여기서 null 체크를 먼저 해서, 에러 메시지를 명확하게 바꿉니다.
+        if (request.getUserId() == null) {
+            throw new IllegalArgumentException("오류 발생: 유저 ID(userId)가 넘어오지 않았습니다. 프론트엔드 전송 데이터 확인 필요!");
+        }
+        if (request.getBoothId() == null) {
+            throw new IllegalArgumentException("오류 발생: 부스 ID(boothId)가 넘어오지 않았습니다. 버튼 클릭 시 ID가 잘 들어갔는지 확인 필요!");
+        }
+
+        // 2. 유저 조회 (이제 여기서 에러 안 남)
         UserEntity user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다. (ID: " + request.getUserId() + ")"));
 
-        // 2. 부스 조회
+        // 3. 부스 조회
         Booth booth = boothRepository.findById(request.getBoothId())
-                .orElseThrow(() -> new IllegalArgumentException("부스 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("부스 정보를 찾을 수 없습니다. (ID: " + request.getBoothId() + ")"));
 
-        // 3. 인원 체크 (현재인원 + 예약인원 > 최대인원 이면 에러)
-        // NullPointerException 방지를 위해 기본값 0 처리
+        // ... (나머지 로직은 그대로) ...
+        
         long current = booth.getCurrentPerson() == null ? 0L : booth.getCurrentPerson();
+
+        if (request.getCount() < 1) {
+            throw new IllegalArgumentException("예약 인원은 최소 1명 이상이어야 합니다.");
+        }
         
         if (current + request.getCount() > booth.getMaxPerson()) {
             throw new IllegalStateException("예약 정원이 초과되었습니다.");
         }
 
-        // 4. 부스 현재 인원 증가 시키기
         booth.setCurrentPerson(current + request.getCount());
         
-        // 만약 꽉 찼으면 status를 false(마감)로 바꿀 수도 있음
         if (booth.getCurrentPerson().equals(booth.getMaxPerson())) {
             booth.setStatus(false);
         }
 
-        // 5. 예약 정보 저장
         Reservation reservation = Reservation.builder()
                 .user(user)
                 .booth(booth)

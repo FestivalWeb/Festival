@@ -7,16 +7,13 @@ const KakaoCallback = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   
-  // 중복 실행 방지용 Ref
   const isProcessed = useRef(false);
 
   useEffect(() => {
-    // 이미 처리되었다면 함수 종료 (두 번째 실행 방지)
     if (isProcessed.current) return;
     isProcessed.current = true;
 
     const processKakaoLogin = async () => {
-      // 1. URL에서 인가코드(code) 추출
       const searchParams = new URLSearchParams(location.search);
       const code = searchParams.get('code');
 
@@ -27,7 +24,6 @@ const KakaoCallback = () => {
       }
 
       try {
-        // 2. 백엔드로 인가코드 전송
         const response = await fetch(`/auth/kakao/callback?code=${code}`, {
           method: 'GET',
           headers: {
@@ -40,13 +36,21 @@ const KakaoCallback = () => {
         if (response.ok) {
           console.log('카카오 로그인 성공:', data);
           
-          // ▼▼▼ [핵심 수정: 강제 주입] ▼▼▼
-          // 백엔드에서 provider가 오든 안 오든, 여기는 카카오 로그인 성공 화면입니다.
-          // 따라서 무조건 'provider: KAKAO'를 붙여서 저장해버립니다.
+          // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+          // [필수 추가] 이 코드가 없어서 예약이 안 된 겁니다!
+          // 백엔드에서 받은 ID를 브라우저 저장소에 강제로 저장합니다.
+          if (data.userId) {
+              localStorage.setItem("userId", data.userId);
+          } else {
+              // 혹시 data.userId가 없다면 data.id일 수도 있으니 대비
+              console.warn("userId 필드가 없습니다. data 구조 확인 필요:", data);
+              if (data.id) localStorage.setItem("userId", data.id);
+          }
+          // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
           const finalUserData = { ...data, provider: 'KAKAO' };
           
           login(finalUserData); 
-          // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
           
           navigate('/mypage'); 
         } else {
