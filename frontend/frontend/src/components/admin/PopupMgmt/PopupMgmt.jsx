@@ -1,51 +1,69 @@
-import React, { useState } from 'react';
-import './PopupMgmt.css';
+import React, { useState, useEffect } from 'react';
+import api from '../../../api/api'; // [중요] axios 설정 파일 경로 확인
+import './PopupMgmt.css'; // 기존 CSS 스타일 재사용
 
-const PopupMgmt = () => {
+const BoothMgmt = () => {
   // --- 1. 상태 관리 ---
-  const [popups, setPopups] = useState([
-    { id: 1, title: '11월 메인 행사', startDate: '2025-11-01', endDate: '2025-11-07', state: '활성', priority: 1, regDate: '2025-10-28' },
-    { id: 2, title: '딸기 굿즈 콘테스트', startDate: '2025-11-05', endDate: '2025-11-29', state: '활성', priority: 2, regDate: '2025-10-30' },
-    { id: 3, title: '긴급 점검 안내', startDate: '2025-11-02', endDate: '2025-11-02', state: '만료 예정', priority: 1, regDate: '2025-11-02' },
-    { id: 4, title: '자원봉사 모집', startDate: '2025-10-15', endDate: '2025-11-30', state: '활성', priority: 3, regDate: '2025-10-10' },
-    { id: 5, title: '굿즈 사전예약', startDate: '2025-10-01', endDate: '2025-10-10', state: '비활성', priority: 5, regDate: '2025-09-20' },
-    { id: 6, title: '주차장 안내', startDate: '2025-11-01', endDate: '2025-11-30', state: '활성', priority: 9, regDate: '2025-10-25' },
-  ]);
+  const [booths, setBooths] = useState([]); // 백엔드 데이터 담을 곳
 
   // 검색 및 필터 상태
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchStartDate, setSearchStartDate] = useState('');
-  const [searchEndDate, setSearchEndDate] = useState('');
-  const [stateFilter, setStateFilter] = useState('ALL');
+  const [stateFilter, setStateFilter] = useState('ALL'); // ALL, SHOW, HIDE
 
   // 페이지네이션 및 선택
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10; // 한 페이지에 보여줄 개수
   const [selectedIds, setSelectedIds] = useState([]);
 
   // 모달 상태
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [targetPopup, setTargetPopup] = useState(null);
+  const [showModal, setShowModal] = useState(false); // 생성/수정 통합 모달
+  const [isEditMode, setIsEditMode] = useState(false); // 생성 모드인지 수정 모드인지
 
-  // --- 2. 로직 처리 ---
+  // 입력 폼 데이터 (DTO 구조에 맞춤)
+  const initialForm = {
+    id: null,
+    title: '',
+    context: '',
+    location: '',
+    price: 0,
+    maxPerson: 50,
+    eventDate: '',
+    priority: 1
+  };
+  const [formData, setFormData] = useState(initialForm);
 
-  // 필터링 로직 (기간 검색 포함)
-  const filteredPopups = popups.filter(item => {
-    const matchTitle = item.title.includes(searchTerm);
-    const matchState = stateFilter === 'ALL' || item.state === stateFilter;
+    // [추가] 선택된 이미지 파일들을 담을 상태
+  const [selectedFiles, setSelectedFiles] = useState([]);
+
+  // --- 2. 데이터 불러오기 (API) ---
+  const fetchBooths = () => {
+    api.get('/api/admin/booths')
+      .then(res => {
+        setBooths(res.data);
+      })
+      .catch(err => console.error("데이터 로딩 실패:", err));
+  };
+
+  useEffect(() => {
+    fetchBooths();
+  }, []);
+
+  // --- 3. 로직 처리 ---
+
+  // 필터링 로직
+  const filteredBooths = booths.filter(item => {
+    const matchTitle = item.title.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // 기간 검색: 시작일/종료일이 설정되어 있으면 해당 범위 내에 팝업 시작일이 있는지 확인
-    let matchDate = true;
-    if (searchStartDate && item.startDate < searchStartDate) matchDate = false;
-    if (searchEndDate && item.startDate > searchEndDate) matchDate = false;
+    let matchState = true;
+    if (stateFilter === 'SHOW') matchState = item.isShow === true;
+    if (stateFilter === 'HIDE') matchState = item.isShow === false;
 
-    return matchTitle && matchState && matchDate;
+    return matchTitle && matchState;
   });
 
   // 페이지네이션
-  const totalPages = Math.ceil(filteredPopups.length / itemsPerPage);
-  const currentData = filteredPopups.slice(
+  const totalPages = Math.ceil(filteredBooths.length / itemsPerPage) || 1;
+  const currentData = filteredBooths.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -61,82 +79,161 @@ const PopupMgmt = () => {
     else setSelectedIds([...selectedIds, id]);
   };
 
-  // [기능] 상태 토글 (활성/비활성)
-  const toggleStatus = () => {
-    if (selectedIds.length === 0) return alert('변경할 팝업을 선택해주세요.');
-    
-    setPopups(popups.map(p => {
-      if (selectedIds.includes(p.id)) {
-        return { ...p, state: p.state === '활성' ? '비활성' : '활성' };
-      }
-      return p;
-    }));
-    setSelectedIds([]); // 선택 초기화
+  // --- 4. 액션 핸들러 (API 호출) ---
+
+  // [기능] 상태 토글 (공개/비공개 즉시 변경)
+  const toggleStatus = (id, currentStatus) => {
+    const newStatus = !currentStatus;
+    api.patch(`/api/admin/booths/${id}/status?isShow=${newStatus}`)
+      .then(() => {
+        // 성공 시 목록만 새로고침 (혹은 로컬 state만 바꿔도 됨)
+        fetchBooths();
+      })
+      .catch(err => alert("상태 변경 실패"));
   };
 
-  // [기능] 수정 모달 열기
+  // [기능] 모달 열기 (생성)
+  const openCreateModal = () => {
+    setFormData(initialForm);
+    setIsEditMode(false);
+    setShowModal(true);
+  };
+
+  // [기능] 모달 열기 (수정)
   const openEditModal = () => {
     if (selectedIds.length !== 1) {
-      return alert('수정할 팝업을 "하나만" 선택해주세요.');
+      return alert('수정할 부스를 "하나만" 선택해주세요.');
     }
-    const popup = popups.find(p => p.id === selectedIds[0]);
-    setTargetPopup(popup);
-    setShowEditModal(true);
+    const target = booths.find(p => p.id === selectedIds[0]);
+    if (!target) return;
+
+    setFormData({
+      id: target.id,
+      title: target.title,
+      context: target.context,
+      location: target.location,
+      price: target.price,
+      maxPerson: target.maxPerson,
+      eventDate: target.eventDate, // "YYYY-MM-DD" 형태라 바로 바인딩 가능
+      priority: target.priority
+    });
+    setIsEditMode(true);
+    setShowModal(true);
+  };
+
+  // [기능] 저장 (생성 및 수정 분기)
+  // 기존 handleSave를 이걸로 교체하세요.
+  const handleSave = async () => { // async 키워드 추가!
+    // 1. 유효성 검사
+    if (!formData.title || !formData.eventDate) {
+      alert("부스명과 날짜는 필수입니다.");
+      return;
+    }
+
+    try {
+      // 2. [이미지 업로드 단계] 선택한 파일이 있다면 먼저 서버로 보냄
+      let uploadedFileIds = []; // 받아온 ID들을 담을 곳
+
+      if (selectedFiles.length > 0) {
+        const imageFormData = new FormData(); // 파일 전송용 특수 객체
+        selectedFiles.forEach(file => {
+          // 'files'는 백엔드 컨트롤러가 받는 파라미터 이름과 같아야 함 (@RequestParam("files"))
+          imageFormData.append('files', file); 
+        });
+
+        // 파일 업로드 API 호출 (주소는 본인 프로젝트에 맞게 수정 필요!)
+        const uploadRes = await api.post('/api/files/upload', imageFormData, {
+          headers: { 'Content-Type': 'multipart/form-data' } // 중요 설정
+        });
+        
+        // 서버가 파일 ID 배열(예: [10, 11])을 줬다고 가정
+        uploadedFileIds = uploadRes.data; 
+        console.log("업로드된 파일 IDs:", uploadedFileIds);
+      }
+
+      // 3. [부스 정보 전송 단계] 받아온 파일 ID를 formData에 합침
+      const finalFormData = {
+        ...formData,
+        fileIds: uploadedFileIds // DTO의 필드명과 일치
+      };
+
+      // 4. 최종 저장 API 호출
+      if (isEditMode) {
+        // 수정 (PUT) - ※ 주의: 기존 이미지 처리는 복잡해서 일단 추가만 고려
+        await api.put(`/api/admin/booths/${formData.id}`, finalFormData);
+        alert("수정되었습니다.");
+      } else {
+        // 생성 (POST)
+        await api.post('/api/admin/booths', finalFormData);
+        alert("부스가 등록되었습니다!");
+      }
+
+      // 5. 마무리 (초기화 및 창 닫기)
+      setShowModal(false);
+      setFormData(initialForm);
+      setSelectedFiles([]); // 파일 선택 초기화
+      fetchBooths(); // 목록 갱신
+
+    } catch (err) {
+      console.error(err);
+      // 에러 메시지 좀 더 상세히 표시
+      const errMsg = err.response?.data?.message || err.message || "오류 발생";
+      alert(`저장 실패: ${errMsg}`);
+    }
   };
 
   // [기능] 삭제
   const handleDelete = () => {
-    if (selectedIds.length === 0) return alert('삭제할 팝업을 선택해주세요.');
-    if (window.confirm(`${selectedIds.length}개의 팝업을 삭제하시겠습니까?`)) {
-      setPopups(popups.filter(p => !selectedIds.includes(p.id)));
-      setSelectedIds([]);
+    if (selectedIds.length === 0) return alert('삭제할 항목을 선택해주세요.');
+    
+    if (window.confirm(`${selectedIds.length}개를 삭제하시겠습니까?`)) {
+      // 여러 개 삭제 API가 없다면 반복문으로 호출 (혹은 백엔드에 다건 삭제 추가 필요)
+      // 여기서는 예시로 하나씩 삭제 요청 보내는 방식 사용
+      Promise.all(selectedIds.map(id => api.delete(`/api/admin/booths/${id}`)))
+        .then(() => {
+          alert("삭제되었습니다.");
+          fetchBooths();
+          setSelectedIds([]);
+        })
+        .catch(err => alert("삭제 중 오류가 발생했습니다."));
     }
+  };
+
+  // 입력값 변경 공통 핸들러
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
 
   return (
     <div className="popup-container">
       <div className="page-header">
-        <h2>팝업 관리 <span className="sub-text">총 {filteredPopups.length}개</span></h2>
+        <h2>체험부스(팝업) 관리 <span className="sub-text">총 {filteredBooths.length}개</span></h2>
       </div>
 
-      {/* 툴바: 기간 검색 및 필터 */}
+      {/* 툴바 */}
       <div className="toolbar">
         <div className="filter-area-large">
           <input 
             type="text" 
-            placeholder="제목 검색" 
+            placeholder="부스명 검색" 
             className="input-text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          {/* 기간 선택 (Date Picker) */}
-          <div className="date-range">
-            <input 
-              type="date" 
-              value={searchStartDate}
-              onChange={(e) => setSearchStartDate(e.target.value)} 
-            />
-            <span>~</span>
-            <input 
-              type="date" 
-              value={searchEndDate}
-              onChange={(e) => setSearchEndDate(e.target.value)} 
-            />
-          </div>
+          
           <select onChange={(e) => setStateFilter(e.target.value)} className="select-state">
-            <option value="ALL">상태 전체</option>
-            <option value="활성">활성</option>
-            <option value="비활성">비활성</option>
-            <option value="만료 예정">만료 예정</option>
+            <option value="ALL">전체 보기</option>
+            <option value="SHOW">공개중 (ON)</option>
+            <option value="HIDE">숨김 (OFF)</option>
           </select>
-          <button className="btn-search-action">검색</button>
         </div>
 
         <div className="action-buttons">
-          <button className="btn-toggle" onClick={toggleStatus}>활성/비활성</button>
-          <button className="btn-edit" onClick={openEditModal}>팝업 수정</button>
-          <button className="btn-create" onClick={() => setShowCreateModal(true)}>신규 팝업</button>
-          <button className="btn-delete" onClick={handleDelete}>팝업 삭제</button>
+          {/* <button className="btn-toggle" onClick={() => alert('개별 스위치를 이용해주세요.')}>일괄 변경</button> */}
+          <button className="btn-edit" onClick={openEditModal}>수정</button>
+          <button className="btn-create" onClick={openCreateModal}>신규 등록</button>
+          <button className="btn-delete" onClick={handleDelete}>삭제</button>
         </div>
       </div>
 
@@ -152,32 +249,39 @@ const PopupMgmt = () => {
                   checked={selectedIds.length === currentData.length && currentData.length > 0}
                 />
               </th>
-              <th>제목</th>
-              <th>기간</th>
-              <th>상태</th>
               <th>우선순위</th>
-              <th>등록일</th>
+              <th>부스명</th>
+              <th>위치</th>
+              <th>가격</th>
+              <th>운영 날짜</th>
+              <th>공개 상태 (Pop-up)</th>
             </tr>
           </thead>
           <tbody>
-            {currentData.map((popup) => (
-              <tr key={popup.id} className={selectedIds.includes(popup.id) ? 'selected-row' : ''}>
+            {currentData.map((booth) => (
+              <tr key={booth.id} className={selectedIds.includes(booth.id) ? 'selected-row' : ''}>
                 <td>
                   <input 
                     type="checkbox" 
-                    checked={selectedIds.includes(popup.id)}
-                    onChange={() => handleSelectOne(popup.id)}
+                    checked={selectedIds.includes(booth.id)}
+                    onChange={() => handleSelectOne(booth.id)}
                   />
                 </td>
-                <td className="text-left">{popup.title}</td>
-                <td>{popup.startDate} ~ {popup.endDate}</td>
+                <td><span className="priority-badge">{booth.priority}</span></td>
+                <td className="text-left" style={{fontWeight: 'bold'}}>{booth.title}</td>
+                <td>{booth.location}</td>
+                <td>{booth.price.toLocaleString()}원</td>
+                <td>{booth.eventDate}</td>
                 <td>
-                  <span className={`status-pill ${popup.state === '활성' ? 'active' : popup.state === '만료 예정' ? 'warning' : 'inactive'}`}>
-                    {popup.state}
-                  </span>
+                  {/* 여기가 팝업의 핵심 기능: 스위치 버튼 */}
+                  <button 
+                    onClick={() => toggleStatus(booth.id, booth.isShow)}
+                    className={`status-pill ${booth.isShow ? 'active' : 'inactive'}`}
+                    style={{ cursor: 'pointer', border: 'none' }}
+                  >
+                    {booth.isShow ? '공개중 (ON)' : '숨김 (OFF)'}
+                  </button>
                 </td>
-                <td><span className="priority-badge">{popup.priority}</span></td>
-                <td>{popup.regDate}</td>
               </tr>
             ))}
           </tbody>
@@ -193,88 +297,84 @@ const PopupMgmt = () => {
         <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>&gt;</button>
       </div>
 
-      {/* --- (3-1) 신규 팝업 모달 --- */}
-      {showCreateModal && (
+      {/* --- 통합 모달 (생성/수정) --- */}
+      {showModal && (
         <div className="modal-overlay">
-          <div className="modal-content">
+          <div className="modal-content" style={{ width: '600px' }}>
             <div className="modal-header">
-              <h3>신규 팝업</h3>
-              <button className="close-btn" onClick={() => setShowCreateModal(false)}>닫기</button>
+              <h3>{isEditMode ? '부스 정보 수정' : '신규 부스 등록'}</h3>
+              <button className="close-btn" onClick={() => setShowModal(false)}>닫기</button>
             </div>
             <div className="modal-body">
               <div className="form-grid">
+                
+                {/* 제목 */}
                 <div className="form-group full-width">
-                  <label>제목 *</label>
-                  <input type="text" placeholder="예: 11월 메인 행사" />
+                  <label>부스명 *</label>
+                  <input name="title" type="text" value={formData.title} onChange={handleChange} placeholder="예: 딸기 탕후루 만들기" />
                 </div>
-                <div className="form-group">
-                  <label>우선순위 *</label>
-                  <input type="number" placeholder="1" min="1" max="10" />
-                </div>
-                <div className="form-group">
-                  <label>상태 *</label>
-                  <select>
-                    <option>활성</option>
-                    <option>비활성</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>시작일 *</label>
-                  <input type="date" />
-                </div>
-                <div className="form-group">
-                  <label>종료일 *</label>
-                  <input type="date" />
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn-cancel" onClick={() => setShowCreateModal(false)}>취소</button>
-              <button className="btn-confirm">생성</button>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* --- (3-2) 팝업 수정 모달 --- */}
-      {showEditModal && targetPopup && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>팝업 수정</h3>
-              <button className="close-btn" onClick={() => setShowEditModal(false)}>닫기</button>
-            </div>
-            <div className="modal-body">
-              <div className="form-grid">
+                {/* 설명 (Textarea) */}
                 <div className="form-group full-width">
-                  <label>제목 *</label>
-                  <input type="text" defaultValue={targetPopup.title} />
+                  <label>설명 (상세 내용)</label>
+                  <textarea name="context" value={formData.context} onChange={handleChange} placeholder="부스에 대한 설명을 입력하세요." style={{ height: '80px', resize: 'none', padding: '8px' }} />
+                </div>
+
+                {/* [추가] 이미지 파일 선택 인풋 */}
+                <div className="form-group full-width" style={{marginTop: '15px', borderTop: '1px solid #eee', paddingTop: '15px'}}>
+                  <label style={{fontWeight:'bold', display:'block', marginBottom:'5px'}}>
+                    📸 대표/상세 이미지 등록 (다중 선택 가능)
+                  </label>
+                  <input 
+                    type="file" 
+                    multiple  // 여러 장 선택 가능하게
+                    accept="image/*" // 이미지만 선택 가능하게
+                    onChange={(e) => {
+                      // 선택된 파일들을 배열로 변환해서 state에 저장
+                      setSelectedFiles(Array.from(e.target.files));
+                    }} 
+                    style={{ padding: '5px' }}
+                  />
+                  {/* 선택된 파일명 미리보기 */}
+                  {selectedFiles.length > 0 && (
+                    <ul style={{ fontSize: '13px', color: '#666', marginTop: '5px', paddingLeft: '20px' }}>
+                      {selectedFiles.map((file, index) => (
+                        <li key={index}>{file.name}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                {/* 위치 & 가격 */}
+                <div className="form-group">
+                  <label>위치</label>
+                  <input name="location" type="text" value={formData.location} onChange={handleChange} placeholder="예: A-1 구역" />
                 </div>
                 <div className="form-group">
-                  <label>우선순위 *</label>
-                  <input type="number" defaultValue={targetPopup.priority} />
+                  <label>가격 (원)</label>
+                  <input name="price" type="number" value={formData.price} onChange={handleChange} placeholder="0" />
+                </div>
+
+                {/* 날짜 & 인원 */}
+                <div className="form-group">
+                  <label>운영 날짜 *</label>
+                  <input name="eventDate" type="date" value={formData.eventDate} onChange={handleChange} />
                 </div>
                 <div className="form-group">
-                  <label>상태 *</label>
-                  <select defaultValue={targetPopup.state}>
-                    <option>활성</option>
-                    <option>비활성</option>
-                    <option>만료 예정</option>
-                  </select>
+                  <label>최대 인원</label>
+                  <input name="maxPerson" type="number" value={formData.maxPerson} onChange={handleChange} />
                 </div>
+
+                {/* 우선순위 */}
                 <div className="form-group">
-                  <label>시작일 *</label>
-                  <input type="date" defaultValue={targetPopup.startDate} />
-                </div>
-                <div className="form-group">
-                  <label>종료일 *</label>
-                  <input type="date" defaultValue={targetPopup.endDate} />
+                  <label>노출 순위 (1=최상단)</label>
+                  <input name="priority" type="number" value={formData.priority} onChange={handleChange} />
                 </div>
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn-cancel" onClick={() => setShowEditModal(false)}>취소</button>
-              <button className="btn-confirm">저장</button>
+              <button className="btn-cancel" onClick={() => setShowModal(false)}>취소</button>
+              <button className="btn-confirm" onClick={handleSave}>{isEditMode ? '수정 저장' : '등록하기'}</button>
             </div>
           </div>
         </div>
@@ -284,4 +384,4 @@ const PopupMgmt = () => {
   );
 };
 
-export default PopupMgmt;
+export default BoothMgmt;

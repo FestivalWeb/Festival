@@ -1,32 +1,53 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import api from "../../api/api";
 import "../styles/booth.css";
-import { boothResData } from "../data/boothResData";
 
-// 체험부스 예약 탭 상세페이지
 const BoothDetail = () => {
-   const { state } = useLocation();
+  const { state } = useLocation();
   const { id } = useParams();
 
-  const booth = state?.booth ?? boothResData.find((item) => item.id === Number(id));
+  const [booth, setBooth] = useState(state?.booth || null);
+  const [loading, setLoading] = useState(!booth);
 
-  if (!booth) return <p>부스 정보를 찾을 수 없습니다.</p>;
+  // 데이터가 없으면(새로고침 등) 서버에서 가져오기
+  useEffect(() => {
+    if (!booth) {
+      api.get(`/api/booths/${id}`)
+        .then(res => {
+          setBooth(res.data);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error(err);
+          setLoading(false);
+        });
+    }
+  }, [id, booth]);
 
-  // 부스의 예약 가능한 날짜로 설정
-  const activeDates = booth.availableDates;
-
-  const [selectedDate, setSelectedDate] = useState(activeDates[0]);
-  const [people, setPeople] = useState(1);
-  const [reservations, setReservations] = useState(
-    activeDates.reduce((acc, date) => {
-      acc[date] = 0;
-      return acc;
-    }, {})
-  );
-
+  // 달력 로직 (DB에는 날짜가 하나뿐이므로 배열로 변환)
+  const [activeDates, setActiveDates] = useState([]);
+  const [selectedDate, setSelectedDate] = useState("");
   const [showCalendar, setShowCalendar] = useState(false);
+  const [people, setPeople] = useState(1);
+  const [reservations, setReservations] = useState({});
+
+  useEffect(() => {
+    if (booth && booth.eventDate) {
+      setActiveDates([booth.eventDate]); // 단일 날짜를 배열로 처리
+      setSelectedDate(booth.eventDate);
+    }
+  }, [booth]);
+
+  if (loading) return <div style={{padding:'100px', textAlign:'center'}}>로딩 중...</div>;
+  if (!booth) return <div style={{padding:'100px', textAlign:'center'}}>부스 정보를 찾을 수 없습니다.</div>;
+
+  const getImageUrl = () => {
+    if (booth.images && booth.images.length > 0) return `${SERVER_URL}${booth.images[0].storageUri}`;
+    return "https://via.placeholder.com/500?text=No+Image";
+  };
 
   const formatDate = (date) => {
     const y = date.getFullYear();
@@ -40,97 +61,69 @@ const BoothDetail = () => {
     if (activeDates.includes(formatted)) {
       setSelectedDate(formatted);
       setShowCalendar(false);
+    } else {
+        alert("운영 날짜가 아닙니다.");
     }
   };
 
-  const tileDisabled = ({ date, view }) => {
-    if (view === "month") {
-      const formatted = formatDate(date);
-      return !activeDates.includes(formatted);
-    }
-    return false;
-  };
-
+  // 예약 버튼 (프론트엔드 전용 알림)
   const handleReservation = () => {
-    if (window.confirm(`${people}명 예약하시겠습니까?`)) {
-      setReservations((prev) => ({
-        ...prev,
-        [selectedDate]: prev[selectedDate] + parseInt(people)
-      }));
-      alert("예약 완료!");
+    if (window.confirm(`${selectedDate}에 ${people}명 예약하시겠습니까?`)) {
+      alert("예약이 완료되었습니다! (실제 저장은 아직 구현되지 않음)");
     }
   };
 
   return (
     <div className="detail-container">
       <div className="detail-top">
-        {/* 왼쪽: 사진 */}
         <div className="detail-image-wrapper">
-          <img src={booth.image} alt={booth.title} className="detail-main-image" />
+          <img src={getImageUrl()} alt={booth.title} className="detail-main-image" />
         </div>
-
-        {/* 오른쪽: 상세 설명 */}
         <div className="detail-info-box">
           <h2 className="detail-title">{booth.title}</h2>
-          <p className="detail-desc">{booth.res_description}</p>
+          <p className="detail-desc">{booth.context}</p>
         </div>
       </div>
 
-      {/* 아래쪽 예약 정보 */}
       <div className="detail-bottom">
         <h3 className="reserve-title">예약하기</h3>
-
+        
         <div className="detail-row" style={{ alignItems: "center", gap: "10px" }}>
-          {/* 달력 아이콘: 앞쪽 */}
-          <span
-            className="emoji-icon"
-            style={{ cursor: "pointer" }}
-            onClick={() => setShowCalendar(!showCalendar)}
-          >
+          <span className="emoji-icon" style={{ cursor: "pointer" }} onClick={() => setShowCalendar(!showCalendar)}>
             📅
           </span>
-
-          {/* 선택 날짜 */}
-          <span>선택 날짜: {selectedDate} (현재 예약 {reservations[selectedDate]}명)</span>
+          <span>선택 날짜: {selectedDate}</span>
         </div>
 
-        {/* 달력: showCalendar가 true일 때만 */}
         {showCalendar && (
           <div style={{ marginTop: "10px" }}>
             <Calendar
               onClickDay={handleDateClick}
-              tileDisabled={tileDisabled}
-              minDetail="month"
-              value={new Date(2025, 2, 1)} // 2025년 3월 1일을 기본값으로 설정
-              defaultView="month"
+              value={selectedDate ? new Date(selectedDate) : new Date()}
+              tileDisabled={({ date }) => !activeDates.includes(formatDate(date))}
             />
           </div>
         )}
+
         <div className="detail-row">
           <span className="emoji-icon">👥</span>
           <span>인원 수</span>
-          <input type="number" min="1" value={people} onChange={(e) => setPeople(e.target.value)} className="people-input" />
+          <input type="number" min="1" max={booth.maxPerson} value={people} onChange={(e) => setPeople(e.target.value)} className="people-input" />
         </div>
 
         <div className="detail-row">
-          <span className="emoji-icon">💰</span>
-          <span>금액: {booth.price}원</span>
+            <span className="emoji-icon">💰</span>
+            <span>금액: {booth.price.toLocaleString()}원</span>
         </div>
-
+        
         <div className="detail-row">
-          <span className="emoji-icon">📍</span>
-          <span>위치: {booth.location}</span>
-        </div>
-
-        <div className="detail-row">
-          <span className="emoji-icon">⏰</span>
-          <span>시간: {booth.time}</span>
+            <span className="emoji-icon">📍</span>
+            <span>위치: {booth.location}</span>
         </div>
 
         <button className="reserve-btn" onClick={handleReservation}>예약하기</button>
       </div>
-
     </div>
   );
 };
-export default BoothDetail; 
+export default BoothDetail;
