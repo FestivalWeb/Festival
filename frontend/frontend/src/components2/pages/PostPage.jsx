@@ -3,13 +3,13 @@ import { useNavigate, useLocation } from "react-router-dom";
 import SearchBar from "../board/SearchBar";
 import BoardTable from "../board/BoardTable";
 import Pagination from "../board/Pagination";
-import postData from "../data/postData"; // 게시글 더미 데이터
+// import postData from "../data/postData"; // 더미 데이터는 주석 처리 또는 삭제
 import { useAuth } from "../../context/AuthContext";
 
 export default function PostPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user } = useAuth(); // AuthContext에서 사용자 정보 가져옴 (없으면 null)
 
   // 데이터 상태 관리
   const [posts, setPosts] = useState([]);
@@ -49,17 +49,16 @@ export default function PostPage() {
       if (response.ok) {
         const data = await response.json();
         
-        // ★ 전체 게시글 수 가져오기
+        // 전체 게시글 수 가져오기
         const totalElements = data.totalElements; 
         
         // 백엔드 응답을 BoardTable 포맷에 맞게 변환
         const formattedData = data.content.map((p, index) => ({
-          // [수정] 보여주기용 가상 번호 계산
+          // [보여주기용 가상 번호 계산]
           // 공식: 전체개수 - (현재페이지 * 10) - 현재인덱스
-          // (page는 1부터 시작한다고 가정할 때 page-1 사용)
           id: totalElements - ((page - 1) * 10) - index, 
           
-          realId: p.postId, // [중요] 실제 ID는 클릭했을 때 이동용으로 따로 저장!
+          realId: p.postId, // [중요] 실제 DB ID (클릭 시 이동용)
           title: p.title,
           dept: p.userId, 
           views: p.view,
@@ -83,12 +82,18 @@ export default function PostPage() {
   };
 
   const handleWriteClick = () => {
-    if (!user) {
+    // 1. 로그인 체크 (Context 사용 권장)
+    // localStorage도 가능하지만 Context와 동기화가 안 될 수 있음
+    const userId = localStorage.getItem("userId"); 
+
+    if (!userId) {
       alert("로그인이 필요한 서비스입니다.");
       navigate("/login");
       return;
     }
-    navigate("/write");
+    
+    // [핵심 수정] 글쓰기 경로를 /write -> /post/write 로 변경
+    navigate("/post/write");
   };
 
   return (
@@ -101,13 +106,8 @@ export default function PostPage() {
       {/* 게시글 목록 */}
       <BoardTable
         data={posts}
-        // [수정] id(가상번호)가 아니라 realId(진짜번호)를 사용해서 이동해야 함
         onTitleClick={(id) => {
-            // posts 배열에서 클릭된 항목의 진짜 ID를 찾아야 함
-            // (BoardTable 구조에 따라 다르지만, 보통 id를 그대로 넘겨주므로)
-            // 가장 쉬운 건 BoardTable 컴포넌트를 수정하거나,
-            // 여기서 해당 id(가상번호)를 가진 post를 찾아서 realId로 이동하는 것입니다.
-            
+            // posts 배열에서 클릭된 항목(가상 번호 id)을 찾아 진짜 ID(realId)로 이동
             const clickedPost = posts.find(p => p.id === id);
             if (clickedPost) {
                 navigate(`/post/${clickedPost.realId}`);
@@ -115,14 +115,13 @@ export default function PostPage() {
         }}
       />
       
-      {/* 페이지네이션 + 글쓰기 버튼 한 줄로 */}
+      {/* 페이지네이션 + 글쓰기 버튼 */}
       <div className="pagination-wrapper">
         <Pagination
           totalPages={totalPages}
           onPageChange={(page) => setCurrentPage(page)}
         />
        <div className="write-button-wrapper">
-        {/* [수정] onClick에 핸들러 연결 */}
         <button className="write-fab" onClick={handleWriteClick}>
           글쓰기
         </button>

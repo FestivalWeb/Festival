@@ -38,7 +38,7 @@ import FindId from "./components3/FindId";
 import ForgotPassword from "./components3/ForgotPassword";
 import KakaoCallback from "./components3/KakaoCallback";
 
-// [추가] 통합 검색 페이지 & 챗봇
+// 통합 검색 페이지 & 챗봇
 import IntegratedSearchPage from "./components2/pages/IntegratedSearchPage";
 import ChatBot from "./components/common/ChatBot";
 
@@ -98,7 +98,7 @@ function AppContent() {
         <Route path="/mypage" element={<div style={{ paddingTop: 80 }}><MyPage /></div>} />
         <Route path="/oauth/kakao/callback" element={<KakaoCallback />} />
 
-        {/* [추가] 통합 검색 결과 페이지 */}
+        {/* 통합 검색 결과 페이지 */}
         <Route path="/search" element={<Layout><IntegratedSearchPage /></Layout>} />
 
         {/* 게시판 및 기능 페이지 */}
@@ -107,6 +107,9 @@ function AppContent() {
         
         <Route path="/post" element={<Layout><PostPage /></Layout>} />
         <Route path="/post/:id" element={<Layout><PostDetail /></Layout>} />
+        
+        {/* [수정] 글쓰기 및 수정 페이지 경로 변경 (/write -> /post/write) */}
+        <Route path="/post/write" element={<Layout><WritePostPage /></Layout>} />
         
         <Route path="/booth" element={<Layout><BoothPage /></Layout>} />
         <Route path="/booth/:id" element={<Layout><BoothDetailWrapper /></Layout>} />
@@ -118,11 +121,10 @@ function AppContent() {
         <Route path="/post-images" element={<Layout sidebarType="galleryDetail"><PostImages /></Layout>} />
         <Route path="/booth-images" element={<Layout sidebarType="galleryDetail"><BoothImage /></Layout>} />
         <Route path="/booth-images/:id" element={<Layout sidebarType="galleryDetail"><BoothImageDetail /></Layout>} />
-        <Route path="/write" element={<Layout><WritePostPage /></Layout>} />
 
       </Routes>
 
-      {/* [추가] 챗봇 컴포넌트 (모든 페이지 위에 뜸) */}
+      {/* 챗봇 컴포넌트 (모든 페이지 위에 뜸) */}
       <ChatBot />
     </>
   );

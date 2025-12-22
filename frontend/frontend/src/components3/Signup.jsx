@@ -38,7 +38,14 @@ const Signup = () => {
       else if (!emailRegex.test(value)) msg = '올바른 이메일 형식이 아닙니다.';
     } 
     else if (name === 'password') {
-        if (value.length < 8) msg = '비밀번호는 영문, 숫자, 특수문자를 포함하여 8자 이상이어야 합니다.';
+        // [수정] 비밀번호 유효성 검사 강화 (영문, 숫자, 특수문자 포함 8자 이상)
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+        
+        if (value.length < 8) {
+            msg = '비밀번호는 8자 이상이어야 합니다.';
+        } else if (!passwordRegex.test(value)) {
+            msg = '영문, 숫자, 특수문자를 모두 포함해야 합니다.';
+        }
     } 
     else if (name === 'password2') {
         if (value !== form.password) msg = '비밀번호가 일치하지 않습니다.';
@@ -182,27 +189,16 @@ const Signup = () => {
       if (response.ok) {
         setStep(4);
       } else {
-        // 서버에서 보낸 JSON 에러 받기
         const errorData = await response.json();
         
-        // ▼▼▼ [핵심 수정] 에러를 alert가 아니라 'fieldErrors'에 넣기 ▼▼▼
-        
-        // 1. 비밀번호 에러인 경우
         if (errorData.password) {
-            // (1) 입력 화면(Step 1)으로 강제 이동 (그래야 빨간 글씨가 보임)
             setStep(1); 
-            
-            // (2) 비밀번호 칸 밑에 에러 메시지 설정
             setFieldErrors(prev => ({
                 ...prev,
-                password: errorData.password // "비밀번호는 영문, 숫자..." 가 들어감
+                password: errorData.password
             }));
-
-            // (3) 사용자에게 상황 설명 (선택사항)
             alert("입력하신 비밀번호 형식이 올바르지 않습니다.\n다시 확인해주세요.");
-        } 
-        // 2. 그 외 에러 (전역 에러로 표시)
-        else {
+        } else {
             let msg = errorData.message || "회원가입 실패";
             setGlobalError(msg);
         }
@@ -225,7 +221,6 @@ const Signup = () => {
     <div className="signup-wrapper">
       <div className="signup-container full-bleed">
         <div className="signup-form-area">
-          {/* [수정] type="button" 추가 */}
           <button type="button" className="signup-back-btn" onClick={() => navigate('/login')}>← 뒤로</button>
           <div className="signup-header"><h2>세계딸기축제</h2></div>
 
@@ -238,7 +233,6 @@ const Signup = () => {
               </div>
               <div className="error" style={{visibility: globalError ? 'visible' : 'hidden', textAlign:'center', marginTop:'10px'}}>{globalError || '\u00A0'}</div>
               <div className="actions-row">
-                {/* [수정] type="button" 추가 */}
                 <button type="button" className="signup-btn-green" onClick={nextFromTerms}>다음</button>
               </div>
             </div>
@@ -246,14 +240,12 @@ const Signup = () => {
 
           {step === 1 && (
             <div className="signup-step">
-              {/* onSubmit 방지 */}
               <form className="signup-form" onSubmit={(e)=>e.preventDefault()}>
                 
                 <input value={form.name} onChange={onChange('name')} type="text" placeholder="이름" className="signup-input" />
 
                 <div style={{display:'flex', gap:8}}>
                   <input name="username" value={form.username} onChange={onChange('username')} onBlur={handleBlur} type="text" placeholder="아이디" className="signup-input" />
-                  {/* [수정] type="button" 이미 되어있음 (유지) */}
                   <button type="button" className="signup-small-btn" onClick={handleIdCheck}>중복확인</button>
                 </div>
                 {fieldErrors.username && <div style={errorStyle}>{fieldErrors.username}</div>}
@@ -271,7 +263,6 @@ const Signup = () => {
 
                 <div style={{display:'flex', gap:8}}>
                   <input name="email" value={form.email} onChange={onChange('email')} onBlur={handleBlur} type="email" placeholder="이메일" className="signup-input" />
-                  {/* [수정] type="button" 추가 */}
                   <button type="button" className="signup-small-btn" onClick={onRequestCode} disabled={sendingCode}>
                     {sendingCode ? '전송 중...' : '인증번호 발송'}
                   </button>
@@ -281,9 +272,7 @@ const Signup = () => {
                 <div className="error" style={{visibility: globalError ? 'visible' : 'hidden', textAlign:'center'}}>{globalError || '\u00A0'}</div>
 
                 <div className="actions-row">
-                  {/* [수정] type="button" 추가 (이게 핵심!) */}
                   <button type="button" className="signup-btn-green" onClick={() => setStep(0)}>이전</button>
-                  {/* [수정] type="button" 추가 */}
                   <button type="button" className="signup-btn-green" onClick={onRequestCode}>다음</button>
                 </div>
               </form>
@@ -296,9 +285,7 @@ const Signup = () => {
                 <p>이메일로 발송된 인증번호를 입력하세요.</p>
                 <input value={form.code} onChange={onChange('code')} type="text" placeholder="인증번호" className="signup-input" />
               
-
                 <div className="actions-row">
-                  {/* [수정] type="button" 추가 */}
                   <button type="button" className="signup-btn-green" onClick={() => { setStep(1); setGlobalError(''); }}>이전</button>
                   <button type="button" className="signup-btn-green" onClick={onVerifyCode}>인증 확인</button>
                 </div>
@@ -314,9 +301,7 @@ const Signup = () => {
                 <div className="summary-row">아이디: <strong>{form.username}</strong></div>
                 <div className="summary-row">이메일: <strong>{form.email}</strong></div>
                 
-
                 <div className="actions-row">
-                  {/* [수정] type="button" 추가 */}
                   <button type="button" className="signup-btn-green" onClick={() => setStep(2)}>이전</button>
                   <button type="button" className="signup-btn-green" onClick={onSignup}>회원가입</button>
                 </div>
@@ -329,7 +314,6 @@ const Signup = () => {
               <div className="done-card">
                 <p>회원가입이 완료되었습니다.</p>
                 <div className="actions-row">
-                  {/* [수정] type="button" 추가 */}
                   <button type="button" className="signup-btn-green" onClick={() => navigate('/login')}>로그인</button>
                 </div>
               </div>

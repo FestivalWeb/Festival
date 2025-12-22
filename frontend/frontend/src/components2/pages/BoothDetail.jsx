@@ -9,10 +9,10 @@ const BoothDetail = () => {
   const { state } = useLocation();
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useAuth(); // (필요 없다면 지워도 됨, 아래에서 localStorage 씀)
 
   const [booth, setBooth] = useState(state?.booth || null);
-  const [people, setPeople] = useState(1);
+  const [people, setPeople] = useState(1); // [중요] 변수명이 people 입니다.
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedDate, setSelectedDate] = useState("2025-03-27");
 
@@ -66,42 +66,50 @@ const BoothDetail = () => {
     return false;
   };
 
+  // [수정] 남은 자리 계산 및 최대 선택 인원 제한
+  const remainingSeats = booth.maxPerson - (booth.currentPerson || 0);
+  const maxSelectable = remainingSeats > 0 ? Math.min(5, remainingSeats) : 0;
+
   const handleReservation = async () => {
-    // [수정 1] 로컬 스토리지에서 직접 아이디 꺼내오기 (가장 확실한 방법)
     const loginUserId = localStorage.getItem("userId"); 
 
-    if (!loginUserId) {
-      alert("로그인이 필요합니다.");
-      navigate("/login");
-      return;
-    }
+    if (!loginUserId) {
+      alert("로그인이 필요합니다.");
+      navigate("/login");
+      return;
+    }
 
-    if (window.confirm(`${selectedDate}에 ${people}명 예약하시겠습니까?`)) {
-      try {
-        const response = await fetch("/api/reservations", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            boothId: booth.id, // 부스 ID
-            userId: loginUserId, // [수정 2] user.id 대신 로컬스토리지 값 사용!
-            reserveDate: selectedDate,
-            count: Number(people)
-          })
-        });
+    if (people > maxSelectable) {
+        alert(`예약 가능한 최대 인원은 ${maxSelectable}명입니다.`);
+        return;
+    }
 
-        if (response.ok) {
-          alert("예약 완료!");
-          navigate("/booth"); 
-        } else {
-          const msg = await response.text();
-          alert("예약 실패: " + msg);
-        }
-      } catch (err) {
-          console.error(err);
-        alert("서버 오류");
-      }
-    }
-  };
+    if (window.confirm(`${selectedDate}에 ${people}명 예약하시겠습니까?`)) {
+      try {
+        const response = await fetch("/api/reservations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            boothId: booth.id,
+            userId: loginUserId,
+            reserveDate: selectedDate,
+            count: Number(people)
+          })
+        });
+
+        if (response.ok) {
+          alert("예약 완료!");
+          navigate("/booth"); 
+        } else {
+          const msg = await response.text(); 
+          alert("예약 실패: " + msg);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("서버 오류");
+      }
+    }
+  };
 
   return (
     <div className="detail-container">
@@ -112,8 +120,8 @@ const BoothDetail = () => {
         <div className="detail-info-box">
           <h2 className="detail-title">{booth.title}</h2>
           <p className="detail-desc" style={{ color: "#e91e63", fontWeight: "bold" }}>
-            {/* [수정] 백엔드에서 받은 currentPerson 표시 */}
             📌 참가자: {booth.currentPerson || 0} / {booth.maxPerson}명
+            {remainingSeats <= 0 && <span style={{color:'red', marginLeft:'10px'}}>(마감)</span>}
           </p>
           <p className="detail-desc">{booth.context}</p>
         </div>
@@ -122,7 +130,7 @@ const BoothDetail = () => {
       <div className="detail-bottom">
         <h3 className="reserve-title">예약하기</h3>
         <div className="detail-row">
-          <span className="emoji-icon" onClick={() => setShowCalendar(!showCalendar)}>📅</span>
+          <span className="emoji-icon" onClick={() => setShowCalendar(!showCalendar)} style={{cursor:'pointer'}}>📅</span>
           <span>선택 날짜: {selectedDate}</span>
         </div>
         {showCalendar && (
@@ -138,7 +146,33 @@ const BoothDetail = () => {
         <div className="detail-row">
           <span className="emoji-icon">👥</span>
           <span>인원 수</span>
-          <input type="number" min="1" max="5" value={people} onChange={(e) => setPeople(e.target.value)} className="people-input" />
+          
+          {/* ▼▼▼ [수정된 부분] 변수명을 people로 맞췄습니다! ▼▼▼ */}
+          <input
+            type="number"
+            min="1"
+            max={maxSelectable} // HTML 상에서도 최대값 제한
+            step="1"
+            value={people} // count -> people 로 수정
+            onChange={(e) => {
+                // onChangeCount -> 직접 함수 작성
+                let val = Number(e.target.value);
+                if (val > maxSelectable) val = maxSelectable; // 남은 자리보다 많이 입력하면 강제 조정
+                if (val < 1 && e.target.value !== '') val = 1; // 1보다 작으면 1로 (비어있을 때 제외)
+                setPeople(val);
+            }}
+            onKeyDown={(e) => {
+              // 소수점, 마이너스, 지수 입력 차단
+              if (e.key === '.' || e.key === '-' || e.key === 'e') {
+                e.preventDefault();
+              }
+            }}
+            placeholder="인원 수"
+            className="detail-input" // 클래스 이름 예시
+            style={{ width: '60px', marginLeft: '10px', padding: '5px' }} // 스타일 살짝 추가
+          />
+          {/* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ */}
+
         </div>
         <div className="detail-row">
           <span className="emoji-icon">💰</span>
@@ -150,10 +184,17 @@ const BoothDetail = () => {
         </div>
         <div className="detail-row">
           <span className="emoji-icon">⏰</span>
-          {/* [수정] 백엔드에서 받은 time 표시 */}
           <span>시간: {booth.time || "10:00 - 18:00"}</span>
         </div>
-        <button className="reserve-btn" onClick={handleReservation}>예약하기</button>
+        
+        <button 
+            className="reserve-btn" 
+            onClick={handleReservation}
+            disabled={remainingSeats <= 0}
+            style={{ backgroundColor: remainingSeats <= 0 ? "#ccc" : "" }}
+        >
+            {remainingSeats <= 0 ? "예약 마감" : "예약하기"}
+        </button>
       </div>
     </div>
   );

@@ -22,7 +22,7 @@ const Login = () => {
     return navigate(path.startsWith('/') ? path : `/${path}`);
   };
 
- const handleLogin = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
@@ -39,25 +39,30 @@ const Login = () => {
         }),
       });
 
-      // [수정 포인트] 무조건 json()을 먼저 하지 말고, 성공/실패를 먼저 나눕니다.
       if (response.ok) {
-        // 성공 시에는 백엔드가 JSON을 주므로 json() 호출
         const data = await response.json(); 
         
         console.log('로그인 성공:', data);
+
+        // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+        // [수정 완료] 일반 로그인 시에도 아이디를 저장해야 예약이 됩니다!
+        if (data.userId) {
+            localStorage.setItem('userId', data.userId);
+        } else {
+            // 혹시 userId가 없으면 id라도 저장 (백엔드 응답 구조에 따라 다름)
+            localStorage.setItem('userId', id); 
+        }
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
         login({ id: data.userId, name: data.userId });
         navigate('/mypage');
       } else {
-        // 실패 시에는 백엔드가 "단순 텍스트"를 줄 수도 있고 "JSON"을 줄 수도 있음
-        // 일단 텍스트로 받습니다.
         const errorText = await response.text();
         
-        // 혹시 JSON인지 확인해보고 파싱 시도 (GlobalExceptionHandler 외 다른 에러 대비)
         try {
             const jsonError = JSON.parse(errorText);
             setError(jsonError.message || jsonError || '아이디 또는 비밀번호가 올바르지 않습니다.');
         } catch (e) {
-            // JSON 파싱 실패 -> 그냥 텍스트 에러 메시지임
             setError(errorText || '아이디 또는 비밀번호가 올바르지 않습니다.');
         }
       }
@@ -70,8 +75,6 @@ const Login = () => {
   };
 
   const handleKakaoLogin = () => {
-    // 백엔드의 카카오 로그인 페이지 컨트롤러로 이동 (redirect)
-    // 이 URL은 백엔드에서 카카오 인증 URL로 리다이렉트 해줍니다.
     window.location.href = 'http://localhost:8080/login/page';
   };
 
