@@ -1,6 +1,8 @@
 package org.zerock.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -10,11 +12,10 @@ import org.zerock.backend.dto.PasswordChangeDto;
 import org.zerock.backend.dto.UserProfileResponseDto;
 import org.zerock.backend.dto.UserProfileUpdateDto;
 import org.zerock.backend.dto.UserSignupRequestDto;
+import org.zerock.backend.entity.Booth;
+import org.zerock.backend.entity.Reservation;
 import org.zerock.backend.entity.UserEntity;
-import org.zerock.backend.repository.UserRepository;
-import org.zerock.backend.repository.UserSessionRepository;
-import org.zerock.backend.repository.ReservationRepository;
-import org.zerock.backend.repository.PostRepository;
+import org.zerock.backend.repository.*;
 
 import java.util.Map;
 import java.util.Random;
@@ -38,6 +39,9 @@ public class UserService {
 
     private final ReservationRepository reservationRepository;
     private final PostRepository postRepository;
+    
+    // [추가] 부스 정보 수정을 위해 필요
+    private final BoothRepository boothRepository;
 
     /**
      * 이메일 인증번호 발송
@@ -99,13 +103,10 @@ public class UserService {
             throw new IllegalArgumentException("이미 사용 중인 아이디입니다.");
         }
 
-        // ▼▼▼ [핵심 추가] 이 부분이 없어서 그냥 가입된 겁니다! ▼▼▼
-        // 3. 이메일 인증 여부 확인 (검문소)
-        // 인증 성공 도장(true)이 없으면 에러를 내서 쫓아냅니다.
+        // 3. 이메일 인증 여부 확인
         if (!emailVerifiedMap.getOrDefault(dto.getEmail(), false)) {
             throw new IllegalArgumentException("이메일 인증이 완료되지 않았습니다.");
         }
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
         // 4. 저장 로직
         var user = new UserEntity();
@@ -116,7 +117,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setVerified(true);
 
-        // 가입했으니 인증 기록 삭제 (메모리 정리)
+        // 가입했으니 인증 기록 삭제
         emailVerifiedMap.remove(dto.getEmail());
 
         return userRepository.save(user);
@@ -125,9 +126,9 @@ public class UserService {
     @SuppressWarnings("null")
     public String checkUserIdAvailable(String userId) {
         if (userRepository.findById(userId).isPresent()) {
-            throw new IllegalArgumentException("이미 사용 중인 아이디입니다."); // [에러 발생]
+            throw new IllegalArgumentException("이미 사용 중인 아이디입니다.");
         }
-        return "사용 가능한 아이디입니다."; // [성공 메시지]
+        return "사용 가능한 아이디입니다.";
     }
 
     @SuppressWarnings("null")
@@ -151,7 +152,6 @@ public class UserService {
                 .birthDate(user.getBirthDate())
                 .sex(user.getSex())
                 .nationality(user.getNationality())
-                // ▼▼▼ [추가] DB에 있는 provider 값을 DTO에 넣어서 보냅니다. ▼▼▼
                 .provider(user.getProvider()) 
                 .build();
     }
@@ -165,21 +165,18 @@ public class UserService {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
 
-        // 변경할 정보만 덮어씌우기 (Dirty Checking으로 자동 저장)
         if(dto.getName() != null) user.setName(dto.getName());
         if(dto.getPhoneNumber() != null) user.setPhoneNumber(dto.getPhoneNumber());
         if(dto.getBirthDate() != null) user.setBirthDate(dto.getBirthDate());
         if(dto.getSex() != null) user.setSex(dto.getSex());
         if(dto.getNationality() != null) user.setNationality(dto.getNationality());
-        
-        // userRepository.save(user); // @Transactional이 있으면 생략 가능하지만 명시해도 됨
     }
 
     /**
      * [3] 비밀번호 변경
-     * 수정됨: 현재 비밀번호와 새 비밀번호가 같으면 변경 불가 처리
      */
     @Transactional
+    @SuppressWarnings("null")
     public void changePassword(String userId, PasswordChangeDto dto) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
@@ -193,23 +190,23 @@ public class UserService {
             throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
         }
 
-        // ▼▼▼ [추가된 로직] 현재 비밀번호와 새 비밀번호가 같은지 확인 ▼▼▼
+        // 2. 현재 비밀번호와 새 비밀번호가 같은지 확인
         if (passwordEncoder.matches(dto.getNewPassword(), user.getPassword())) {
             throw new IllegalArgumentException("현재 사용 중인 비밀번호와 다르게 설정해주세요.");
         }
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
-        // 2. 새 비밀번호 확인
+        // 3. 새 비밀번호 확인
         if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
             throw new IllegalArgumentException("새 비밀번호가 일치하지 않습니다.");
         }
 
-        // 3. 비밀번호 암호화 후 저장
+        // 4. 비밀번호 암호화 후 저장
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
     }
     
     /**
      * [4] 회원 탈퇴
+     * [수정] 탈퇴 시 예약했던 부스 인원 복구 로직 추가
      */
     @SuppressWarnings("null")
     @Transactional
@@ -224,16 +221,31 @@ public class UserService {
             }
          }
         
-        // 2. [핵심 수정] 자식 데이터들을 먼저 삭제해야 부모(User) 삭제 시 에러가 안 납니다.
-        // (순서 중요: 자식들 먼저 -> 마지막에 본인)
+        // 2. 자식 데이터 삭제 전 처리 (예약 인원 복구 등)
         try {
-            userSessionRepository.deleteByUserId(userId); // 로그인 세션 삭제
+            // [핵심 추가] 이 유저의 모든 예약 정보를 가져와서 부스 인원 복구
+            Page<Reservation> reservations = reservationRepository.findByUser_UserIdOrderByReserDateDesc(userId, Pageable.unpaged());
+            
+            for (Reservation r : reservations) {
+                Booth booth = r.getBooth();
+                long current = booth.getCurrentPerson() == null ? 0L : booth.getCurrentPerson();
+                long count = r.getCount();
+                
+                // 인원 차감 (0보다 작아지지 않게)
+                long newCount = (current >= count) ? (current - count) : 0L;
+                
+                booth.setCurrentPerson(newCount);
+                booth.setStatus(true); // 자리가 났으니 다시 예약 가능 상태로
+                boothRepository.save(booth);
+            }
+
+            // 이제 데이터 삭제
+            userSessionRepository.deleteByUserId(userId); 
             reservationRepository.deleteByUser_UserId(userId); 
-            postRepository.deleteByUser_UserId(userId);        // 작성 게시글 삭제
-            // 필요한 경우 댓글(Comment) 등도 여기서 삭제해야 함
+            postRepository.deleteByUser_UserId(userId);        
+            
         } catch (Exception e) {
-            // 혹시 데이터가 없어서 에러나도 무시하고 진행 (선택사항)
-            System.out.println("연관 데이터 삭제 중 경고: " + e.getMessage());
+            System.out.println("연관 데이터 삭제 중 오류: " + e.getMessage());
         }
 
         // 3. 마지막으로 회원 정보 삭제
@@ -242,27 +254,21 @@ public class UserService {
 
     /**
      * [계정 찾기/비밀번호 찾기용] 인증번호 발송
-     * - 가입된 회원이 있어야만 발송됨 (회원가입용과 반대 로직)
-     * - type: "ID"(아이디 찾기), "PW"(비밀번호 찾기)
      */
     public String sendRecoveryEmail(String name, String email, String userId, String type) {
-        // 1. 이메일로 회원 조회
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("가입되지 않은 이메일입니다."));
 
-        // 2. 이름 일치 확인
         if (!user.getName().equals(name)) {
             throw new IllegalArgumentException("사용자 이름이 일치하지 않습니다.");
         }
 
-        // 3. 비밀번호 찾기일 경우, 아이디도 일치하는지 확인
         if ("PW".equals(type)) {
             if (userId == null || !user.getUserId().equals(userId)) {
                 throw new IllegalArgumentException("아이디가 일치하지 않습니다.");
             }
         }
 
-        // 4. 인증번호 생성 및 전송 (기존 로직 재사용)
         String code = String.format("%06d", new Random().nextInt(999999));
         emailCodeMap.put(email, code);
         emailVerifiedMap.put(email, false);
@@ -285,38 +291,31 @@ public class UserService {
      * [아이디 찾기] 인증 완료 후 아이디 반환
      */
    public String findUserId(String name, String email, String code) {
-        // 1. 인증번호 검증 (틀리면 여기서 에러 발생)
         verifyEmailCode(email, code); 
         
-        // 2. 이메일로 유저 찾기
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보가 없습니다."));
         
-        // 3. [핵심] 입력한 이름과 DB에 저장된 이름이 같은지 확인
         if (!user.getName().equals(name)) {
             throw new IllegalArgumentException("사용자 이름이 일치하지 않습니다.");
         }
 
-        // 4. 아이디 반환
         return user.getUserId();
     }
 
     /**
      * [비밀번호 초기화]
-     * - 기존 비밀번호 확인 없이 강제로 새 비밀번호로 변경
-     * - 아이디 찾기/비밀번호 찾기 인증 후 사용
      */
     @Transactional
+    @SuppressWarnings("null")
     public void resetPassword(String userId, String newPassword) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
 
-        // 소셜 로그인 유저인지 체크 (선택사항)
         if ("KAKAO".equals(user.getProvider())) {
             throw new IllegalArgumentException("카카오 회원은 비밀번호를 변경할 수 없습니다.");
         }
 
-        // 기존 비밀번호 확인 과정 없이 바로 덮어쓰기 (Update)
         user.setPassword(passwordEncoder.encode(newPassword));
     }
 }

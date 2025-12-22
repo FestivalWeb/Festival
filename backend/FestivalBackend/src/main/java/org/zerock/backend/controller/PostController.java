@@ -3,6 +3,8 @@ package org.zerock.backend.controller;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.*;
@@ -11,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.zerock.backend.dto.PostCreateRequest;
 import org.zerock.backend.dto.PostCreateResponse;
 import org.zerock.backend.dto.PostDetailResponse;
+import org.zerock.backend.dto.PostGalleryResponse;
 import org.zerock.backend.dto.PostSummaryResponse;
 import org.zerock.backend.dto.PostUpdateRequest;
 import org.zerock.backend.service.PostService;
@@ -110,5 +113,11 @@ public class PostController {
         } catch (IllegalStateException e) { // 작성자 아님
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         }
+    }
+
+    @GetMapping("/gallery")
+    public ResponseEntity<List<PostGalleryResponse>> getGalleryImages() {
+        List<PostGalleryResponse> list = postService.getGalleryList();
+        return ResponseEntity.ok(list);
     }
 }

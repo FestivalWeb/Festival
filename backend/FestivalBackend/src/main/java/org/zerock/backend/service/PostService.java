@@ -3,6 +3,7 @@ package org.zerock.backend.service;
 import org.zerock.backend.dto.PostCreateRequest;
 import org.zerock.backend.dto.PostCreateResponse;
 import org.zerock.backend.dto.PostDetailResponse;
+import org.zerock.backend.dto.PostGalleryResponse;
 import org.zerock.backend.dto.PostSummaryResponse;
 import org.zerock.backend.dto.PostUpdateRequest;
 import org.springframework.data.domain.Page;
@@ -40,4 +41,6 @@ public interface PostService {
         String keyword,
         String type   // ALL, TITLE, CONTENT, TITLE_CONTENT, USER
     );
+
+    List<PostGalleryResponse> getGalleryList();
 }

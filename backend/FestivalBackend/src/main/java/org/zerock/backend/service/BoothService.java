@@ -58,6 +58,9 @@ public class BoothService {
     // 2. 목록 조회
     @Transactional(readOnly = true)
     public List<BoothDto.Response> getBoothList() {
+        // (선택사항) 만약 '공개된(status=true) 부스'만 보여주고 싶다면 findAll() 대신 이걸 쓰세요.
+        // return boothRepository.findByStatusTrueOrderByIdAsc().stream() ...
+        
         return boothRepository.findAll().stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());

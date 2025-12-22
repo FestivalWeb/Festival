@@ -56,4 +56,6 @@ public interface MediaFileRepository extends JpaRepository<MediaFile, Long> {
     @Query("update MediaFile m set m.thumbUri = :thumbUri where m.fileId = :fileId")
     void updateThumbUri(Long fileId, String thumbUri);
 
+    List<MediaFile> findByPostIsNotNullOrderByFileIdDesc();
+
 }

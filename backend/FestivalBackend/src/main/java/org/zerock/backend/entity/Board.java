@@ -2,9 +2,11 @@ package org.zerock.backend.entity;
 
 import lombok.Getter;
 import lombok.Setter;
-
+import lombok.ToString;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -62,4 +64,17 @@ public class Board {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MediaFile> mediaFiles = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id") // DB 컬럼명 (보통 user_id)
+    @ToString.Exclude // 무한루프 방지
+    private UserEntity user;
+
+    public void addMediaFile(MediaFile file) {
+    this.mediaFiles.add(file); // 1. 내 리스트에 파일 추가
+    file.setBoard(this);       // 2. ★중요★ 파일한테 "네 주인은 나야"라고 알려줌 (이게 board_id를 채움)
+}
 }

@@ -12,7 +12,7 @@ import org.zerock.backend.entity.*;
 import org.zerock.backend.repository.MediaFileRepository;
 import org.zerock.backend.repository.PostRepository;
 import org.zerock.backend.repository.UserRepository;
-import org.zerock.backend.repository.PostImgMappingRepository; // [추가] 리포지토리 임포트
+import org.zerock.backend.repository.PostImgMappingRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,8 +25,6 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final MediaFileRepository mediaFileRepository;
     private final UserRepository userRepository;
-    
-    // ▼▼▼ [수정 1] 이미지 연결 정보를 저장할 리포지토리 추가 ▼▼▼
     private final PostImgMappingRepository postImgMappingRepository; 
 
     // ---------------- 변환 메서드 ----------------
@@ -73,35 +71,43 @@ public class PostServiceImpl implements PostService {
    @Override
     @SuppressWarnings("null")
     public PostCreateResponse createPost(String loginUserId, PostCreateRequest request) {
-        
-        // 1. 작성자 찾기
+        // 1. 작성자 확인 및 게시글 엔티티 생성
         UserEntity writer = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
-        // 2. 게시글 생성 (수정된 부분: 날짜 강제 주입)
         post newPost = post.builder()
                 .title(request.getTitle())
                 .context(request.getContext())
                 .user(writer)
-                .createDate(java.time.LocalDateTime.now()) // [핵심] 현재 시간 강제로 넣기!
+                .createDate(java.time.LocalDateTime.now())
                 .build();
 
+        // 2. 게시글 먼저 저장 (그래야 ID가 생김)
         post savedPost = postRepository.save(newPost);
 
-        // 3. 이미지 저장
+        // 3. 이미지 연결 (이 부분이 가장 중요합니다!)
         List<Long> fileIds = request.getFileIds();
+
+        System.out.println("======================================");
+        System.out.println("받은 파일 ID 목록: " + fileIds);
         if (fileIds != null && !fileIds.isEmpty()) {
             List<MediaFile> files = mediaFileRepository.findAllById(fileIds);
-            
+
             for (MediaFile file : files) {
-                // ID 생성 및 매핑 저장
+                // (1) 중간 테이블(매핑) 저장
                 PostImgMappingId mappingId = new PostImgMappingId(savedPost.getPostId(), file.getFileId());
                 PostImgMapping mapping = PostImgMapping.builder()
                         .id(mappingId)
                         .post(savedPost)
                         .file(file)
                         .build();
-                postImgMappingRepository.save(mapping); 
+                postImgMappingRepository.save(mapping);
+
+                // ▼▼▼ [필수 추가] 이 코드가 있어야 갤러리에 뜹니다! ▼▼▼
+                // 파일 자체에 "이 게시글(5번)이 내 주인이야"라고 도장을 찍어줍니다.
+                file.setPost(savedPost); 
+                mediaFileRepository.save(file); // 변경된 내용(post_id)을 DB에 꼭 저장!
+                // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
             }
         }
 
@@ -171,19 +177,32 @@ public class PostServiceImpl implements PostService {
             throw new IllegalStateException("본인 글만 수정 가능합니다.");
         }
 
+        // 내용 수정
         entity.updatePost(request.getTitle(), request.getContext());
 
-        // 기존 이미지 삭제 후 다시 등록 (간단한 구현)
-        // [주의] 실제로는 postImgMappingRepository.deleteByPost... 등을 써야 깔끔함
-        entity.getImages().clear(); 
+        // [핵심 수정 1] 기존 이미지 삭제
+        // orphanRemoval만 믿지 말고 리포지토리 메서드로 명시적 삭제 수행
+        // 단, entity 컬렉션도 비워줘야 1차 캐시 정합성이 맞음
+        entity.getImages().clear();
+        postImgMappingRepository.deleteByPost_PostId(entity.getPostId()); 
         
-        // 여기는 수정 기능이라 일단 둡니다. 필요하면 createPost처럼 수정해야 합니다.
+        // [핵심 수정 2] 새 이미지 등록 부분
         if (request.getFileIds() != null && !request.getFileIds().isEmpty()) {
             List<MediaFile> files = mediaFileRepository.findAllById(request.getFileIds());
             for (MediaFile file : files) {
-                PostImgMapping mapping = PostImgMapping.builder().post(entity).file(file).build();
-                // 수정 시에도 저장 필요
-                postImgMappingRepository.save(mapping); 
+                // (1) 매핑 저장
+                PostImgMappingId mappingId = new PostImgMappingId(entity.getPostId(), file.getFileId());
+                PostImgMapping mapping = PostImgMapping.builder()
+                        .id(mappingId)
+                        .post(entity)
+                        .file(file)
+                        .build();
+                postImgMappingRepository.save(mapping);
+                
+                // ▼▼▼ [필수 추가] 수정 시에도 주인 설정! ▼▼▼
+                file.setPost(entity);
+                mediaFileRepository.save(file);
+                // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
             }
         }
         
@@ -206,4 +225,30 @@ public class PostServiceImpl implements PostService {
     public List<PostSummaryResponse> getPostList() {
         return getPostPage(0, 100, "postId", Sort.Direction.DESC, null, "ALL").getContent();
     }
-}
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PostGalleryResponse> getGalleryList() {
+        // 1. 게시글이 있는 파일들만 DB에서 가져옴
+        List<MediaFile> files = mediaFileRepository.findByPostIsNotNullOrderByFileIdDesc();
+
+        // 2. DTO로 변환
+        return files.stream().map(file -> {
+            // 게시글 정보 가져오기 (혹시 null일까봐 안전장치)
+            String writer = (file.getPost().getUser() != null) ? file.getPost().getUser().getUserId() : "알수없음";
+            String title = file.getPost().getTitle();
+            Long postId = file.getPost().getPostId();
+            
+            // 썸네일이 있으면 썸네일, 없으면 원본 이미지
+            String uri = (file.getThumbUri() != null) ? file.getThumbUri() : file.getStorageUri();
+
+            return PostGalleryResponse.builder()
+                    .fileId(file.getFileId())
+                    .imageUri(uri)
+                    .title(title)
+                    .writer(writer)
+                    .postId(postId)
+                    .build();
+        }).collect(Collectors.toList());
+    }
+}   

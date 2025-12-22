@@ -6,7 +6,12 @@ import java.util.List;
 
 public interface BoothRepository extends JpaRepository<Booth, Long> {
 
-    // [수정] @Query 삭제 -> Spring Data JPA 자동 생성 메서드 사용 (가장 안전함)
-    // 제목(Title) 포함 OR 위치(Location) 포함 OR 내용(Context) 포함
+    // [검색용] 제목, 위치, 내용 중 하나라도 포함되면 찾기
     List<Booth> findByTitleContainingOrLocationContainingOrContextContaining(String title, String location, String context);
+
+    // ▼▼▼ [수정] 이 부분이 핵심입니다! ▼▼▼
+    // 기존: findByIsShowTrueOrderByPriorityAscIdAsc() -> 에러 발생 (isShow, priority 없음)
+    // 변경: findByStatusTrueOrderByIdAsc() -> 정상 작동 (status, id 있음)
+    List<Booth> findByStatusTrueOrderByIdAsc();
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 }

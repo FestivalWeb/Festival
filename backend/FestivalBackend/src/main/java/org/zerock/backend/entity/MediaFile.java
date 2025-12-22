@@ -68,4 +68,15 @@ public class MediaFile {
      */
     @Column(name = "thumb_uri", length = 255)
     private String thumbUri;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id")
+    @ToString.Exclude
+    private Board board; 
+
+    // ▼▼▼ [필수 추가] post (게시글)와 연결할 변수도 추가해야 합니다! ▼▼▼
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id") // DB 컬럼명
+    @ToString.Exclude
+    private post post;  // (주의: 클래스 이름이 소문자 'post'라면 그대로 'post'라고 적어야 합니다)
 }
