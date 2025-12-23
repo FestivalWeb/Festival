@@ -42,7 +42,7 @@ public class PostServiceImpl implements PostService {
                 .build();
     }
 
-    private PostSummaryResponse toSummaryResponse(post p) {
+    private PostSummaryResponse toSummaryResponse(Post p) {
         Long thumbnailId = null;
         String thumbnailUri = null;
 
@@ -75,7 +75,7 @@ public class PostServiceImpl implements PostService {
         UserEntity writer = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
-        post newPost = post.builder()
+        Post newPost = Post.builder()
                 .title(request.getTitle())
                 .context(request.getContext())
                 .user(writer)
@@ -83,7 +83,7 @@ public class PostServiceImpl implements PostService {
                 .build();
 
         // 2. 게시글 먼저 저장 (그래야 ID가 생김)
-        post savedPost = postRepository.save(newPost);
+        Post savedPost = postRepository.save(newPost);
 
         // 3. 이미지 연결 (이 부분이 가장 중요합니다!)
         List<Long> fileIds = request.getFileIds();
@@ -122,7 +122,7 @@ public class PostServiceImpl implements PostService {
     public Page<PostSummaryResponse> getPostPage(int page, int size, String sortBy, Sort.Direction direction, String keyword, String type) {
         Sort sort = Sort.by(direction, sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<post> postPage;
+        Page<Post> postPage;
 
         if (keyword == null || keyword.isBlank()) {
             postPage = postRepository.findAll(pageable);
@@ -145,7 +145,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     @SuppressWarnings("null")
     public PostDetailResponse getPostDetail(Long postId) {
-        post entity = postRepository.findById(postId)
+        Post entity = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
 
         postRepository.increaseViewCount(postId);
@@ -170,7 +170,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @SuppressWarnings("null")
     public PostDetailResponse updatePost(String loginUserId, Long postId, PostUpdateRequest request) {
-        post entity = postRepository.findById(postId)
+        Post entity = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
 
         if (!entity.getUser().getUserId().equals(loginUserId)) {
@@ -212,7 +212,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @SuppressWarnings("null")
     public void deletePost(String loginUserId, Long postId) {
-        post entity = postRepository.findById(postId)
+        Post entity = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
 
         if (!entity.getUser().getUserId().equals(loginUserId)) {

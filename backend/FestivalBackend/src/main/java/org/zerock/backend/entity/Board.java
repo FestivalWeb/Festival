@@ -51,6 +51,16 @@ public class Board {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    // [추가] 권한 설정 필드 (Admin 기능용)
+    @Column(name = "read_role", length = 20)
+    private String readRole;
+
+    @Column(name = "write_role", length = 20)
+    private String writeRole;
+
+    // [추가] Post와의 양방향 관계 (PostService 등에서 사용)
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Post> posts = new ArrayList<>(); // post -> Post (대문자 주의)
     
     @PrePersist
     protected void onCreate() {
@@ -59,7 +69,6 @@ public class Board {
         updatedAt = now;
     }
 
-    
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();

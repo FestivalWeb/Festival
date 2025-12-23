@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.zerock.backend.entity.PostImgMapping;
 import org.zerock.backend.entity.PostImgMappingId;
-import org.zerock.backend.entity.post; // [필수] post 엔티티 임포트
+import org.zerock.backend.entity.Post; // [필수] post 엔티티 임포트
 
 import java.util.List;
 
@@ -20,7 +20,7 @@ public interface PostImgMappingRepository extends JpaRepository<PostImgMapping, 
     void deleteByPost_PostId(Long postId);
 
     // [핵심 추가] Service에서 호출하는 '엔티티 기준 삭제' 메서드 추가
-    void deleteByPost(post post);
+    void deleteByPost(Post post);
 
     // 3) 파일 ID로 삭제
     @Modifying

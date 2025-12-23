@@ -3,13 +3,24 @@ package org.zerock.backend.admin.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.zerock.backend.admin.dto.AdminLoginRequest;
 import org.zerock.backend.admin.dto.AdminLoginResponse;
+import org.zerock.backend.admin.dto.AdminMeResponse;
 import org.zerock.backend.admin.dto.AdminSignupRequest;
 import org.zerock.backend.admin.dto.AdminSignupResponse;
+import org.zerock.backend.admin.dto.PendingAdminResponse;
 import org.zerock.backend.admin.service.AdminAuthService;
+import org.zerock.backend.entity.AdminRole;
+import org.zerock.backend.entity.AdminUser;
+import org.zerock.backend.repository.AdminRoleRepository;
+import org.zerock.backend.repository.AdminUserRepository;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/auth")
@@ -17,7 +28,9 @@ import org.zerock.backend.admin.service.AdminAuthService;
 public class AdminAuthController {
     // Admin 인증 관련 로직을 처리하는 서비스
     private final AdminAuthService adminAuthService;
-
+    private final AdminRoleRepository adminRoleRepository;
+    private final AdminUserRepository adminUserRepository;
+    
     /**
      * 관리자 로그인 API
      * ----------------------------------------------------------
@@ -61,6 +74,84 @@ public class AdminAuthController {
     ) {
         AdminSignupResponse response = adminAuthService.signup(request, httpRequest);
         // 201 Created로 보내도 되고, 일단 200 OK로 둬도 무방
+        return ResponseEntity.ok(response);
+    }
+
+    // ✅ SUPER 권한 체크 헬퍼
+    private boolean isSuper(Long adminId) {
+        if (adminId == null) return false;
+        return adminRoleRepository
+                .existsByAdminUser_AdminIdAndRole_RoleCode(adminId, "SUPER");
+    }
+
+    @GetMapping("/pending")
+    public ResponseEntity<List<PendingAdminResponse>> getPendingAdmins(HttpServletRequest request) {
+
+        Long loginAdminId = (Long) request.getAttribute("loginAdminId");
+        if (loginAdminId == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+
+        if (!isSuper(loginAdminId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "SUPER 권한이 없습니다.");
+        }
+
+        List<PendingAdminResponse> list = adminAuthService.getPendingAdmins();
+        return ResponseEntity.ok(list);
+    }
+
+    @PostMapping("/approve/{adminId}")
+    public ResponseEntity<Void> approveAdmin(
+            @PathVariable Long adminId,
+            HttpServletRequest request
+    ) {
+        Long loginAdminId = (Long) request.getAttribute("loginAdminId");
+        if (loginAdminId == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+        if (!isSuper(loginAdminId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "SUPER 권한이 없습니다.");
+        }
+
+        // 승인자 엔티티는 여기서 한 번만 조회해서 서비스에 넘김
+        AdminUser approver = adminUserRepository.findById(loginAdminId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "승인자 정보를 찾을 수 없습니다."));
+
+        adminAuthService.approveAdmin(adminId, approver);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/reject/{adminId}")
+    public ResponseEntity<Void> rejectAdmin(
+            @PathVariable Long adminId,
+            HttpServletRequest request
+    ) {
+        Long loginAdminId = (Long) request.getAttribute("loginAdminId");
+        if (loginAdminId == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+        if (!isSuper(loginAdminId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "SUPER 권한이 없습니다.");
+        }
+
+        AdminUser approver = adminUserRepository.findById(loginAdminId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "승인자 정보를 찾을 수 없습니다."));
+
+        adminAuthService.rejectAdmin(adminId, approver);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<AdminMeResponse> getMe(HttpServletRequest request) {
+        // 필터에서 검증 후 넣어준 adminId 꺼내기
+        Long adminId = (Long) request.getAttribute("loginAdminId");
+
+        if (adminId == null) {
+            // 세션이 없거나 만료됨 -> 401 응답
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        AdminMeResponse response = adminAuthService.getMe(adminId);
         return ResponseEntity.ok(response);
     }
 }

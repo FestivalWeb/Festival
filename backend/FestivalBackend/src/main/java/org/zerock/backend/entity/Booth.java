@@ -61,4 +61,32 @@ public class Booth {
     @OneToMany(mappedBy = "booth", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<BoothImage> images = new LinkedHashSet<>();
+
+    @ColumnDefault("1")
+    @Column(name = "priority")
+    private Long priority; // 우선순위 필드 추가
+
+    // [추가] Getter 메서드 호환성 (Lombok이 getStatus()를 만들지만, Admin 코드는 isShow()를 찾을 수 있음)
+    public boolean isShow() {
+        return this.status;
+    }
+    
+    public void setShow(boolean show) {
+        this.status = show;
+    }
+
+    // [추가] updateInfo 메서드 (Admin 서비스에서 호출)
+    public void updateInfo(String title, String context, String location, Long maxPerson, Long priority, java.time.LocalDate eventDate, long price) {
+        this.title = title;
+        this.context = context;
+        this.location = location;
+        this.maxPerson = maxPerson;
+        this.priority = priority;
+        this.eventDate = eventDate;
+        this.price = price;
+    }
+
+    public void changeStatus(boolean status) {
+        this.status = status;
+    }
 }

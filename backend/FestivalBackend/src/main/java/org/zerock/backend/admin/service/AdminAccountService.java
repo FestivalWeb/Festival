@@ -71,7 +71,6 @@ public class AdminAccountService {
      * 관리자 권한 변경 (SUPER만 가능)
      */
     @Transactional
-    @SuppressWarnings("null")
     public void changeAdminRole(Long targetAdminId, String newRoleCode, HttpServletRequest request) {
 
         // 1. 필터에서 심어준 loginAdminId 꺼내기
@@ -141,7 +140,6 @@ public class AdminAccountService {
     }
 
     @Transactional
-    @SuppressWarnings("null")
     public void changeAdminActiveStatus(Long targetAdminId, boolean active, HttpServletRequest request) {
 
         // 1. 로그인 관리자 확인
@@ -220,7 +218,6 @@ public class AdminAccountService {
     }
 
     @Transactional
-    @SuppressWarnings("null")
     public void deleteAdmin(Long targetAdminId, HttpServletRequest request) {
 
         // 1. 로그인한 관리자 ID 가져오기 (필터에서 넣어준 값)

@@ -17,7 +17,7 @@ public class PostImgMapping {
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("postId")   // id.postId 값과 FK(post_id) 값 매핑
     @JoinColumn(name = "post_id", nullable = false)
-    private post post;
+    private Post post;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("fileId")   // id.fileId 값과 FK(file_id) 값 매핑

@@ -1,29 +1,50 @@
-// src/components/ExperienceBoothSection.jsx
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { boothResData } from "../../components2/data/boothResData";
+import api from "../../api/api"; // axios 설정 파일 (경로 확인 필요!)
 import "./ExperienceBoothSection.css";
 
 function ExperienceBoothSection() {
-
   const navigate = useNavigate();
+  const [boothList, setBoothList] = useState([]); // 초기값 빈 배열
+
+  // 1. 데이터 불러오기
+  useEffect(() => {
+    api.get("/api/booths")
+      .then((res) => {
+        // 성공 시: 데이터가 있으면 앞에서 4개만 자름
+        if (res.data && Array.isArray(res.data)) {
+            setBoothList(res.data.slice(0, 4));
+        }
+      })
+      .catch((err) => {
+        // 실패 시: 에러 로그만 찍고 boothList는 빈 배열 상태 유지
+        console.error("부스 목록 로딩 실패 (백엔드 연결 확인 필요):", err);
+        // 따로 에러 UI를 보여주지 않고 조용히 넘어가려면 여기서 아무것도 안 하면 됨
+      });
+  }, []);
 
   const navigateWithScroll = (path, state = null) => {
-  navigate(path, { state });
-  // 페이지가 렌더링 된 후 스크롤 맨 위로
-  setTimeout(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, 100);
-};
+    navigate(path, { state });
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 100);
+  };
 
   const handleMoreClick = () => {
     navigateWithScroll("/booth");
   };
 
   const handleBoothClick = (id) => {
-    const booth = boothResData.find((b) => b.id === id);
-    if (!booth) return;
-    navigateWithScroll(`/booth/${booth.id}`, { booth } );
+    navigateWithScroll(`/booth/${id}`);
+  };
+
+  // 이미지 URL 생성 함수
+  const getImageUrl = (booth) => {
+    if (booth.images && booth.images.length > 0) {
+      return `${SERVER_URL}${booth.images[0].storageUri}`;
+    }
+    // 이미지가 없을 때 보여줄 기본 이미지
+    return "https://via.placeholder.com/400x250/ffeef5/e41c54?text=Festival";
   };
 
   return (
@@ -35,61 +56,47 @@ function ExperienceBoothSection() {
         </p>
 
         <div className="booth-grid">
-          <article className="booth-card"
-            onClick={() => handleBoothClick(1)}
-          >
-            <h3 className="booth-name">딸기 수확 체험</h3>
-            <p className="booth-desc">
-              현장에서 직접 딸기를 따고 맛볼 수 있는 인기 부스입니다.
-            </p>
-            <ul className="booth-info">
-              <li>운영시간 : 10:00 ~ 17:00</li>
-              <li>위치 : A존 1번 라인</li>
-              <li>참가비 : 1인 10,000원</li>
-            </ul>
-          </article>
+          {/* 데이터가 없거나 로딩 실패 시 안내 문구 표시 */}
+          {boothList.length === 0 ? (
+            <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "40px", color: "#666" }}>
+              <p>현재 준비 중인 부스가 없습니다.</p>
+            </div>
+          ) : (
+            /* 데이터가 있을 때만 카드 렌더링 */
+            boothList.map((booth) => (
+              <article 
+                className="booth-card"
+                key={booth.id} 
+                onClick={() => handleBoothClick(booth.id)}
+              >
+                {/* [1] 이미지 영역 */}
+                <div className="booth-img-wrap">
+                  <img 
+                    src={getImageUrl(booth)} 
+                    alt={booth.title}
+                    onError={(e) => {
+                      e.target.src = "https://via.placeholder.com/400x250/ffeef5/e41c54?text=No+Image";
+                    }}
+                  />
+                </div>
 
-          <article className="booth-card"
-            onClick={() => handleBoothClick(2)}
-          >
-            <h3 className="booth-name">딸기 떡 메치기</h3>
-            <p className="booth-desc">
-              한국전통 디저트인 떡을 직접 만들어보는 체험입니다.
-            </p>
-            <ul className="booth-info">
-              <li>운영시간 : 11:00 / 14:00 / 16:00</li>
-              <li>위치 : B존 푸드 체험관</li>
-              <li>사전예약 권장</li>
-            </ul>
-          </article>
-
-          <article className="booth-card"
-            onClick={() => handleBoothClick(3)}
-          >
-            <h3 className="booth-name">케이크 공방</h3>
-            <p className="booth-desc">
-              생딸기를 이용한 케이크·타르트·파르페 만들기 체험입니다.
-            </p>
-            <ul className="booth-info">
-              <li>운영시간 : 10:00 ~ 18:00</li>
-              <li>위치 : C존 가족 체험 구역</li>
-              <li>보호자 동반 필수</li>
-            </ul>
-          </article>
-
-          <article className="booth-card"
-            onClick={() => handleBoothClick(4)}
-          >
-            <h3 className="booth-name">지역 농특산물 판매존</h3>
-            <p className="booth-desc">
-              논산 지역 농가가 직접 참여하는 농특산물 판매·홍보 부스입니다.
-            </p>
-            <ul className="booth-info">
-              <li>운영시간 : 10:00 ~ 20:00</li>
-              <li>위치 : 메인 광장 주변</li>
-              <li>시식 코너 운영</li>
-            </ul>
-          </article>
+                {/* [2] 텍스트 컨텐츠 영역 */}
+                <div className="booth-content">
+                  <h3 className="booth-name">{booth.title}</h3>
+                  <p className="booth-desc">
+                    {booth.context.length > 35 
+                      ? booth.context.substring(0, 35) + "..." 
+                      : booth.context}
+                  </p>
+                  <ul className="booth-info">
+                    <li>📅 운영일 : {booth.eventDate}</li>
+                    <li>📍 위치 : {booth.location}</li>
+                    <li>💰 참가비 : {booth.price > 0 ? `${booth.price.toLocaleString()}원` : "무료"}</li>
+                  </ul>
+                </div>
+              </article>
+            ))
+          )}
         </div>
 
         <div className="booth-more-wrap">
