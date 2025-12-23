@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Signup.css';
+import AuthCard from './AuthCard';
 
 const Signup = () => {
   const [step, setStep] = useState(0);
@@ -218,114 +219,107 @@ const Signup = () => {
   };
 
   return (
-    <div className="signup-wrapper">
-      <div className="signup-container full-bleed">
-        <div className="signup-form-area">
-          <button type="button" className="signup-back-btn" onClick={() => navigate('/login')}>← 뒤로</button>
-          <div className="signup-header"><h2>세계딸기축제</h2></div>
-
-          {step === 0 && (
-            <div className="signup-step">
-              <div className="terms-card">
-                <label className="term-row"><input type="checkbox" checked={agreeTerms.terms} onChange={(e)=>setAgreeTerms({...agreeTerms, terms: e.target.checked})} /> <strong>필수</strong> 홈페이지 이용약관</label>
-                <label className="term-row"><input type="checkbox" checked={agreeTerms.privacy} onChange={(e)=>setAgreeTerms({...agreeTerms, privacy: e.target.checked})} /> <strong>필수</strong> 개인정보 수집 및 이용</label>
-                <label className="term-row"><input type="checkbox" checked={agreeTerms.marketing} onChange={(e)=>setAgreeTerms({...agreeTerms, marketing: e.target.checked})} /> 선택 이벤트·혜택 정보 수신</label>
-              </div>
-              <div className="error" style={{visibility: globalError ? 'visible' : 'hidden', textAlign:'center', marginTop:'10px'}}>{globalError || '\u00A0'}</div>
-              <div className="actions-row">
-                <button type="button" className="signup-btn-green" onClick={nextFromTerms}>다음</button>
-              </div>
-            </div>
-          )}
-
-          {step === 1 && (
-            <div className="signup-step">
-              <form className="signup-form" onSubmit={(e)=>e.preventDefault()}>
-                
-                <input value={form.name} onChange={onChange('name')} type="text" placeholder="이름" className="signup-input" />
-
-                <div style={{display:'flex', gap:8}}>
-                  <input name="username" value={form.username} onChange={onChange('username')} onBlur={handleBlur} type="text" placeholder="아이디" className="signup-input" />
-                  <button type="button" className="signup-small-btn" onClick={handleIdCheck}>중복확인</button>
-                </div>
-                {fieldErrors.username && <div style={errorStyle}>{fieldErrors.username}</div>}
-                {!fieldErrors.username && idCheckMessage && (
-                  <div style={{...errorStyle, color: isIdAvailable ? 'green' : 'red'}}>
-                    {idCheckMessage}
-                  </div>
-                )}
-
-                <input name="password" value={form.password} onChange={onChange('password')} onBlur={handleBlur} type="password" placeholder="비밀번호" className="signup-input" />
-                {fieldErrors.password && <div style={errorStyle}>{fieldErrors.password}</div>}
-
-                <input name="password2" value={form.password2} onChange={onChange('password2')} onBlur={handleBlur} type="password" placeholder="비밀번호 확인" className="signup-input" />
-                {fieldErrors.password2 && <div style={errorStyle}>{fieldErrors.password2}</div>}
-
-                <div style={{display:'flex', gap:8}}>
-                  <input name="email" value={form.email} onChange={onChange('email')} onBlur={handleBlur} type="email" placeholder="이메일" className="signup-input" />
-                  <button type="button" className="signup-small-btn" onClick={onRequestCode} disabled={sendingCode}>
-                    {sendingCode ? '전송 중...' : '인증번호 발송'}
-                  </button>
-                </div>
-                {fieldErrors.email && <div style={errorStyle}>{fieldErrors.email}</div>}
-
-                <div className="error" style={{visibility: globalError ? 'visible' : 'hidden', textAlign:'center'}}>{globalError || '\u00A0'}</div>
-
-                <div className="actions-row">
-                  <button type="button" className="signup-btn-green" onClick={() => setStep(0)}>이전</button>
-                  <button type="button" className="signup-btn-green" onClick={onRequestCode}>다음</button>
-                </div>
-              </form>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="signup-step">
-              <div className="verify-card">
-                <p>이메일로 발송된 인증번호를 입력하세요.</p>
-                <input value={form.code} onChange={onChange('code')} type="text" placeholder="인증번호" className="signup-input" />
-              
-                <div className="actions-row">
-                  <button type="button" className="signup-btn-green" onClick={() => { setStep(1); setGlobalError(''); }}>이전</button>
-                  <button type="button" className="signup-btn-green" onClick={onVerifyCode}>인증 확인</button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {step === 3 && (
-            <div className="signup-step">
-              <div className="complete-card">
-                <p>회원가입 정보를 확인하세요.</p>
-                <div className="summary-row">이름: <strong>{form.name}</strong></div>
-                <div className="summary-row">아이디: <strong>{form.username}</strong></div>
-                <div className="summary-row">이메일: <strong>{form.email}</strong></div>
-                
-                <div className="actions-row">
-                  <button type="button" className="signup-btn-green" onClick={() => setStep(2)}>이전</button>
-                  <button type="button" className="signup-btn-green" onClick={onSignup}>회원가입</button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {step === 4 && (
-            <div className="signup-step">
-              <div className="done-card">
-                <p>회원가입이 완료되었습니다.</p>
-                <div className="actions-row">
-                  <button type="button" className="signup-btn-green" onClick={() => navigate('/login')}>로그인</button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="signup-footer">
-            이미 계정이 있으신가요? <button type="button" className="signup-login-link" onClick={() => navigate('/login')}>로그인</button>
+    <AuthCard title="세계딸기축제" backPath="/login">
+      {step === 0 && (
+        <div className="signup-step">
+          <div className="terms-card">
+            <label className="term-row"><input type="checkbox" checked={agreeTerms.terms} onChange={(e)=>setAgreeTerms({...agreeTerms, terms: e.target.checked})} /> <strong>필수</strong> 홈페이지 이용약관</label>
+            <label className="term-row"><input type="checkbox" checked={agreeTerms.privacy} onChange={(e)=>setAgreeTerms({...agreeTerms, privacy: e.target.checked})} /> <strong>필수</strong> 개인정보 수집 및 이용</label>
+            <label className="term-row"><input type="checkbox" checked={agreeTerms.marketing} onChange={(e)=>setAgreeTerms({...agreeTerms, marketing: e.target.checked})} /> 선택 이벤트·혜택 정보 수신</label>
+          </div>
+          <div className="error" style={{visibility: globalError ? 'visible' : 'hidden', textAlign:'center', marginTop:'10px'}}>{globalError || '\u00A0'}</div>
+          <div className="actions-row">
+            <button type="button" className="signup-btn-green" onClick={nextFromTerms}>다음</button>
           </div>
         </div>
+      )}
+
+      {step === 1 && (
+        <div className="signup-step">
+          <form className="signup-form" onSubmit={(e)=>e.preventDefault()}>
+            
+            <input value={form.name} onChange={onChange('name')} type="text" placeholder="이름" className="signup-input" />
+
+            <div style={{display:'flex', gap:8}}>
+              <input name="username" value={form.username} onChange={onChange('username')} onBlur={handleBlur} type="text" placeholder="아이디" className="signup-input" />
+              <button type="button" className="signup-small-btn" onClick={handleIdCheck}>중복확인</button>
+            </div>
+            {fieldErrors.username && <div style={errorStyle}>{fieldErrors.username}</div>}
+            {!fieldErrors.username && idCheckMessage && (
+              <div style={{...errorStyle, color: isIdAvailable ? 'green' : 'red'}}>
+                {idCheckMessage}
+              </div>
+            )}
+
+            <input name="password" value={form.password} onChange={onChange('password')} onBlur={handleBlur} type="password" placeholder="비밀번호" className="signup-input" />
+            {fieldErrors.password && <div style={errorStyle}>{fieldErrors.password}</div>}
+
+            <input name="password2" value={form.password2} onChange={onChange('password2')} onBlur={handleBlur} type="password" placeholder="비밀번호 확인" className="signup-input" />
+            {fieldErrors.password2 && <div style={errorStyle}>{fieldErrors.password2}</div>}
+
+            <div style={{display:'flex', gap:8}}>
+              <input name="email" value={form.email} onChange={onChange('email')} onBlur={handleBlur} type="email" placeholder="이메일" className="signup-input" />
+              <button type="button" className="signup-small-btn" onClick={onRequestCode} disabled={sendingCode}>
+                {sendingCode ? '전송 중...' : '인증번호 발송'}
+              </button>
+            </div>
+            {fieldErrors.email && <div style={errorStyle}>{fieldErrors.email}</div>}
+
+            <div className="error" style={{visibility: globalError ? 'visible' : 'hidden', textAlign:'center'}}>{globalError || '\u00A0'}</div>
+
+            <div className="actions-row">
+              <button type="button" className="signup-btn-green" onClick={() => setStep(0)}>이전</button>
+              <button type="button" className="signup-btn-green" onClick={onRequestCode}>다음</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {step === 2 && (
+        <div className="signup-step">
+          <div className="verify-card">
+            <p>이메일로 발송된 인증번호를 입력하세요.</p>
+            <input value={form.code} onChange={onChange('code')} type="text" placeholder="인증번호" className="signup-input" />
+          
+            <div className="actions-row">
+              <button type="button" className="signup-btn-green" onClick={() => { setStep(1); setGlobalError(''); }}>이전</button>
+              <button type="button" className="signup-btn-green" onClick={onVerifyCode}>인증 확인</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {step === 3 && (
+        <div className="signup-step">
+          <div className="complete-card">
+            <p>회원가입 정보를 확인하세요.</p>
+            <div className="summary-row">이름: <strong>{form.name}</strong></div>
+            <div className="summary-row">아이디: <strong>{form.username}</strong></div>
+            <div className="summary-row">이메일: <strong>{form.email}</strong></div>
+            
+            <div className="actions-row">
+              <button type="button" className="signup-btn-green" onClick={() => setStep(2)}>이전</button>
+              <button type="button" className="signup-btn-green" onClick={onSignup}>회원가입</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {step === 4 && (
+        <div className="signup-step">
+          <div className="done-card">
+            <p>회원가입이 완료되었습니다.</p>
+            <div className="actions-row">
+              <button type="button" className="signup-btn-green" onClick={() => navigate('/login')}>로그인</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="signup-footer">
+        이미 계정이 있으신가요? <button type="button" className="signup-login-link" onClick={() => navigate('/login')}>로그인</button>
       </div>
-    </div>
+    </AuthCard>
   );
 };
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './FindId.css';
 import './ForgotPassword.css';
+import AuthCard from './AuthCard';
 
 const ForgotPassword = () => {
   const [step, setStep] = useState(0); 
@@ -117,62 +118,56 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="findid-wrapper no-bottom">
-      <div className="findid-container full-bleed">
-        <div className="findid-card">
-          <div className="findid-header"><h2>비밀번호 찾기</h2></div>
-
-          {step === 0 && (
-            <div className="findid-form-area">
-              <div className="findid-form-card">
-                <label>이름</label>
-                <input className="findid-input" value={form.name} onChange={onChange('name')} placeholder="이름" />
-                <label>아이디</label>
-                <input className="findid-input" value={form.username} onChange={onChange('username')} placeholder="아이디" />
-                <label>이메일 주소</label>
-                <div style={{display:'flex', gap:8}}>
-                  <input className="findid-input" value={form.email} onChange={onChange('email')} placeholder="이메일" />
-                  <button className="findid-small-btn" type="button" onClick={onSendCode} disabled={sending}>
-                    {sending ? "전송중" : "인증번호 발송"}
-                  </button>
-                </div>
-                <label style={{marginTop: 10}}>인증번호</label>
-                <input className="findid-input" value={form.code} onChange={onChange('code')} placeholder="메일로 온 숫자 6자리" />
-                <div className="error" style={{visibility: error ? 'visible' : 'hidden'}}>{error || '\u00A0'}</div>
-              </div>
-              <div className="actions-row">
-                <button className="findid-btn" onClick={onSubmitFind}>다음</button>
-              </div>
+    <AuthCard title="비밀번호 찾기" backPath="/login" className="no-bottom">
+      {step === 0 && (
+        <div className="findid-form-area">
+          <div className="findid-form-card">
+            <label>이름</label>
+            <input className="findid-input" value={form.name} onChange={onChange('name')} placeholder="이름" />
+            <label>아이디</label>
+            <input className="findid-input" value={form.username} onChange={onChange('username')} placeholder="아이디" />
+            <label>이메일 주소</label>
+            <div style={{display:'flex', gap:8}}>
+              <input className="findid-input" value={form.email} onChange={onChange('email')} placeholder="이메일" />
+              <button className="findid-small-btn" type="button" onClick={onSendCode} disabled={sending}>
+                {sending ? "전송중" : "인증번호 발송"}
+              </button>
             </div>
-          )}
-
-          {step === 1 && (
-            <div className="findid-form-area">
-              <div className="verify-card">
-                <p>새 비밀번호를 입력하세요.</p>
-                <input className="findid-input" value={form.password} onChange={onChange('password')} type="password" placeholder="새 비밀번호(8자 이상)" />
-                <input className="findid-input" value={form.password2} onChange={onChange('password2')} type="password" placeholder="새 비밀번호 확인" />
-                <div className="error" style={{visibility: error ? 'visible' : 'hidden', color: 'red', fontSize: '13px'}}>{error || '\u00A0'}</div>
-                <div className="actions-row">
-                  <button className="findid-btn" onClick={() => setStep(0)}>이전</button>
-                  <button className="findid-btn" onClick={onReset}>비밀번호 변경</button>
-                </div>
-              </div>
-            </div>
-          )}
-
-            {step === 2 && (
-            <div className="findid-result">
-              <p>비밀번호가 성공적으로 변경 되었습니다.</p>
-              <div className="actions-row">
-                <button className="findid-btn" onClick={() => navigate('/login')}>로그인 하기</button>
-                <button className="findid-btn-pink" onClick={() => navigate('/')}>홈으로 이동</button>
-              </div>
-            </div>
-          )}
+            <label style={{marginTop: 10}}>인증번호</label>
+            <input className="findid-input" value={form.code} onChange={onChange('code')} placeholder="메일로 온 숫자 6자리" />
+            <div className="error" style={{visibility: error ? 'visible' : 'hidden'}}>{error || '\u00A0'}</div>
+          </div>
+          <div className="actions-row">
+            <button className="findid-btn" onClick={onSubmitFind}>다음</button>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+
+      {step === 1 && (
+        <div className="findid-form-area">
+          <div className="verify-card">
+            <p>새 비밀번호를 입력하세요.</p>
+            <input className="findid-input" value={form.password} onChange={onChange('password')} type="password" placeholder="새 비밀번호(8자 이상)" />
+            <input className="findid-input" value={form.password2} onChange={onChange('password2')} type="password" placeholder="새 비밀번호 확인" />
+            <div className="error" style={{visibility: error ? 'visible' : 'hidden', color: 'red', fontSize: '13px'}}>{error || '\u00A0'}</div>
+            <div className="actions-row">
+              <button className="findid-btn" onClick={() => setStep(0)}>이전</button>
+              <button className="findid-btn" onClick={onReset}>비밀번호 변경</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {step === 2 && (
+        <div className="findid-result">
+          <p>비밀번호가 성공적으로 변경 되었습니다.</p>
+          <div className="actions-row">
+            <button className="findid-btn" onClick={() => navigate('/login')}>로그인 하기</button>
+            <button className="findid-btn-pink" onClick={() => navigate('/')}>홈으로 이동</button>
+          </div>
+        </div>
+      )}
+    </AuthCard>
   );
 };
 

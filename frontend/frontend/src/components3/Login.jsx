@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Login.css';
 import kakaoIcon from '../assets/카카오톡 아이콘.png';
+import AuthCard from './AuthCard';
 
 const Login = () => {
   const [id, setId] = useState('');
@@ -79,64 +80,53 @@ const Login = () => {
   };
 
   return (
-    <div className="login-wrapper">
-      <div className="login-container full-bleed">
-        <div className="login-form-area">
-          <button className="login-back-btn" onClick={() => goTo('home')}>
-            ← 뒤로
-          </button>
-          <div className="login-header">
-            <h2>논산 딸기 축제</h2>
-          </div>
+    <AuthCard title="논산 딸기 축제" backPath="/">
+      <form className="login-form" onSubmit={handleLogin}>
+        <input
+          type="text"
+          placeholder="아이디"
+          className="login-input"
+          value={id}
+          onChange={(e) => setId(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="비밀번호"
+          className="login-input"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-          <form className="login-form" onSubmit={handleLogin}>
-            <input
-              type="text"
-              placeholder="아이디"
-              className="login-input"
-              value={id}
-              onChange={(e) => setId(e.target.value)}
-            />
-            <input
-              type="password"
-              placeholder="비밀번호"
-              className="login-input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-
-            <div className="error" style={{ minHeight: '20px', visibility: error ? 'visible' : 'hidden' }}>
-              {error}
-            </div>
-
-            <button type="submit" className="login-btn-green" disabled={loading}>
-              {loading ? '로그인 중...' : '로그인'}
-            </button>
-
-            <button 
-              type="button" 
-              className="login-btn-yellow" 
-              onClick={handleKakaoLogin}
-            >
-              <img src={kakaoIcon} alt="카카오톡" className="kakao-icon" /> 카카오톡으로 로그인
-            </button>
-          </form>
-
-          <div className="login-footer">
-            <button className="login-link" type="button" onClick={() => goTo('forgotPassword')}>비밀번호 찾기</button>
-            <span> | </span>
-            <button className="login-link" type="button" onClick={() => goTo('findId')}>아이디 찾기</button>
-            <span> | </span>
-            <button
-              className="login-signup-link"
-              onClick={() => goTo('signup')}
-            >
-              회원가입
-            </button>
-          </div>
+        <div className="error" style={{ minHeight: '20px', visibility: error ? 'visible' : 'hidden' }}>
+          {error}
         </div>
+
+        <button type="submit" className="login-btn-green" disabled={loading}>
+          {loading ? '로그인 중...' : '로그인'}
+        </button>
+
+        <button 
+          type="button" 
+          className="login-btn-yellow" 
+          onClick={handleKakaoLogin}
+        >
+          <img src={kakaoIcon} alt="카카오톡" className="kakao-icon" /> 카카오톡으로 로그인
+        </button>
+      </form>
+
+      <div className="login-footer">
+        <button className="login-link" type="button" onClick={() => goTo('findId')}>아이디 찾기</button>
+        <span> | </span>
+        <button className="login-link" type="button" onClick={() => goTo('forgotPassword')}>비밀번호 찾기</button>
+        <span> | </span>
+        <button
+          className="login-signup-link"
+          onClick={() => goTo('signup')}
+        >
+          회원가입
+        </button>
       </div>
-    </div>
+    </AuthCard>
   );
 };
 
