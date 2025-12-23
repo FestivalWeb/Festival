@@ -19,13 +19,14 @@ const FindId = () => {
   // 1. 인증번호 발송
   const handleSendCode = async () => {
     if (!form.name || !form.email) {
-      setError('이름과 이메일을 입력해주세요.');
+      alert('이름과 이메일을 입력해주세요.');
       return;
     }
     setError('');
 
     try {
-      const res = await fetch('/users/recovery/send-email', {
+      // ▼▼▼ [수정] 주소 앞에 /api 추가 ▼▼▼
+      const res = await fetch('/api/users/recovery/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: form.name, email: form.email, type: 'ID' })
@@ -35,6 +36,7 @@ const FindId = () => {
         alert('인증번호가 발송되었습니다.');
         setIsCodeSent(true);
         setTimeLeft(180); // 3분
+        
         // 타이머 시작
         const timer = setInterval(() => {
             setTimeLeft((prev) => {
@@ -44,10 +46,13 @@ const FindId = () => {
         }, 1000);
       } else {
         const msg = await res.text();
-        setError(msg);
+        // ▼▼▼ [수정] 에러(카카오 계정 등)를 팝업으로 띄워서 확실히 알려줌 ▼▼▼
+        alert(msg); 
+        // setError(msg); // (기존 방식 대신 alert 사용 추천)
       }
     } catch (err) {
-      setError('서버 오류가 발생했습니다.');
+      console.error(err);
+      alert('서버 오류가 발생했습니다.');
     }
   };
 
@@ -56,16 +61,17 @@ const FindId = () => {
     setError('');
     
     if (!isCodeSent) {
-      setError('인증번호를 먼저 발송해주세요.');
+      alert('인증번호를 먼저 발송해주세요.');
       return;
     }
     if (!form.code) {
-      setError('인증번호를 입력해주세요.');
+      alert('인증번호를 입력해주세요.');
       return;
     }
 
     try {
-      const res = await fetch('/users/recovery/find-id', {
+      // ▼▼▼ [수정] 주소 앞에 /api 추가 ▼▼▼
+      const res = await fetch('/api/users/recovery/find-id', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -82,7 +88,6 @@ const FindId = () => {
       } else {
         const msg = await res.text();
         setError(msg);
-        // 필요하다면 실패 화면으로 이동: setStep(2);
       }
     } catch (err) {
       setStep(2); // 실패 화면으로 이동
@@ -170,7 +175,7 @@ const FindId = () => {
               <input className="findid-id" value={foundId} readOnly />
               <div className="actions-row">
                 <button className="findid-btn" onClick={() => navigate('/login')}>로그인</button>
-                <button className="findid-btn-pink" onClick={() => navigate('/forgotPassword')}>비밀번호 찾기</button>
+                <button className="findid-btn-pink" onClick={() => navigate('/find-password')}>비밀번호 찾기</button>
               </div>
             </div>
           )}

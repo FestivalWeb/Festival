@@ -28,12 +28,14 @@ public class ReservationService {
     // 예약하기
     public Long makeReservation(ReservationDto.Request request) {
         
-        // 1. 기본 유효성 검사
-        if (request.getUserId() == null) {
-            throw new IllegalArgumentException("오류 발생: 유저 ID(userId)가 넘어오지 않았습니다.");
+        // 1. 유효성 검사 (로그인 여부 체크)
+        // userId가 null이거나 비어있으면 로그인 에러 발생
+        if (request.getUserId() == null || request.getUserId().trim().isEmpty()) {
+            throw new IllegalArgumentException("로그인이 필요한 서비스입니다.");
         }
+
         if (request.getBoothId() == null) {
-            throw new IllegalArgumentException("오류 발생: 부스 ID(boothId)가 넘어오지 않았습니다.");
+            throw new IllegalArgumentException("부스 정보가 올바르지 않습니다.");
         }
 
         // [추가] 중복 예약 확인 로직

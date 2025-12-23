@@ -256,32 +256,48 @@ public class UserService {
      * [계정 찾기/비밀번호 찾기용] 인증번호 발송
      */
     public String sendRecoveryEmail(String name, String email, String userId, String type) {
+        
+        // 1. 이메일로 회원 조회
         UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("가입되지 않은 이메일입니다."));
+                .orElseThrow(() -> new IllegalArgumentException("입력하신 정보와 일치하는 회원이 없습니다."));
 
-        if (!user.getName().equals(name)) {
-            throw new IllegalArgumentException("사용자 이름이 일치하지 않습니다.");
+        // [중요] 카카오 회원 체크 (여기서 확실하게 막습니다!)
+        String provider = user.getProvider();
+        if (provider != null && (provider.equalsIgnoreCase("KAKAO") || provider.contains("kakao"))) {
+            throw new IllegalArgumentException("카카오로 가입된 계정입니다. 카카오 로그인을 이용해주세요.");
         }
 
+        // 2. 이름 일치 확인
+        if (!user.getName().equals(name)) {
+            throw new IllegalArgumentException("입력하신 정보와 일치하는 회원이 없습니다.");
+        }
+
+        // 3. (비밀번호 찾기일 때) 아이디 일치 확인
         if ("PW".equals(type)) {
             if (userId == null || !user.getUserId().equals(userId)) {
-                throw new IllegalArgumentException("아이디가 일치하지 않습니다.");
+                throw new IllegalArgumentException("입력하신 정보와 일치하는 회원이 없습니다.");
             }
         }
 
-        String code = String.format("%06d", new Random().nextInt(999999));
-        emailCodeMap.put(email, code);
-        emailVerifiedMap.put(email, false);
+        // 4. 인증번호 생성
+        String code = String.format("%06d", new java.util.Random().nextInt(999999));
 
+        // ▼▼▼ [수정] 에러 나던 부분을 '메모리 저장' 코드로 변경! ▼▼▼
+        emailCodeMap.put(email, code); // 인증번호를 메모리에 저장
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+        // 5. 메일 발송
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(email);
-            message.setSubject("[논산딸기축제] 본인확인 인증번호입니다.");
+            message.setSubject("[세계딸기축제] 아이디/비밀번호 찾기 인증번호");
             message.setText("인증번호는 [" + code + "] 입니다.");
-            mailSender.send(message);
+            
+            mailSender.send(message); // 메일 전송
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new IllegalArgumentException("메일 발송 실패");
+            // 메일 발송 실패 시 맵에서 삭제
+            emailCodeMap.remove(email);
+            throw new IllegalStateException("메일 발송 중 오류가 발생했습니다.");
         }
 
         return "인증번호가 발송되었습니다.";

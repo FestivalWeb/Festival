@@ -3,16 +3,15 @@ import { useLocation, useParams, useNavigate } from "react-router-dom";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "../styles/booth.css";
-import { useAuth } from "../../context/AuthContext";
+// import { useAuth } from "../../context/AuthContext"; // localStorage를 쓰므로 주석 처리해도 됩니다.
 
 const BoothDetail = () => {
   const { state } = useLocation();
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth(); // (필요 없다면 지워도 됨, 아래에서 localStorage 씀)
 
   const [booth, setBooth] = useState(state?.booth || null);
-  const [people, setPeople] = useState(1); // [중요] 변수명이 people 입니다.
+  const [people, setPeople] = useState(1);
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedDate, setSelectedDate] = useState("2025-03-27");
 
@@ -66,24 +65,38 @@ const BoothDetail = () => {
     return false;
   };
 
-  // [수정] 남은 자리 계산 및 최대 선택 인원 제한
+  // 남은 자리 계산 및 최대 선택 인원 제한
   const remainingSeats = booth.maxPerson - (booth.currentPerson || 0);
   const maxSelectable = remainingSeats > 0 ? Math.min(5, remainingSeats) : 0;
 
   const handleReservation = async () => {
-    const loginUserId = localStorage.getItem("userId"); 
+    // 1. 아이디 가져오기
+    let loginUserId = localStorage.getItem("userId"); 
 
-    if (!loginUserId) {
-      alert("로그인이 필요합니다.");
-      navigate("/login");
-      return;
+    // [디버그용] F12 콘솔에서 이 로그를 확인해보세요!
+    console.log("현재 로컬스토리지 값:", loginUserId);
+
+    // ▼▼▼ [강력해진 검문소] ▼▼▼
+    // 내용이 없거나, "null", "undefined" 라는 글자가 들어있으면 로그인 안 한 걸로 간주!
+    if (!loginUserId || loginUserId === "null" || loginUserId === "undefined") {
+        
+        // 찌꺼기 데이터가 있다면 깔끔하게 청소
+        localStorage.removeItem("userId"); 
+
+        if(window.confirm("로그인이 필요한 서비스입니다.\n로그인 페이지로 이동하시겠습니까?")) {
+            navigate("/login");
+        }
+        return; // [절대 엄수] 여기서 함수 종료! 서버로 가지 마!
     }
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
+    // 2. 인원 수 체크
     if (people > maxSelectable) {
         alert(`예약 가능한 최대 인원은 ${maxSelectable}명입니다.`);
         return;
     }
 
+    // 3. 예약 요청 (여기까지 왔다면 진짜 아이디가 있는 것임)
     if (window.confirm(`${selectedDate}에 ${people}명 예약하시겠습니까?`)) {
       try {
         const response = await fetch("/api/reservations", {
@@ -106,7 +119,7 @@ const BoothDetail = () => {
         }
       } catch (err) {
         console.error(err);
-        alert("서버 오류");
+        alert("서버 오류가 발생했습니다.");
       }
     }
   };
@@ -147,31 +160,27 @@ const BoothDetail = () => {
           <span className="emoji-icon">👥</span>
           <span>인원 수</span>
           
-          {/* ▼▼▼ [수정된 부분] 변수명을 people로 맞췄습니다! ▼▼▼ */}
           <input
             type="number"
             min="1"
-            max={maxSelectable} // HTML 상에서도 최대값 제한
+            max={maxSelectable}
             step="1"
-            value={people} // count -> people 로 수정
+            value={people}
             onChange={(e) => {
-                // onChangeCount -> 직접 함수 작성
                 let val = Number(e.target.value);
-                if (val > maxSelectable) val = maxSelectable; // 남은 자리보다 많이 입력하면 강제 조정
-                if (val < 1 && e.target.value !== '') val = 1; // 1보다 작으면 1로 (비어있을 때 제외)
+                if (val > maxSelectable) val = maxSelectable; 
+                if (val < 1 && e.target.value !== '') val = 1; 
                 setPeople(val);
             }}
             onKeyDown={(e) => {
-              // 소수점, 마이너스, 지수 입력 차단
               if (e.key === '.' || e.key === '-' || e.key === 'e') {
                 e.preventDefault();
               }
             }}
             placeholder="인원 수"
-            className="detail-input" // 클래스 이름 예시
-            style={{ width: '60px', marginLeft: '10px', padding: '5px' }} // 스타일 살짝 추가
+            className="detail-input"
+            style={{ width: '60px', marginLeft: '10px', padding: '5px' }}
           />
-          {/* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ */}
 
         </div>
         <div className="detail-row">
