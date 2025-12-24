@@ -16,6 +16,10 @@ import BoardMgmt from "./components/admin/BoardMgmt/BoardMgmt";
 import PopupMgmt from "./components/admin/PopupMgmt/PopupMgmt";
 import LogDetail from "./components/admin/LogDetail/LogDetail";
 
+// [팀원 코드 추가] 관리자 로그인/회원가입 컴포넌트 Import
+import AdminLogin from "./components/admin/AdminAuth/AdminLogin"; 
+import AdminSignup from "./components/admin/AdminAuth/AdminSignup";
+
 import NoticePage from "./components2/pages/NoticePage";
 import NoticeDetail from "./components2/pages/NoticeDetail";
 import PostPage from "./components2/pages/PostPage";
@@ -29,6 +33,9 @@ import PostImages from "./components2/pages/PostImage";
 import BoothImage from "./components2/pages/BoothImage";
 import BoothImageDetail from "./components2/pages/BoothImageDetail";
 import WritePostPage from "./components2/pages/WritePostPage";
+
+// [팀원 코드 추가] 동적 게시판 페이지 Import
+import BoardPage from "./pages/BoardPage";
 
 // 로그인 관련
 import Login from "./components3/Login";
@@ -53,7 +60,6 @@ const HomeLayout = () => (
   </>
 );
 
-// 메인페이지의 Header의 경우 스크롤기능 때문에 다른 페이지에 따로 적용할 수 없어 AppContent() 조건 함수로 표현
 function AppContent() {
   const location = useLocation();
 
@@ -79,8 +85,12 @@ function AppContent() {
         </Route>
 
         {/* =================================
-            관리자 그룹
+            관리자 그룹 (팀원 코드 통합)
            ================================= */}
+        {/* [팀원 코드 추가] 관리자 로그인/회원가입 라우트 분리 */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/signup" element={<AdminSignup />} />
+
         <Route path="/admin" element={<AdminPage />}>
           <Route index element={<AdminDashboard />} />
           <Route path="dashboard" element={<AdminDashboard />} />
@@ -101,6 +111,9 @@ function AppContent() {
         {/* 통합 검색 결과 페이지 */}
         <Route path="/search" element={<Layout><IntegratedSearchPage /></Layout>} />
 
+        {/* [팀원 코드 추가] 동적 게시판 라우팅 (핵심!) */}
+        <Route path="/board/:boardId" element={<Layout><BoardPage /></Layout>} />
+
         {/* 게시판 및 기능 페이지 */}
         <Route path="/notice" element={<Layout><NoticePage /></Layout>} />
         <Route path="/notice/:id" element={<Layout><NoticeDetail /></Layout>} />
@@ -108,7 +121,6 @@ function AppContent() {
         <Route path="/post" element={<Layout><PostPage /></Layout>} />
         <Route path="/post/:id" element={<Layout><PostDetail /></Layout>} />
         
-        {/* [수정] 글쓰기 및 수정 페이지 경로 변경 (/write -> /post/write) */}
         <Route path="/post/write" element={<Layout><WritePostPage /></Layout>} />
         
         <Route path="/booth" element={<Layout><BoothPage /></Layout>} />
@@ -130,6 +142,7 @@ function AppContent() {
   );
 }
 
+// [내 코드 유지] 팀원 코드는 여기서 조건문이 부실함
 const BoothDetailWrapper = () => {
   const location = useLocation();
   const { booth } = location.state || {};

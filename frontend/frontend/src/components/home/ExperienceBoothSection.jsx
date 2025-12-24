@@ -1,28 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../../api/api"; // axios 설정 파일 (경로 확인 필요!)
+import api from "../../api/api"; // api 모듈 사용
 import "./ExperienceBoothSection.css";
 
 function ExperienceBoothSection() {
   const navigate = useNavigate();
-  const [boothList, setBoothList] = useState([]); // 초기값 빈 배열
+  const [boothList, setBoothList] = useState([]);
 
   // 1. 데이터 불러오기
   useEffect(() => {
     api.get("/api/booths")
       .then((res) => {
-        // 성공 시: 데이터가 있으면 앞에서 4개만 자름
         if (res.data && Array.isArray(res.data)) {
+            // 데이터가 있으면 4개까지만 자르기
             setBoothList(res.data.slice(0, 4));
         }
       })
       .catch((err) => {
-        // 실패 시: 에러 로그만 찍고 boothList는 빈 배열 상태 유지
-        console.error("부스 목록 로딩 실패 (백엔드 연결 확인 필요):", err);
-        // 따로 에러 UI를 보여주지 않고 조용히 넘어가려면 여기서 아무것도 안 하면 됨
+        console.error("부스 목록 로딩 실패:", err);
       });
   }, []);
 
+  // 이동 시 스크롤 위로 (기존 기능 유지)
   const navigateWithScroll = (path, state = null) => {
     navigate(path, { state });
     setTimeout(() => {
@@ -38,13 +37,26 @@ function ExperienceBoothSection() {
     navigateWithScroll(`/booth/${id}`);
   };
 
-  // 이미지 URL 생성 함수
+  // [핵심 수정] 이미지 URL 생성 함수 (BoothPage와 로직 통일)
   const getImageUrl = (booth) => {
-    if (booth.images && booth.images.length > 0) {
-      return `${SERVER_URL}${booth.images[0].storageUri}`;
+    // 1순위: 예약 페이지에서 쓰는 대표 이미지(img) 필드가 있으면 이걸 씁니다.
+    if (booth.img) {
+      // 만약 http로 시작하면(외부 링크) 그대로 사용
+      if (booth.img.startsWith("http")) {
+        return booth.img;
+      }
+      // 아니면 백엔드 주소 붙여서 사용
+      return `http://localhost:8080${booth.img}`;
     }
-    // 이미지가 없을 때 보여줄 기본 이미지
-    return "https://via.placeholder.com/400x250/ffeef5/e41c54?text=Festival";
+
+    // 2순위: img 필드는 없는데 images 배열(첨부파일)이 있다면 첫 번째 것 사용
+    if (booth.images && booth.images.length > 0) {
+      const uri = booth.images[0].storageUri || booth.images[0].url;
+      return `http://localhost:8080${uri}`;
+    }
+
+    // 3순위: 다 없으면 예약 페이지와 똑같은 기본 이미지 사용
+    return "/images/booth1.jpg";
   };
 
   return (
@@ -56,35 +68,34 @@ function ExperienceBoothSection() {
         </p>
 
         <div className="booth-grid">
-          {/* 데이터가 없거나 로딩 실패 시 안내 문구 표시 */}
           {boothList.length === 0 ? (
             <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "40px", color: "#666" }}>
               <p>현재 준비 중인 부스가 없습니다.</p>
             </div>
           ) : (
-            /* 데이터가 있을 때만 카드 렌더링 */
             boothList.map((booth) => (
               <article 
                 className="booth-card"
                 key={booth.id} 
                 onClick={() => handleBoothClick(booth.id)}
               >
-                {/* [1] 이미지 영역 */}
                 <div className="booth-img-wrap">
                   <img 
+                    // [수정] 위에서 만든 함수로 이미지 주소 가져오기
                     src={getImageUrl(booth)} 
                     alt={booth.title}
+                    // 이미지 로딩 실패(엑박) 시 깜빡임 없이 즉시 기본 이미지로 고정
                     onError={(e) => {
-                      e.target.src = "https://via.placeholder.com/400x250/ffeef5/e41c54?text=No+Image";
+                      e.target.onerror = null; 
+                      e.target.src = "/images/booth1.jpg";
                     }}
                   />
                 </div>
 
-                {/* [2] 텍스트 컨텐츠 영역 */}
                 <div className="booth-content">
                   <h3 className="booth-name">{booth.title}</h3>
                   <p className="booth-desc">
-                    {booth.context.length > 35 
+                    {booth.context && booth.context.length > 35 
                       ? booth.context.substring(0, 35) + "..." 
                       : booth.context}
                   </p>

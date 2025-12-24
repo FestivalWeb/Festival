@@ -1,11 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom"; // 라우터 훅 추가
+import adminApi from "../../api/api";
 import "./AdminPage.css";
 
 function AdminPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  // 내 정보 상태 (초기값 null로 설정하여 로딩 중임을 구분 가능)
+  const [adminInfo, setAdminInfo] = useState(null);
   const navigate = useNavigate(); // 페이지 이동 함수
   const location = useLocation(); // 현재 주소 확인용
+
+  // [수정됨] 컴포넌트 마운트 시 API 호출로 내 정보 가져오기
+  useEffect(() => {
+    const fetchMe = async () => {
+      try {
+        const response = await adminApi.get('/api/admin/auth/me');
+        setAdminInfo(response.data); // { username, name, roles... }
+      } catch (error) {
+        console.error("인증 정보 로드 실패:", error);
+        // 401 에러(세션 만료)라면 로그인 페이지로 튕겨내기
+        if (error.response && error.response.status === 401) {
+             alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+             navigate("/admin/login");
+        }
+      }
+    };
+
+    fetchMe();
+  }, [navigate]); // navigate 의존성 추가
 
   // 현재 메뉴가 활성화되었는지 확인하는 함수
   const isActive = (path) => location.pathname === `/admin/${path}`;
@@ -19,6 +41,22 @@ function AdminPage() {
     if (path.includes("popup")) return "팝업 관리";
     if (path.includes("log")) return "로그 상세";
     return "관리자 시스템";
+  };
+
+  // [2] 로그아웃 핸들러 함수 추가
+  const handleLogout = async () => {
+    if (!window.confirm("정말 로그아웃 하시겠습니까?")) return;
+
+    try {
+      // POST 요청으로 쿠키 삭제 (credentials: true 필수)
+      await adminApi.post("/api/admin/auth/logout");
+      alert("로그아웃 되었습니다.");
+      navigate("/admin/login"); // 로그인 화면으로 이동
+    } catch (error) {
+      console.error("로그아웃 실패:", error);
+      // 실패해도 사용자가 갇히지 않도록 로그인 화면으로 이동
+      navigate("/admin/login");
+    }
   };
 
   return (
@@ -87,6 +125,16 @@ function AdminPage() {
           >
             로그 상세
           </button>
+
+          {/* [3] 로그아웃 버튼 추가 (SYSTEM 섹션 하단에 배치) */}
+          <button 
+            className="admin-nav-item" 
+            onClick={handleLogout}
+            style={{ marginTop: 'auto', color: '#ff6b6b' }} // 살짝 붉은색으로 강조 (선택사항)
+          >
+            로그아웃
+          </button>
+
         </nav>
       </aside>
 
@@ -100,8 +148,31 @@ function AdminPage() {
             </div>
             <h1 className="admin-topbar-title">{getPageTitle()}</h1>
           </div>
+          {/* ▼ 우측 사용자 정보 영역 ▼ */}
           <div className="admin-topbar-right">
-            <span className="admin-user-email">admin@festival.kr (SUPER)</span>
+            {adminInfo ? (
+              <span className="admin-user-email">
+                {/* 이름 표시 */}
+                {adminInfo.name} 
+                
+                {/* 아이디 표시 (회색, 괄호) */}
+                <span style={{ color: '#aaa', fontSize: '0.9em', marginLeft: '6px', fontWeight: 'normal' }}>
+                  ({adminInfo.username})
+                </span>
+                
+                {/* 권한 뱃지 (SUPER 등) - role-badge 클래스는 CSS에 추가한 것 사용 */}
+                {adminInfo.roles && adminInfo.roles.length > 0 && (
+                   <span className="role-badge">
+                       {adminInfo.roles[0]}
+                   </span>
+                )}
+              </span>
+            ) : (
+              // 데이터 로딩 중 표시
+              <span className="admin-user-email" style={{ color: '#777' }}>
+                Loading...
+              </span>
+            )}
           </div>
         </header>
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../components/home/MainHero.css"
@@ -9,16 +9,14 @@ export default function Header() {
   const location = useLocation();
   const { user, logout } = useAuth();
 
-
   // 🔍 검색 상태
   const [searchText, setSearchText] = useState("");
 
- const handleGlobalSearch = () => {
+  const handleGlobalSearch = () => {
     if (!searchText.trim()) {
       alert("검색어를 입력해주세요.");
       return;
     }
-    // [수정] 통합 검색 페이지로 이동
     navigate(`/search?keyword=${encodeURIComponent(searchText)}`);
   };
 
@@ -39,11 +37,9 @@ export default function Header() {
     }
   };
 
-  // target: HomePage의 ref에서 사용하는 스크롤 대상 클래스명
-  // fallbackPath: (홈이 아닐 때) 홈으로 이동하는 대신 이 경로로 네비게이트
+  // 스크롤 or 페이지 이동 함수
   const navOrScroll = (target, fallbackPath) => {
     if (location.pathname === "/") {
-      // 같은 페이지일 경우 -> ref 기반 스크롤을 트리거하기 위해 이벤트 사용
       try {
         window.dispatchEvent(new CustomEvent('app-scroll-to', { detail: { target } }));
       } catch (e) {
@@ -53,7 +49,6 @@ export default function Header() {
       if (fallbackPath) {
         navigate(fallbackPath);
       } else {
-        // 홈으로 이동한 뒤 스크롤 요청
         navigate('/', { state: { scrollTo: target } });
       }
     }
@@ -72,8 +67,8 @@ export default function Header() {
     <header className="sf-header">
       {/* 왼쪽 로고 영역 */}
       <div className="sf-logo-area"
-      onClick={handleLogoClick} // 클릭 이벤트 추가
-      style={{ cursor: "pointer" }}
+        onClick={handleLogoClick}
+        style={{ cursor: "pointer" }}
       >
         <div className="sf-logo-mark">🍓</div>
         <div className="sf-logo-text">
@@ -86,13 +81,19 @@ export default function Header() {
         <button className="sf-nav-item" onClick={() => navOrScroll("festivalintro") }>
           축제소개
         </button>
-        <button className="sf-nav-item" onClick={() => navOrScroll("notice", "/notice") } >공지사항/게시물</button>
-        <button className="sf-nav-item" onClick={() => navOrScroll("gallery", "/gallery") }>갤러리</button>
+        
+        {/* [복구 완료] 원래대로 '공지사항/게시물' 버튼만 남김 */}
+        <button className="sf-nav-item" onClick={() => navOrScroll("notice", "/notice") }>
+          공지사항/게시물
+        </button>
+
+        <button className="sf-nav-item" onClick={() => navOrScroll("gallery", "/gallery") }>
+          갤러리
+        </button>
         <button className="sf-nav-item" onClick={() => navOrScroll("booth", "/booth") }>
           체험부스
         </button>
 
-        {/* 오시는 길 */}
         <button className="sf-nav-item" onClick={() => navOrScroll("directions-section") }>
           오시는 길
         </button>
@@ -100,7 +101,7 @@ export default function Header() {
 
       {/* 오른쪽 - 검색 + 로그인 */}
       <div className="nav-right">
-        {/* 검색 그룹: 버튼(왼쪽) + 입력(오른쪽) */}
+        {/* 검색 그룹 */}
         <div className="search-group">
           <button
             className="search-icon-button"
@@ -123,7 +124,7 @@ export default function Header() {
           />
         </div>
 
-        {/* 로그인 상태에 따라: 로그인 전에는 로그인 버튼, 로그인 후에는 마이페이지 + 로그아웃 */}
+        {/* 로그인 상태 처리 */}
         {user ? (
           <>
             <button className="mypage-button" type="button" onClick={() => navigate('/mypage')}>

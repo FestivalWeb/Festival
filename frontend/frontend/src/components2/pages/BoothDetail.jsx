@@ -3,7 +3,7 @@ import { useLocation, useParams, useNavigate } from "react-router-dom";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "../styles/booth.css";
-// import { useAuth } from "../../context/AuthContext"; // localStorage를 쓰므로 주석 처리해도 됩니다.
+import api from "../../api/api"; // api 모듈 사용
 
 const BoothDetail = () => {
   const { state } = useLocation();
@@ -16,18 +16,40 @@ const BoothDetail = () => {
   const [selectedDate, setSelectedDate] = useState("2025-03-27");
 
   useEffect(() => {
-    fetch(`/api/booths/${id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setBooth(data);
-        if (data.eventDate) setSelectedDate(data.eventDate.toString());
-      })
-      .catch((err) => console.error(err));
+    api.get(`/api/booths/${id}`)
+    .then((res) => {
+       const data = res.data; 
+       setBooth(data);
+       if (data.eventDate) setSelectedDate(data.eventDate.toString());
+    })
+    .catch((err) => console.error(err));
   }, [id]);
+
+  // [핵심 추가] 이미지 URL 생성 함수 (메인 페이지와 동일 로직)
+  const getImageUrl = (boothData) => {
+    if (!boothData) return "/images/booth1.jpg";
+
+    // 1순위: booth.img (대표 이미지)
+    if (boothData.img) {
+      if (boothData.img.startsWith("http")) {
+        return boothData.img;
+      }
+      return `http://localhost:8080${boothData.img}`;
+    }
+
+    // 2순위: booth.images (첨부 파일 목록)
+    if (boothData.images && boothData.images.length > 0) {
+      const uri = boothData.images[0].storageUri || boothData.images[0].url;
+      return `http://localhost:8080${uri}`;
+    }
+
+    // 3순위: 기본 이미지
+    return "/images/booth1.jpg";
+  };
 
   if (!booth) return <p style={{padding:"20px"}}>로딩 중...</p>;
 
-  // 날짜 계산 로직
+  // --- 날짜 계산 로직 ---
   const getAvailableDates = (startDateStr) => {
     const dates = [];
     const start = new Date(startDateStr || "2025-03-27");
@@ -70,56 +92,38 @@ const BoothDetail = () => {
   const maxSelectable = remainingSeats > 0 ? Math.min(5, remainingSeats) : 0;
 
   const handleReservation = async () => {
-    // 1. 아이디 가져오기
     let loginUserId = localStorage.getItem("userId"); 
 
-    // [디버그용] F12 콘솔에서 이 로그를 확인해보세요!
-    console.log("현재 로컬스토리지 값:", loginUserId);
-
-    // ▼▼▼ [강력해진 검문소] ▼▼▼
-    // 내용이 없거나, "null", "undefined" 라는 글자가 들어있으면 로그인 안 한 걸로 간주!
+    // 로그인 체크
     if (!loginUserId || loginUserId === "null" || loginUserId === "undefined") {
-        
-        // 찌꺼기 데이터가 있다면 깔끔하게 청소
         localStorage.removeItem("userId"); 
-
         if(window.confirm("로그인이 필요한 서비스입니다.\n로그인 페이지로 이동하시겠습니까?")) {
             navigate("/login");
         }
-        return; // [절대 엄수] 여기서 함수 종료! 서버로 가지 마!
+        return; 
     }
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
-    // 2. 인원 수 체크
     if (people > maxSelectable) {
         alert(`예약 가능한 최대 인원은 ${maxSelectable}명입니다.`);
         return;
     }
 
-    // 3. 예약 요청 (여기까지 왔다면 진짜 아이디가 있는 것임)
     if (window.confirm(`${selectedDate}에 ${people}명 예약하시겠습니까?`)) {
       try {
-        const response = await fetch("/api/reservations", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        const response = await api.post("/api/reservations", {
             boothId: booth.id,
             userId: loginUserId,
             reserveDate: selectedDate,
             count: Number(people)
-          })
         });
 
-        if (response.ok) {
-          alert("예약 완료!");
-          navigate("/booth"); 
-        } else {
-          const msg = await response.text(); 
-          alert("예약 실패: " + msg);
+        if (response.status === 200) { 
+            alert("예약 완료!");
+            navigate("/booth");
         }
       } catch (err) {
-        console.error(err);
-        alert("서버 오류가 발생했습니다.");
+          const msg = err.response?.data || "예약 실패";
+          alert("오류: " + msg);
       }
     }
   };
@@ -128,7 +132,16 @@ const BoothDetail = () => {
     <div className="detail-container">
       <div className="detail-top">
         <div className="detail-image-wrapper">
-          <img src={booth.img || "/images/booth1.jpg"} alt={booth.title} className="detail-main-image" />
+          {/* [수정] getImageUrl 함수 사용 및 엑박 방지 */}
+          <img 
+            src={getImageUrl(booth)} 
+            alt={booth.title} 
+            className="detail-main-image" 
+            onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "/images/booth1.jpg";
+            }}
+          />
         </div>
         <div className="detail-info-box">
           <h2 className="detail-title">{booth.title}</h2>

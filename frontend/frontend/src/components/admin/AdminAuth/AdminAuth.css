@@ -1,0 +1,124 @@
+/* AdminAuth.css */
+
+/* 전체 화면 중앙 정렬 컨테이너 (대시보드 배경보다 살짝 더 어둡게 처리하여 집중도 향상) */
+.auth-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #121418; /* 대시보드의 input 배경색과 동일한 짙은 색 */
+}
+
+/* 인증 카드 (대시보드 카드 스타일 계승) */
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background-color: #1e212b; /* 대시보드 카드 배경색 */
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 40px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 헤더 영역 */
+.auth-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.auth-header h2 {
+  color: #fff;
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.auth-header p {
+  color: #9ca3af; /* 텍스트 그레이 */
+  font-size: 0.9rem;
+}
+
+/* 폼 그룹 */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  color: #ccc;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+/* 입력 필드 (대시보드 검색창 스타일 계승) */
+.auth-input {
+  width: 100%;
+  background-color: #121418;
+  border: 1px solid #444;
+  color: #fff;
+  padding: 12px 14px;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box; /* 패딩 포함 크기 계산 */
+}
+
+.auth-input:focus {
+  border-color: #3b82f6; /* 대시보드 블루 */
+}
+
+.auth-input::placeholder {
+  color: #555;
+}
+
+/* 버튼 (대시보드 btn-blue 스타일 계승 + 크기 확장) */
+.btn-auth {
+  width: 100%;
+  padding: 14px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.2s;
+}
+
+.btn-auth:hover {
+  background-color: #2563eb;
+}
+
+/* 하단 링크 영역 */
+.auth-footer {
+  margin-top: 25px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+.auth-link {
+  color: #60a5fa; /* 대시보드 카드 푸터 색상 */
+  text-decoration: none;
+  font-weight: 500;
+  margin-left: 5px;
+  cursor: pointer;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+/* 에러 메시지 */
+.error-msg {
+  color: #ef4444; /* 대시보드 레드 */
+  font-size: 0.85rem;
+  margin-bottom: 15px;
+  text-align: center;
+}
