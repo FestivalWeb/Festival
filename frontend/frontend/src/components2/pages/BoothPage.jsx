@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import api from "../../api/api"; // API 경로 확인
 import "../styles/booth.css";
 
+const SERVER_URL = "http://localhost:8080";
+
 const BoothSection = () => {
   const navigate = useNavigate();
   const [booths, setBooths] = useState([]);

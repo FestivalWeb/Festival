@@ -14,16 +14,15 @@ import java.util.Set;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@DynamicInsert // Default 값(isShow=0 등) 적용을 위해 필수
+@DynamicInsert
 @Table(name = "booth")
-public class Booth extends BaseEntity { // [수정] 생성일/수정일 자동 관리
+public class Booth extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "booth_id")
     private Long id;
 
-    // --- 기존 부스 필드 ---
     @Column(nullable = false, length = 200)
     private String title;
 
@@ -45,28 +44,24 @@ public class Booth extends BaseEntity { // [수정] 생성일/수정일 자동 �
     @Column(nullable = false, length = 200)
     private String location;
 
-    // --- [추가] 관리자 관리용 필드 ---
-    
-    // 공개 여부 (0: 작성중/숨김, 1: 공개)
     @Column(name = "is_show", nullable = false)
-    @ColumnDefault("0") 
-    private boolean isShow; 
+    @ColumnDefault("0")
+    private boolean isShow;
 
-    // 우선순위 (1이 제일 위)
     @Column(name = "priority")
     @ColumnDefault("1")
     private Long priority;
 
-    // 생성자 ID (관리자)
     @Column(name = "created_by")
     private Long createdBy;
 
-    // --- 이미지 연관 관계 ---
+    // BoothImage와 연관관계
     @OneToMany(mappedBy = "booth", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<BoothImage> images = new LinkedHashSet<>();
 
-    // --- [편의 메서드] 관리자 수정용 ---
+    // --- 편의 메서드 ---
+
     public void changeStatus(boolean isShow) {
         this.isShow = isShow;
     }
@@ -79,5 +74,16 @@ public class Booth extends BaseEntity { // [수정] 생성일/수정일 자동 �
         this.maxPerson = maxPerson;
         this.eventDate = eventDate;
         if(priority != null) this.priority = priority;
+    }
+
+    // [수정 완료] MediaFile 엔티티 구조에 맞게 수정
+    public void addImage(MediaFile mediaFile) {
+        BoothImage boothImage = BoothImage.builder()
+                .id(new BoothImageId()) // 빈 ID 객체 생성 (JPA가 @MapsId로 알아서 채움)
+                .booth(this)
+                .mediaFile(mediaFile)
+                .build();
+        
+        this.images.add(boothImage);
     }
 }

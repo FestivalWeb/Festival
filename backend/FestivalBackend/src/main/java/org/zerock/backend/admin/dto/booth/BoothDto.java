@@ -9,7 +9,7 @@ import java.util.List;
 
 public class BoothDto {
 
-    // 1. [요청용] 프론트엔드 -> 백엔드 (부스 생성/수정 할 때 보낼 데이터)
+    // 1. [요청용] 프론트엔드가 보내는 데이터를 받는 그릇
     @Getter
     @Setter
     @NoArgsConstructor
@@ -34,36 +34,31 @@ public class BoothDto {
 
         @NotNull(message = "최대 인원은 필수입니다.")
         private Long maxPerson;
-
-        // 이미지 파일 ID 목록 (파일 업로드 후 받아온 ID들)
-        private List<Long> fileIds; 
         
-        // (선택) 우선순위도 입력받으려면 추가
         private Long priority;
+
+        // [★여기가 핵심] 절대 List<Long>으로 쓰면 안 됨!
+        // 프론트가 { ... } 객체를 보내니까 우리도 객체(PostImageResponse)로 받아야 함
+        private List<PostImageResponse> fileIds;
     }
 
-    // 2. [응답용] 백엔드 -> 프론트엔드 (화면에 뿌려줄 데이터)
+    // 2. [응답용] 백엔드가 프론트한테 보여줄 때 쓰는 그릇
     @Getter
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
     public static class Response {
-        
-        private Long id;            // 부스 ID
-        private String title;       // 이름
-        private String context;     // 설명
-        private String location;    // 위치
-        private LocalDate eventDate;// 날짜
-        private Long price;         // 가격
-        private Long maxPerson;     // 최대 인원
-        private String img;         // 대표 이미지 경로
-        
-        // 관리자용 정보 (유저한테는 필요 없지만, 관리자 페이지에선 필요함)
-        private boolean isShow;     // 공개 여부
-        private Long priority;      // 우선순위
-
-        // 상세 이미지 리스트 (PostImageResponse는 기존에 있는 DTO 사용)
+        private Long id;            
+        private String title;       
+        private String context;     
+        private String location;    
+        private LocalDate eventDate;
+        private Long price;         
+        private Long maxPerson;     
+        private String img;         
+        private boolean isShow;     
+        private Long priority;      
         private List<PostImageResponse> images;
     }
 }

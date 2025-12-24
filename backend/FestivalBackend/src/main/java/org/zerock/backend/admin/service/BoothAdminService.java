@@ -1,78 +1,107 @@
 package org.zerock.backend.admin.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.zerock.backend.admin.dto.booth.BoothDto;
-import org.zerock.backend.entity.AdminUser;
+import org.zerock.backend.admin.dto.booth.PostImageResponse; // import 확인
 import org.zerock.backend.entity.Booth;
-import org.zerock.backend.repository.AdminUserRepository;
+import org.zerock.backend.entity.MediaFile;
 import org.zerock.backend.repository.BoothRepository;
-import jakarta.servlet.http.HttpServletRequest; // request 사용 시
-
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Log4j2
 public class BoothAdminService {
 
     private final BoothRepository boothRepository;
-    private final AdminUserRepository adminUserRepository;
 
-    // 1. 전체 목록 (관리자용 - 숨겨진 것도 다 보임)
+    // [★수정] 반환 타입을 DTO 리스트로 변경 (무한루프 방지)
     @Transactional(readOnly = true)
-    public List<Booth> getAllBooths() {
-        return boothRepository.findAll();
+    public List<BoothDto.Response> getAllBooths() {
+        return boothRepository.findAll().stream()
+                .map(this::toResponse) // 엔티티 -> DTO 변환
+                .collect(Collectors.toList());
     }
 
-    // 2. 부스 생성 (초기 상태: 비공개)
+    // [★추가] 변환 메서드 (이게 있어야 무한루프 안 걸림)
+    private BoothDto.Response toResponse(Booth b) {
+        List<PostImageResponse> images = b.getImages().stream()
+                .map(img -> PostImageResponse.builder()
+                        .fileId(img.getMediaFile().getFileId())
+                        .storedName(img.getMediaFile().getStorageUri())
+                        .originalName(img.getMediaFile().getStorageUri())
+                        .storageUri(img.getMediaFile().getStorageUri())
+                        .build())
+                .collect(Collectors.toList());
+
+        return BoothDto.Response.builder()
+                .id(b.getId())
+                .title(b.getTitle())
+                .context(b.getContext())
+                .location(b.getLocation())
+                .eventDate(b.getEventDate())
+                .price(b.getPrice())
+                .maxPerson(b.getMaxPerson())
+                .img(b.getImg())
+                .isShow(b.isShow())
+                .priority(b.getPriority())
+                .images(images)
+                .build();
+    }
+
+    // --- (아래 createBooth 등 다른 메서드는 기존 코드 유지) ---
+    // 아까 수정한 createBooth 그대로 두세요.
     public Long createBooth(BoothDto.CreateRequest request, HttpServletRequest httpRequest) {
-        // 로그인 관리자 ID 찾기 (기존 로직 활용)
-        Long adminId = (Long) httpRequest.getAttribute("loginAdminId"); 
-        
+        Long adminId = (Long) httpRequest.getAttribute("loginAdminId");
+        String mainImgUrl = "";
+        if (request.getFileIds() != null && !request.getFileIds().isEmpty()) {
+            mainImgUrl = request.getFileIds().get(0).getStorageUri();
+        }
+
         Booth booth = Booth.builder()
                 .title(request.getTitle())
                 .context(request.getContext())
                 .location(request.getLocation())
-                .price(request.getPrice())
+                .price(request.getPrice()) 
                 .maxPerson(request.getMaxPerson())
                 .eventDate(request.getEventDate())
-                .isShow(false)   // [핵심] 일단 숨김 상태로 생성
-                .priority(1L)    // 기본 우선순위
+                .isShow(false) 
+                .priority(request.getPriority() != null ? request.getPriority() : 1L)
                 .createdBy(adminId)
+                .img(mainImgUrl)
                 .build();
 
-        // (이미지 처리 로직은 기존 Service 참고해서 추가 필요)
-
+        if (request.getFileIds() != null && !request.getFileIds().isEmpty()) {
+            request.getFileIds().forEach(imgDto -> {
+                MediaFile mediaFile = MediaFile.builder()
+                        .storageUri(imgDto.getStorageUri())
+                        .type("image/jpeg") 
+                        .thumbUri(imgDto.getStorageUri())
+                        .build();
+                booth.addImage(mediaFile);
+            });
+        }
         return boothRepository.save(booth).getId();
     }
 
-    // 3. 부스 정보 수정
-    public void updateBooth(Long boothId, BoothDto.CreateRequest request) { // DTO 재활용
-        Booth booth = boothRepository.findById(boothId)
-                .orElseThrow(() -> new IllegalArgumentException("부스 없음"));
-
-        booth.updateInfo(
-            request.getTitle(),
-            request.getContext(),
-            request.getLocation(),
-            request.getPrice(),
-            request.getMaxPerson(),
-            request.getEventDate(),
-            1L // 우선순위는 나중에 DTO에 추가해서 받으세요
-        );
+    public void updateBooth(Long id, BoothDto.CreateRequest request) {
+         Booth booth = boothRepository.findById(id).orElseThrow();
+         booth.updateInfo(request.getTitle(), request.getContext(), request.getLocation(), 
+                          request.getPrice(), request.getMaxPerson(), request.getEventDate(), request.getPriority());
     }
-
-    // 4. [핵심] 상태 변경 (공개/비공개 토글)
-    public void toggleStatus(Long boothId, boolean isShow) {
-        Booth booth = boothRepository.findById(boothId)
-                .orElseThrow(() -> new IllegalArgumentException("부스 없음"));
+    
+    public void toggleStatus(Long id, boolean isShow) {
+        Booth booth = boothRepository.findById(id).orElseThrow();
         booth.changeStatus(isShow);
     }
-
-    // 5. 삭제
-    public void deleteBooth(Long boothId) {
-        boothRepository.deleteById(boothId);
+    
+    public void deleteBooth(Long id) {
+        boothRepository.deleteById(id);
     }
 }

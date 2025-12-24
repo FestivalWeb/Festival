@@ -2,6 +2,8 @@ package org.zerock.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import jakarta.persistence.Embeddable;
+
 
 @Entity
 @Table(name = "booth_img_mapping")

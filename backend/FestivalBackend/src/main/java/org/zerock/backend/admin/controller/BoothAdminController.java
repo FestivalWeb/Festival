@@ -1,45 +1,45 @@
 package org.zerock.backend.admin.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.web.bind.annotation.*;
-import org.zerock.backend.admin.service.BoothAdminService;
 import org.zerock.backend.admin.dto.booth.BoothDto;
-import org.zerock.backend.entity.Booth;
+import org.zerock.backend.admin.service.BoothAdminService;
+// Entity import는 지워도 됩니다 (Booth 안 씀)
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/booths")
 @RequiredArgsConstructor
+@Log4j2
 public class BoothAdminController {
 
     private final BoothAdminService boothAdminService;
 
-    // 목록 조회
+    // [★수정] 반환 타입 변경 (Entity -> DTO)
     @GetMapping
-    public List<Booth> getList() {
+    public List<BoothDto.Response> getList() {
         return boothAdminService.getAllBooths();
     }
 
-    // 생성
+    // (나머지 메서드는 그대로)
     @PostMapping
     public Long create(@RequestBody BoothDto.CreateRequest request, HttpServletRequest httpRequest) {
         return boothAdminService.createBooth(request, httpRequest);
     }
 
-    // 수정
     @PutMapping("/{id}")
     public void update(@PathVariable Long id, @RequestBody BoothDto.CreateRequest request) {
         boothAdminService.updateBooth(id, request);
     }
 
-    // 공개/비공개 토글 (PATCH)
     @PatchMapping("/{id}/status")
-    public void changeStatus(@PathVariable Long id, @RequestParam boolean isShow) {
+    public void changeStatus(@PathVariable("id") Long id, @RequestParam("isShow") boolean isShow) {
+        log.info("상태 변경 요청 ID: " + id + ", 값: " + isShow);
         boothAdminService.toggleStatus(id, isShow);
     }
 
-    // 삭제
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         boothAdminService.deleteBooth(id);
