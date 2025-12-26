@@ -71,7 +71,7 @@ const Signup = () => {
     }
 
     try {
-      const response = await fetch(`/users/check-id?userId=${form.username}`, {
+      const response = await fetch(`/api/users/check-id?userId=${form.username}`, {
         method: 'GET',
       });
 
@@ -124,7 +124,7 @@ const Signup = () => {
 
     setSendingCode(true);
     try {
-      const response = await fetch('/users/send-email', {
+      const response = await fetch('/api/users/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email }),
@@ -152,7 +152,7 @@ const Signup = () => {
       return;
     }
     try {
-      const response = await fetch('/users/verify-code', {
+      const response = await fetch('/api/users/verify-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email, code: form.code }),
@@ -181,7 +181,7 @@ const Signup = () => {
     };
 
     try {
-      const response = await fetch('/users/signup', {
+      const response = await fetch('/api/users/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(signupData),
