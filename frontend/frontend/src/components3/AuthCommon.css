@@ -1,0 +1,153 @@
+/* 공통 인증 스타일 (Login / Signup / FindId / ForgotPassword에서 재사용) */
+:root {
+  --auth-card-max-width: 420px;
+  --auth-card-padding-vertical: 20px;
+  --auth-card-padding-horizontal: 12px;
+  --auth-input-height: 46px;
+  --auth-input-padding: 12px 14px;
+  --auth-gap: 12px;
+}
+
+/* 래퍼 및 컨테이너 공통 */
+.login-wrapper, .signup-wrapper, .findid-wrapper, .findid-wrapper.no-bottom {
+  min-height: 100vh;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 16px;
+  box-sizing: border-box;
+}
+
+.login-container, .signup-container, .findid-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 720px;
+  min-height: 0;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.login-container.full-bleed, .signup-container.full-bleed, .findid-container.full-bleed {
+  width: 100vw;
+  max-width: 100vw;
+  box-sizing: border-box;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* 뒤로가기 버튼 통일 */
+.login-back-btn, .findid-back-btn, .signup-back-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #ffe0ed;
+  background: #fff;
+  color: #666;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+.login-back-btn:hover, .findid-back-btn:hover, .signup-back-btn:hover { background:#fff5f7; border-color:#ff4f7a; color:#ff4f7a }
+
+/* 카드/폼 공통 */
+.login-form-area, .signup-form-area, .findid-card, .findid-card.login-form-area {
+  background: transparent;
+  border-radius: 0;
+  padding: var(--auth-card-padding-vertical) var(--auth-card-padding-horizontal) !important;
+  width: 100%;
+  max-width: var(--auth-card-max-width);
+  min-height: auto;
+  box-sizing: border-box;
+  text-align: center;
+  border: none;
+  box-shadow: none;
+  display: block;
+  gap: var(--auth-gap);
+  overflow: visible;
+  position: relative;
+}
+
+/* 제목 공통 */
+.login-header, .signup-header, .findid-header {
+  display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:28px;
+}
+.login-header h2, .signup-header h2, .findid-header h2 {
+  margin:0; font-size:20px; font-weight:700;
+  background: linear-gradient(90deg, #ff4f7a 0%, #d9395a 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+/* 입력 공통 */
+.findid-input, .login-input, .signup-input {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 12px 14px !important;
+  min-height: 44px;
+}
+
+/* 버튼/액션 공통 */
+.actions-row { width: 100%; display:flex; justify-content:center; }
+
+/* 작은 인라인 버튼 (공통) */
+.auth-small-btn, .findid-small-btn, .signup-small-btn { 
+  padding:0 12px; 
+  border-radius:8px; 
+  border:1px solid #e6e6e6; 
+  background:#fff; 
+  height:44px; 
+  display:inline-flex; 
+  align-items:center; 
+  justify-content:center;
+  white-space:nowrap;
+  font-weight:400;
+  font-size:13px;
+}
+
+/* 기본 액션 버튼 */
+.findid-btn, .login-btn-green, .signup-btn-green {
+  padding:0 18px;
+  height:44px;
+  border-radius:8px;
+  background: linear-gradient(90deg,#a4c639,#87b13a);
+  color:#fff;
+  border:none;
+  cursor:pointer;
+  font-weight:700;
+  width: auto;
+  min-width: 120px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.findid-btn-pink, .auth-box-btn-pink, .signup-btn-yellow, .findid-btn-pink {
+  padding:0 14px;
+  height:44px;
+  border-radius:8px;
+  background:#ff9cc0;
+  color:#333;
+  border:none;
+  cursor:pointer;
+  font-weight:700;
+  min-width: 120px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* 미디어쿼리 공통 */
+@media (max-width:768px) {
+  .login-form-area, .signup-form-area, .findid-card { padding:24px }
+  .login-form-area .findid-form-card, .signup-form-area .findid-form-card, .findid-form-card { max-width:90vw }
+}

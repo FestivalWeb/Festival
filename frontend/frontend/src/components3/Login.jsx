@@ -80,7 +80,7 @@ const Login = () => {
   };
 
   return (
-    <AuthCard title="논산 딸기 축제" backPath="/">
+    <AuthCard title="논산딸기축제" backPath="/">
       <form className="login-form" onSubmit={handleLogin}>
         <input
           type="text"
@@ -119,12 +119,7 @@ const Login = () => {
         <span> | </span>
         <button className="login-link" type="button" onClick={() => goTo('forgotPassword')}>비밀번호 찾기</button>
         <span> | </span>
-        <button
-          className="login-signup-link"
-          onClick={() => goTo('signup')}
-        >
-          회원가입
-        </button>
+        <button className="login-link" type="button" onClick={() => goTo('signup')}>회원가입</button>
       </div>
     </AuthCard>
   );

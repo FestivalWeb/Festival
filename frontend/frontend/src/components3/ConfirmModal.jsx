@@ -18,3 +18,4 @@ const ConfirmModal = ({ open, message = '정말로 변경 하시겠습니까?', 
 };
 
 export default ConfirmModal;
+

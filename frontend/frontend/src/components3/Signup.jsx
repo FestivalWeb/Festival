@@ -218,14 +218,41 @@ const Signup = () => {
     textAlign: 'left'
   };
 
+  const allChecked = agreeTerms.terms && agreeTerms.privacy && agreeTerms.marketing;
+  const toggleAll = (e) => {
+    const v = e.target.checked;
+    setAgreeTerms({ terms: v, privacy: v, marketing: v });
+  };
+
   return (
-    <AuthCard title="세계딸기축제" backPath="/login">
+    <AuthCard title="회원가입" backPath="/login">
       {step === 0 && (
         <div className="signup-step">
           <div className="terms-card">
-            <label className="term-row"><input type="checkbox" checked={agreeTerms.terms} onChange={(e)=>setAgreeTerms({...agreeTerms, terms: e.target.checked})} /> <strong>필수</strong> 홈페이지 이용약관</label>
-            <label className="term-row"><input type="checkbox" checked={agreeTerms.privacy} onChange={(e)=>setAgreeTerms({...agreeTerms, privacy: e.target.checked})} /> <strong>필수</strong> 개인정보 수집 및 이용</label>
-            <label className="term-row"><input type="checkbox" checked={agreeTerms.marketing} onChange={(e)=>setAgreeTerms({...agreeTerms, marketing: e.target.checked})} /> 선택 이벤트·혜택 정보 수신</label>
+            <div className="agree-all">
+              <label style={{display:'flex', alignItems:'center', gap:12}}>
+                <input type="checkbox" checked={allChecked} onChange={toggleAll} />
+                <strong style={{fontSize:16}}>모두 동의</strong>
+                <span className="agree-desc">필수 및 선택 항목 동의 포함</span>
+              </label>
+            </div>
+            <label className="term-row">
+              <input type="checkbox" checked={agreeTerms.terms} onChange={(e)=>setAgreeTerms({...agreeTerms, terms: e.target.checked})} />
+              <strong className="term-badge">필수</strong>
+              <span className="term-text">홈페이지 이용약관</span>
+            </label>
+
+            <label className="term-row">
+              <input type="checkbox" checked={agreeTerms.privacy} onChange={(e)=>setAgreeTerms({...agreeTerms, privacy: e.target.checked})} />
+              <strong className="term-badge">필수</strong>
+              <span className="term-text">개인정보 수집 및 이용</span>
+            </label>
+
+            <label className="term-row">
+              <input type="checkbox" checked={agreeTerms.marketing} onChange={(e)=>setAgreeTerms({...agreeTerms, marketing: e.target.checked})} />
+              <strong className="term-badge optional">선택</strong>
+              <span className="term-text">이벤트·혜택 정보 수신</span>
+            </label>
           </div>
           <div className="error" style={{visibility: globalError ? 'visible' : 'hidden', textAlign:'center', marginTop:'10px'}}>{globalError || '\u00A0'}</div>
           <div className="actions-row">
@@ -242,7 +269,7 @@ const Signup = () => {
 
             <div style={{display:'flex', gap:8}}>
               <input name="username" value={form.username} onChange={onChange('username')} onBlur={handleBlur} type="text" placeholder="아이디" className="signup-input" />
-              <button type="button" className="signup-small-btn" onClick={handleIdCheck}>중복확인</button>
+              <button type="button" className="auth-small-btn" onClick={handleIdCheck}>중복확인</button>
             </div>
             {fieldErrors.username && <div style={errorStyle}>{fieldErrors.username}</div>}
             {!fieldErrors.username && idCheckMessage && (
@@ -259,7 +286,7 @@ const Signup = () => {
 
             <div style={{display:'flex', gap:8}}>
               <input name="email" value={form.email} onChange={onChange('email')} onBlur={handleBlur} type="email" placeholder="이메일" className="signup-input" />
-              <button type="button" className="signup-small-btn" onClick={onRequestCode} disabled={sendingCode}>
+              <button type="button" className="auth-small-btn" onClick={onRequestCode} disabled={sendingCode}>
                 {sendingCode ? '전송 중...' : '인증번호 발송'}
               </button>
             </div>

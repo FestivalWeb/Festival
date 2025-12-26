@@ -9,6 +9,8 @@ const ForgotPassword = () => {
   const [form, setForm] = useState({ name: '', username: '', email: '', code: '', password: '', password2: '' });
   const [error, setError] = useState('');
   const [sending, setSending] = useState(false); 
+  const [isCodeSent, setIsCodeSent] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
 
   const navigate = useNavigate();
 
@@ -37,6 +39,15 @@ const ForgotPassword = () => {
       
       if (response.ok) {
         alert("인증번호가 메일로 발송되었습니다.");
+        setIsCodeSent(true);
+        setTimeLeft(180);
+
+        const timer = setInterval(() => {
+          setTimeLeft((prev) => {
+            if (prev <= 1) clearInterval(timer);
+            return prev - 1;
+          });
+        }, 1000);
       } else {
         const msg = await response.text();
         alert(msg);
@@ -123,18 +134,32 @@ const ForgotPassword = () => {
         <div className="findid-form-area">
           <div className="findid-form-card">
             <label>이름</label>
-            <input className="findid-input" value={form.name} onChange={onChange('name')} placeholder="이름" />
+            <input className="findid-input" value={form.name} onChange={onChange('name')} placeholder="이름" disabled={isCodeSent} />
             <label>아이디</label>
-            <input className="findid-input" value={form.username} onChange={onChange('username')} placeholder="아이디" />
+            <input className="findid-input" value={form.username} onChange={onChange('username')} placeholder="아이디" disabled={isCodeSent} />
             <label>이메일 주소</label>
             <div style={{display:'flex', gap:8}}>
-              <input className="findid-input" value={form.email} onChange={onChange('email')} placeholder="이메일" />
-              <button className="findid-small-btn" type="button" onClick={onSendCode} disabled={sending}>
-                {sending ? "전송중" : "인증번호 발송"}
-              </button>
+              <input className="findid-input" value={form.email} onChange={onChange('email')} placeholder="이메일" disabled={isCodeSent} />
+                  <button className="auth-small-btn" type="button" onClick={onSendCode} disabled={sending || isCodeSent}>
+                    {sending ? "전송중" : "인증번호 발송"}
+                  </button>
             </div>
             <label style={{marginTop: 10}}>인증번호</label>
-            <input className="findid-input" value={form.code} onChange={onChange('code')} placeholder="메일로 온 숫자 6자리" />
+            <div style={{position: 'relative'}}>
+              <input className="findid-input" value={form.code} onChange={onChange('code')} placeholder={isCodeSent ? "메일로 온 숫자 6자리" : "먼저 '인증번호 발송'을 눌러주세요"} disabled={!isCodeSent} />
+              {isCodeSent && (
+                <span style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: '#d32f2f',
+                  fontSize: '13px'
+                }}>
+                  {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
+                </span>
+              )}
+            </div>
             <div className="error" style={{visibility: error ? 'visible' : 'hidden'}}>{error || '\u00A0'}</div>
           </div>
           <div className="actions-row">

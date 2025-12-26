@@ -119,40 +119,41 @@ const FindId = () => {
                 placeholder="이메일을 입력하세요" 
                 disabled={isCodeSent}
               />
-              <button 
-                className="findid-small-btn" 
-                type="button" 
-                onClick={handleSendCode}
-                disabled={isCodeSent}
-              >
-                인증번호 발송
-              </button>
+                  <button 
+                    className="auth-small-btn" 
+                    type="button" 
+                    onClick={handleSendCode}
+                    disabled={isCodeSent}
+                  >
+                    인증번호 발송
+                  </button>
             </div>
 
-            {/* 인증번호 입력 필드 (발송 후 표시) */}
-            {isCodeSent && (
-                <>
-                    <label>인증번호</label>
-                    <div style={{position: 'relative'}}>
-                        <input 
-                            className="findid-input" 
-                            value={form.code} 
-                            onChange={onChange('code')} 
-                            placeholder="인증번호 6자리" 
-                        />
-                        <span style={{
-                            position: 'absolute', 
-                            right: '12px', 
-                            top: '50%', 
-                            transform: 'translateY(-50%)',
-                            color: '#d32f2f',
-                            fontSize: '13px'
-                        }}>
-                            {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
-                        </span>
-                    </div>
-                </>
-            )}
+            {/* 인증번호 입력 필드 (항상 표시하되, 발송 전엔 비활성화 상태로 안내) */}
+            <>
+              <label>인증번호</label>
+              <div style={{position: 'relative'}}>
+                <input 
+                  className="findid-input" 
+                  value={form.code} 
+                  onChange={onChange('code')} 
+                  placeholder={isCodeSent ? "인증번호 6자리" : "먼저 '인증번호 발송'을 눌러주세요"}
+                  disabled={!isCodeSent}
+                />
+                {isCodeSent && (
+                  <span style={{
+                    position: 'absolute', 
+                    right: '12px', 
+                    top: '50%', 
+                    transform: 'translateY(-50%)',
+                    color: '#d32f2f',
+                    fontSize: '13px'
+                  }}>
+                    {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
+                  </span>
+                )}
+              </div>
+            </>
 
             <div className="error" style={{visibility: error ? 'visible' : 'hidden'}}>
                 {error || '\u00A0'}
