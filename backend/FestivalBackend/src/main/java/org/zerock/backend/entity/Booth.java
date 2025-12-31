@@ -35,7 +35,6 @@ public class Booth {
     @Column(name = "event_date", nullable = false)
     private LocalDate eventDate;
 
-    // [추가] 운영 시간 (예: "10:00 - 15:00")
     @Column(name = "time", length = 50)
     private String time;
 
@@ -64,9 +63,9 @@ public class Booth {
 
     @ColumnDefault("1")
     @Column(name = "priority")
-    private Long priority; // 우선순위 필드 추가
+    private Long priority;
 
-    // [추가] Getter 메서드 호환성 (Lombok이 getStatus()를 만들지만, Admin 코드는 isShow()를 찾을 수 있음)
+    // [Getter 호환성] Admin 코드에서 isShow()를 호출할 수 있도록 함
     public boolean isShow() {
         return this.status;
     }
@@ -75,18 +74,37 @@ public class Booth {
         this.status = show;
     }
 
-    // [추가] updateInfo 메서드 (Admin 서비스에서 호출)
-    public void updateInfo(String title, String context, String location, Long maxPerson, Long priority, java.time.LocalDate eventDate, long price) {
-        this.title = title;
-        this.context = context;
-        this.location = location;
-        this.maxPerson = maxPerson;
-        this.priority = priority;
-        this.eventDate = eventDate;
-        this.price = price;
-    }
-
     public void changeStatus(boolean status) {
         this.status = status;
     }
+
+    // [수정] 파라미터 순서를 Service 코드와 맞춤
+    public void updateInfo(String title, String context, String location, Long price, Long maxPerson, LocalDate eventDate, Long priority) {
+        this.title = title;
+        this.context = context;
+        this.location = location;
+        this.price = price;
+        this.maxPerson = maxPerson;
+        this.eventDate = eventDate;
+        this.priority = priority;
+    }
+
+    // [추가] BoothAdminService에서 호출하는 이미지 추가 편의 메서드
+    public void addImage(MediaFile mediaFile) {
+        BoothImageId id = BoothImageId.builder()
+                .boothId(this.id)
+                .fileId(mediaFile.getFileId())
+                .build();
+
+        BoothImage image = BoothImage.builder()
+                .id(id)
+                .booth(this)
+                .mediaFile(mediaFile)
+                .build();
+
+        this.images.add(image);
+    }
+    
+    // [추가] 생성자 (created_by가 필요한 경우를 대비해 빌더 패턴 사용 권장하지만, 필드 추가가 어렵다면 생략 가능)
+    // createdBy 필드가 Entity에 없으므로 Service에서 빌더 호출 시 제외했습니다.
 }

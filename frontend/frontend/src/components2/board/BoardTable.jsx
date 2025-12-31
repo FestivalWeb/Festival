@@ -9,7 +9,7 @@ export default function BoardTable({ data, onTitleClick }) {
         <tr>
           <th>글 번호</th>
           <th>제목</th>
-          <th>부서명</th>
+          <th>작성자</th>
           <th>조회수</th>
           <th>작성일</th>
           <th>첨부파일</th>

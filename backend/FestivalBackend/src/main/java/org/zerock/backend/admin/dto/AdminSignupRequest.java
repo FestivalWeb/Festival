@@ -1,9 +1,14 @@
 package org.zerock.backend.admin.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter @Setter
+@Data
+@Builder
+@NoArgsConstructor // [필수] JSON 변환을 위한 기본 생성자
+@AllArgsConstructor
 public class AdminSignupRequest {
 
     private String username;

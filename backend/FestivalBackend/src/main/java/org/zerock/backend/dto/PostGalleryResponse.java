@@ -11,4 +11,7 @@ public class PostGalleryResponse {
     private String title;     // 게시글 제목
     private String writer;    // 작성자 ID (누가 썼는지)
     private Long postId;      // 클릭하면 해당 글(상세페이지)로 이동하려고
+
+    // [추가] 구분값 ("NOTICE" 또는 "POST")
+    private String type;
 }

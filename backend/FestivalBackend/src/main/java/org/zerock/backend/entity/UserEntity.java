@@ -61,4 +61,8 @@ public class UserEntity {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Board> boards = new ArrayList<>();
+
+    // [추가] 계정 활성 여부 (true: 정상, false: 정지/비활성)
+    @Column(nullable = false)
+    private boolean isActive = true; 
 }

@@ -16,7 +16,6 @@ import org.zerock.backend.repository.AdminUserRepository;
 import org.zerock.backend.repository.RoleRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,28 +29,29 @@ public class AdminAccountService {
     private final AdminSessionRepository adminSessionRepository;
     private final AdminIpWhitelistRepository adminIpWhitelistRepository;
 
+    // [헬퍼] 권한 체크 (null 안전)
+    private boolean hasRole(AdminUser user, String roleCode) {
+        if (user.getRoles() == null || user.getRoles().isEmpty()) return false;
+        return user.getRoles().stream()
+                .anyMatch(ar -> roleCode.equals(ar.getRole().getRoleCode()));
+    }
 
     /**
-     * 관리자 계정 전체 목록 조회
+     * 관리자 목록 조회
      */
+    @Transactional(readOnly = true)
     public List<AdminUserSummaryResponse> getAdminUserList() {
-
-        // createdAt 기준으로 최신 순 정렬 (원하면 username 기준 등으로 바꿔도 됨)
-        List<AdminUser> users = adminUserRepository
-                .findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
-
-        return users.stream()
-                .map(this::toSummaryResponse)
-                .toList();
+        List<AdminUser> users = adminUserRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+        return users.stream().map(this::toSummaryResponse).toList();
     }
 
     private AdminUserSummaryResponse toSummaryResponse(AdminUser user) {
-
-        // 이 관리자가 가진 role_code 목록 뽑기
         List<String> roleCodes = user.getRoles().stream()
-                .map(AdminRole::getRole)              // AdminRole → RoleEntity
-                .map(role -> role.getRoleCode())      // RoleEntity → roleCode
+                .map(AdminRole::getRole)
+                .map(RoleEntity::getRoleCode)
                 .collect(Collectors.toList());
+
+        if (roleCodes.isEmpty()) roleCodes.add("NONE");
 
         String status = user.isActive() ? "ACTIVE" : "INACTIVE";
 
@@ -68,209 +68,143 @@ public class AdminAccountService {
     }
 
     /**
-     * 관리자 권한 변경 (SUPER만 가능)
+     * 관리자 권한 변경
      */
     @Transactional
     public void changeAdminRole(Long targetAdminId, String newRoleCode, HttpServletRequest request) {
+        AdminUser loginAdmin = getLoginAdmin(request);
 
-        // 1. 필터에서 심어준 loginAdminId 꺼내기
-    Long loginAdminId = (Long) request.getAttribute("loginAdminId");
-    if (loginAdminId == null) {
-        throw new IllegalStateException("로그인한 관리자만 권한을 변경할 수 있습니다.");
+        // 1. SUPER 체크
+        if (!hasRole(loginAdmin, "SUPER")) {
+            throw new IllegalStateException("권한 변경은 SUPER 관리자만 가능합니다.");
+        }
+
+        AdminUser target = getTargetAdmin(targetAdminId);
+
+        // 2. 자기 자신 변경 불가
+        if (loginAdmin.getAdminId().equals(target.getAdminId())) {
+            throw new IllegalStateException("자기 자신의 권한은 변경할 수 없습니다.");
+        }
+
+        // 3. 다른 SUPER 변경 불가 (권한 없는 경우 제외)
+        if (hasRole(target, "SUPER")) {
+            throw new IllegalStateException("다른 SUPER 관리자의 권한은 변경할 수 없습니다.");
+        }
+
+        RoleEntity newRole = roleRepository.findByRoleCode(newRoleCode)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 권한 코드: " + newRoleCode));
+
+        // [핵심 수정] NonUniqueObjectException 해결 로직
+        // 1) 이미 해당 권한을 가지고 있는지 체크 (중복 할당 방지)
+        boolean alreadyHasRole = target.getRoles().stream()
+                .anyMatch(ar -> ar.getRole().getRoleCode().equals(newRoleCode));
+        
+        if (alreadyHasRole) {
+            // 이미 같은 권한이면 아무것도 안 하고 종료 (에러 아님)
+            return;
+        }
+
+        // 2) 기존 권한 모두 제거 (컬렉션 조작 -> OrphanRemoval 동작)
+        // 주의: repository.deleteBy...()와 컬렉션 clear()를 섞어 쓰면 충돌 발생함.
+        // AdminUser 엔티티에 cascade = CascadeType.ALL, orphanRemoval = true 설정이 되어 있어야 함.
+        target.getRoles().clear();
+
+        // 3) DB 반영 (Flush) - 삭제 쿼리를 먼저 실행시켜 영속성 컨텍스트를 정리
+        // 이렇게 해야 같은 ID로 다시 insert 할 때 충돌이 안 남
+        adminUserRepository.flush(); 
+
+        // 4) 새 권한 생성 및 추가 (컬렉션에 add만 하면 Cascade에 의해 자동 저장됨)
+        AdminRole newAdminRole = AdminRole.builder()
+                .id(new AdminRoleId(target.getAdminId(), newRole.getRoleId()))
+                .adminUser(target)
+                .role(newRole)
+                .build();
+
+        target.getRoles().add(newAdminRole);
+        
+        // save를 명시적으로 호출할 필요 없음 (Transactional + Cascade가 처리)
+        // adminRoleRepository.save(newAdminRole); // <- 이거 때문에 에러 날 수 있음 (제거 권장)
     }
 
-    // 2. 현재 로그인 관리자 (영속 상태)
-    AdminUser loginAdmin = adminUserRepository.findById(loginAdminId)
-            .orElseThrow(() -> new IllegalStateException("로그인 관리자 정보를 찾을 수 없습니다."));
-
-    // 3. SUPER 권한인지 확인
-    boolean isSuper = loginAdmin.getRoles().stream()
-            .map(ar -> ar.getRole().getRoleCode())
-            .anyMatch("SUPER"::equals);
-    if (!isSuper) {
-        throw new IllegalStateException("권한 변경은 SUPER 관리자만 가능합니다.");
-    }
-
-    // 4. 요청된 새 권한 유효성 체크
-    if (!( "SUPER".equals(newRoleCode) ||
-           "MANAGER".equals(newRoleCode) ||
-           "STAFF".equals(newRoleCode))) {
-        throw new IllegalArgumentException("관리자 권한은 SUPER, MANAGER, STAFF만 설정할 수 있습니다.");
-    }
-
-    // 5. 대상 관리자 조회
-    AdminUser target = adminUserRepository.findById(targetAdminId)
-            .orElseThrow(() -> new IllegalArgumentException("대상 관리자를 찾을 수 없습니다."));
-
-    if (loginAdmin.getAdminId().equals(target.getAdminId())) {
-        throw new IllegalStateException("자기 자신의 권한은 이 API로 변경할 수 없습니다.");
-    }
-
-    // 6. 현재 권한 코드 계산 (User 쪽 컬렉션에서만)
-    String currentRoleCode = target.getRoles().stream()
-            .map(ar -> ar.getRole().getRoleCode())
-            .findFirst()
-            .orElse(null);
-
-    if ("SUPER".equals(currentRoleCode)) {
-        throw new IllegalStateException("다른 SUPER 관리자의 권한은 변경할 수 없습니다.");
-    }
-
-    // 이미 같은 권한이면 할 일 없음
-    if (newRoleCode.equals(currentRoleCode)) {
-        return;
-    }
-
-    // 7. 새 RoleEntity 조회
-    RoleEntity newRole = roleRepository.findByRoleCode(newRoleCode)
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 권한 코드입니다: " + newRoleCode));
-
-    // 8. 기존 역할 매핑 제거
-    //    → AdminUser.roles 컬렉션만 조작하면 orphanRemoval 때문에 join row 삭제됨
-    target.getRoles().clear();
-
-    // 9. 새 AdminRole 생성해서 User 쪽 컬렉션에만 추가
-    AdminRole newAdminRole = AdminRole.builder()
-            .id(new AdminRoleId(target.getAdminId(), newRole.getRoleId()))
-            .adminUser(target)
-            .role(newRole)
-            .build();
-
-    target.getRoles().add(newAdminRole);
-    }
-
+    /**
+     * 관리자 상태 변경 (활성/비활성)
+     */
     @Transactional
     public void changeAdminActiveStatus(Long targetAdminId, boolean active, HttpServletRequest request) {
+        AdminUser loginAdmin = getLoginAdmin(request);
+        AdminUser target = getTargetAdmin(targetAdminId);
 
-        // 1. 로그인 관리자 확인
-        Long loginAdminId = (Long) request.getAttribute("loginAdminId");
-        if (loginAdminId == null) {
-            throw new IllegalStateException("로그인한 관리자만 상태를 변경할 수 있습니다.");
-        }
-
-        AdminUser loginAdmin = adminUserRepository.findById(loginAdminId)
-                .orElseThrow(() -> new IllegalStateException("로그인 관리자 정보를 찾을 수 없습니다."));
-
-        // 2. 로그인 관리자의 권한(역할) 확인
-        String loginRoleCode = loginAdmin.getRoles().stream()
-                .map(ar -> ar.getRole().getRoleCode())
-                .findFirst()
-                .orElse(null);
-
-        if (loginRoleCode == null) {
-            throw new IllegalStateException("로그인 관리자에게 권한(Role)이 설정되어 있지 않습니다.");
-        }
-
-        // 3. 대상 관리자 조회
-        AdminUser target = adminUserRepository.findById(targetAdminId)
-                .orElseThrow(() -> new IllegalArgumentException("대상 관리자를 찾을 수 없습니다."));
-
-        // 자기 자신의 active는 막아두는 게 안전
         if (loginAdmin.getAdminId().equals(target.getAdminId())) {
-            throw new IllegalStateException("자기 자신의 활성/비활성 상태는 이 API로 변경할 수 없습니다.");
+            throw new IllegalStateException("자기 자신의 상태는 변경할 수 없습니다.");
         }
 
-        // 4. 대상 관리자의 권한 확인
-        String targetRoleCode = target.getRoles().stream()
-                .map(ar -> ar.getRole().getRoleCode())
-                .findFirst()
-                .orElse(null);
+        boolean isTargetSuper = hasRole(target, "SUPER");
+        boolean isTargetStaffOrNone = hasRole(target, "STAFF") || 
+                                      (target.getRoles() == null || target.getRoles().isEmpty());
 
-        if (targetRoleCode == null) {
-            throw new IllegalStateException("대상 관리자에게 권한(Role)이 설정되어 있지 않습니다.");
-        }
-
-        // 5. 권한에 따른 제어 규칙
-        // SUPER: MANAGER, STAFF 조작 가능 (다른 SUPER는 불가)
-        // MANAGER: STAFF만 조작 가능
-        // STAFF: 아무도 조작 불가
         boolean allowed = false;
-
-        switch (loginRoleCode) {
-            case "SUPER" -> {
-                if ("SUPER".equals(targetRoleCode)) {
-                    throw new IllegalStateException("다른 SUPER 관리자의 상태는 변경할 수 없습니다.");
-                }
-                // PUBLIC / MEMBER도 여기서 조작하고 싶으면 추가로 허용해도 됨
-                allowed = "MANAGER".equals(targetRoleCode) || "STAFF".equals(targetRoleCode);
+        
+        if (hasRole(loginAdmin, "SUPER")) {
+            if (isTargetSuper) throw new IllegalStateException("다른 SUPER 관리자는 변경할 수 없습니다.");
+            allowed = true; 
+        } else if (hasRole(loginAdmin, "MANAGER")) {
+            if (!isTargetStaffOrNone) {
+                throw new IllegalStateException("MANAGER는 STAFF 이하만 관리할 수 있습니다.");
             }
-            case "MANAGER" -> {
-                if (!"STAFF".equals(targetRoleCode)) {
-                    throw new IllegalStateException("MANAGER는 STAFF 계정만 활성/비활성할 수 있습니다.");
-                }
-                allowed = true;
-            }
-            default -> {
-                throw new IllegalStateException("해당 권한에서는 다른 관리자의 상태를 변경할 수 없습니다.");
-            }
+            allowed = true;
+        } else {
+            throw new IllegalStateException("권한이 부족합니다.");
         }
 
-        if (!allowed) {
-            throw new IllegalStateException("권한이 없어 상태를 변경할 수 없습니다.");
-        }
+        if (!allowed) throw new IllegalStateException("권한이 없어 상태를 변경할 수 없습니다.");
 
-        // 6. 실제 활성/비활성 변경
         target.setActive(active);
         target.setUpdatedAt(java.time.LocalDateTime.now());
-
-        // @Transactional 이라 save 없어도 되지만, 명시하고 싶으면:
-        adminUserRepository.save(target);
+        // adminUserRepository.save(target); // Transactional 안에서는 dirty checking으로 자동 저장됨
     }
 
+    /**
+     * 관리자 삭제
+     */
     @Transactional
     public void deleteAdmin(Long targetAdminId, HttpServletRequest request) {
+        AdminUser loginAdmin = getLoginAdmin(request);
 
-        // 1. 로그인한 관리자 ID 가져오기 (필터에서 넣어준 값)
-        Long loginAdminId = (Long) request.getAttribute("loginAdminId");
-        if (loginAdminId == null) {
-            throw new IllegalStateException("로그인한 관리자만 계정을 삭제할 수 있습니다.");
-        }
-
-        // 2. 로그인 관리자 조회
-        AdminUser loginAdmin = adminUserRepository.findById(loginAdminId)
-                .orElseThrow(() -> new IllegalStateException("로그인 관리자 정보를 찾을 수 없습니다."));
-
-        String loginRoleCode = loginAdmin.getRoles().stream()
-                .map(ar -> ar.getRole().getRoleCode())
-                .findFirst()
-                .orElse(null);
-
-        if (!"SUPER".equals(loginRoleCode)) {
+        if (!hasRole(loginAdmin, "SUPER")) {
             throw new IllegalStateException("계정 삭제는 SUPER 관리자만 가능합니다.");
         }
 
-        // 3. 대상 관리자 조회
-        AdminUser target = adminUserRepository.findById(targetAdminId)
-                .orElseThrow(() -> new IllegalArgumentException("대상 관리자를 찾을 수 없습니다."));
+        AdminUser target = getTargetAdmin(targetAdminId);
 
-        // 자기 자신은 삭제 금지
         if (loginAdmin.getAdminId().equals(target.getAdminId())) {
-            throw new IllegalStateException("자기 자신의 계정은 삭제할 수 없습니다.");
+            throw new IllegalStateException("자기 자신은 삭제할 수 없습니다.");
         }
 
-        // 대상 권한 확인
-        String targetRoleCode = target.getRoles().stream()
-                .map(ar -> ar.getRole().getRoleCode())
-                .findFirst()
-                .orElse(null);
-
-        if ("SUPER".equals(targetRoleCode)) {
-            throw new IllegalStateException("다른 SUPER 관리자의 계정은 삭제할 수 없습니다.");
+        if (hasRole(target, "SUPER")) {
+            throw new IllegalStateException("다른 SUPER 관리자는 삭제할 수 없습니다.");
         }
 
-        // 4. 관련 데이터 정리
-        // 세션 삭제
         adminSessionRepository.deleteByAdminUser(target);
-
-        // IP 화이트리스트 삭제
         adminIpWhitelistRepository.deleteByAdminUser(target);
-
-        // 역할 매핑 삭제
-        adminRoleRepository.deleteByAdminUser(target);
-
-        // (AdminActivityLog 는 AdminUser 쪽에 cascade = ALL 이라면 같이 지워질 것)
-
-        // 5. 최종적으로 관리자 계정 삭제
+        
+        // 권한 삭제: 컬렉션 비우기 -> Cascade 삭제 유도
+        target.getRoles().clear();
+        // adminRoleRepository.deleteByAdminUser(target); // 제거: 컬렉션 clear로 대체
+        
+        // 바로 삭제 시도
         adminUserRepository.delete(target);
+    }
+
+    // --- 내부 편의 메서드 ---
+    private AdminUser getLoginAdmin(HttpServletRequest request) {
+        Long id = (Long) request.getAttribute("loginAdminId");
+        if (id == null) throw new IllegalStateException("로그인 정보가 없습니다.");
+        return adminUserRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("로그인 관리자 정보가 없습니다."));
+    }
+
+    private AdminUser getTargetAdmin(Long id) {
+        return adminUserRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("대상 관리자를 찾을 수 없습니다."));
     }
 }

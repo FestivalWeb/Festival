@@ -1,96 +1,221 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import adminApi from '../../../api/api'; 
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
 
-  // --- Mock Data (이미지 기준 데이터) ---
-  const accountData = [
-    { id: 'admin01', name: '김관리', role: 'SUPER', state: '활성', date: '2025-11-03 09:12' },
-    { id: 'staff02', name: '이운영', role: 'STAFF', state: '활성', date: '2025-11-03 08:45' },
-    { id: 'guest01', name: '박게스트', role: 'VIEWER', state: '잠금', date: '-' },
-    { id: 'mod07', name: '정관리', role: 'MANAGER', state: '활성', date: '2025-11-02 21:33' },
-    { id: 'staff31', name: '유직원', role: 'STAFF', state: '활성', date: '2025-11-02 19:10' },
-  ];
+  // 1. 통계 데이터 상태
+  const [stats, setStats] = useState({
+    totalMembers: 0,
+    totalPosts: 0,
+    totalVisitors: 0,
+    newReports: 0,
+    totalBooths: 0
+  });
 
-  const boardData = [
-    { name: '공지사항', scope: '전체', state: '사용', count: 132, date: '2025-11-03' },
-    { name: '포토갤러리', scope: '회원', state: '사용', count: 87, date: '2025-11-03' },
-    { name: 'FAQ', scope: '전체', state: '사용', count: 24, date: '2025-11-02' },
-    { name: '내부공지', scope: '관리자', state: '중지', count: 11, date: '2025-11-01' },
-    { name: '이벤트', scope: '전체', state: '사용', count: 5, date: '2025-10-31' },
-  ];
+  const [allData, setAllData] = useState({
+    accounts: [],
+    boards: [],
+    booths: [],
+    logs: []
+  });
 
-  const popupData = [
-    { title: '11월 메인 배너', period: '11.01 ~ 11.07', state: '활성', priority: 1 },
-    { title: '딸기 굿즈 콘테스트', period: '11.05 ~ 11.29', state: '활성', priority: 2 },
-    { title: '긴급 점검 안내', period: '~ 오늘', state: '만료 예정', priority: 1 },
-    { title: '자원봉사 모집', period: '10.15 ~ 11.30', state: '활성', priority: 3 },
-    { title: '굿즈 사전예약', period: '종료', state: '비활성', priority: 5 },
-  ];
+  const [previewData, setPreviewData] = useState({
+    accounts: [],
+    boards: [],
+    booths: [],
+    logs: []
+  });
 
-  const logData = [
-    { time: '09:12:04', type: 'LOGIN', user: 'admin01', ip: '10.0.0.12', msg: '관리자 로그인 성공' },
-    { time: '09:10:33', type: 'UPDATE', user: 'admin01', ip: '10.0.0.12', msg: '공지사항 게시글 수정' },
-    { time: '09:07:01', type: 'ERROR', user: 'system', ip: '127.0.0.1', msg: '이미지 업로드 실패(용량 초과)' },
-    { time: '08:59:22', type: 'CREATE', user: 'mod07', ip: '10.0.0.55', msg: '팝업 생성: 11월 메인 행사' },
-    { time: '08:42:11', type: 'WARN', user: 'system', ip: '127.0.0.1', msg: 'API 지연(+1.5s)' },
-  ];
+  const [searchInputs, setSearchInputs] = useState({
+    account: '',
+    board: '',
+    booth: '',
+    log: ''
+  });
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true);
+
+        const results = await Promise.allSettled([
+          adminApi.get('/api/admin/dashboard/stats'),
+          adminApi.get('/api/admin/accounts'),
+          adminApi.get('/api/admin/boards'),
+          adminApi.get('/api/admin/booths'),
+          adminApi.get('/api/admin/logs')
+        ]);
+
+        const statsData = results[0].status === 'fulfilled' ? results[0].value.data : {};
+        const accountsData = results[1].status === 'fulfilled' ? results[1].value.data : [];
+        const boardsData = results[2].status === 'fulfilled' ? results[2].value.data : [];
+        const boothsData = results[3].status === 'fulfilled' ? results[3].value.data : [];
+        const logsData = results[4].status === 'fulfilled' ? results[4].value.data : [];
+
+        // [핵심] 0이나 빈 값일 경우를 대비해 안전하게 OR 연산자 처리
+        setStats({
+          totalMembers: statsData.totalMembers || 0,
+          totalPosts: statsData.totalPosts || 0, 
+          totalVisitors: statsData.totalVisitors || 0,
+          newReports: statsData.newReports || 0,
+          totalBooths: boothsData.length || 0
+        });
+
+        const fullData = {
+          accounts: Array.isArray(accountsData) ? accountsData : [],
+          boards: Array.isArray(boardsData) ? boardsData : [],
+          booths: Array.isArray(boothsData) ? boothsData : [],
+          logs: Array.isArray(logsData) ? logsData : []
+        };
+        setAllData(fullData);
+
+        setPreviewData({
+          accounts: fullData.accounts.slice(0, 5),
+          boards: fullData.boards.slice(0, 5),
+          booths: fullData.booths.slice(0, 5),
+          logs: fullData.logs.slice(0, 5)
+        });
+
+      } catch (err) {
+        console.error("대시보드 로딩 실패:", err);
+      } finally {
+        setTimeout(() => setIsLoading(false), 300); 
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const handleSearchChange = (field, value) => {
+    setSearchInputs(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleLocalSearch = (category) => {
+    const keyword = searchInputs[category].toLowerCase().trim();
+    const sourceData = allData[category + 's']; 
+
+    if (!keyword) {
+      setPreviewData(prev => ({
+        ...prev,
+        [category + 's']: sourceData.slice(0, 5)
+      }));
+      return;
+    }
+
+    let filtered = [];
+    if (category === 'account') {
+      filtered = sourceData.filter(item => 
+        (item.name && item.name.toLowerCase().includes(keyword)) ||
+        (item.username && item.username.toLowerCase().includes(keyword))
+      );
+    } else if (category === 'board') {
+      filtered = sourceData.filter(item => 
+        (item.name && item.name.toLowerCase().includes(keyword))
+      );
+    } else if (category === 'booth') {
+      filtered = sourceData.filter(item => 
+        (item.title && item.title.toLowerCase().includes(keyword))
+      );
+    } else if (category === 'log') {
+      filtered = sourceData.filter(item => 
+        (item.message && item.message.toLowerCase().includes(keyword)) ||
+        (item.actionType && item.actionType.toLowerCase().includes(keyword))
+      );
+    }
+
+    setPreviewData(prev => ({
+      ...prev,
+      [category + 's']: filtered.slice(0, 5)
+    }));
+  };
+
+  const handleKeyDown = (e, category) => {
+    if (e.key === 'Enter') handleLocalSearch(category);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="admin-dashboard loading-container">
+        <div className="spinner"></div>
+        <p>데이터를 불러오는 중입니다...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-dashboard">
       <div className="dashboard-wrapper">
       
-      {/* 1. 계정관리 섹션 */}
+      {/* 1. 계정관리 */}
       <div className="dash-card">
         <div className="dash-header">
           <h3>계정관리</h3>
           <span className="status-badge green">요약</span>
         </div>
         <div className="stats-box">
-          <div><span>전체</span> <strong>58</strong></div>
-          <div><span>활동</span> <strong>53</strong></div>
-          <div><span>잠금</span> <strong>5</strong></div>
-          <div><span>금주 가입</span> <strong>3</strong></div>
+          <div><span>총 회원</span> <strong>{stats.totalMembers}</strong></div>
+          <div><span>활동</span> <strong>-</strong></div>
         </div>
         <div className="action-bar">
-          <input type="text" placeholder="이름/이메일 검색" />
-          <button className="btn-dark">검색</button>
-          <button className="btn-blue" onClick={() => navigate('/admin/account')}>신규</button>
+          <input 
+            type="text" 
+            placeholder="이름/아이디 검색" 
+            value={searchInputs.account}
+            onChange={(e) => handleSearchChange('account', e.target.value)}
+            onKeyDown={(e) => handleKeyDown(e, 'account')}
+          />
+          <button className="btn-dark" onClick={() => handleLocalSearch('account')}>검색</button>
+          <button className="btn-blue" onClick={() => navigate('/admin/account')}>관리</button>
         </div>
         <table className="dash-table">
           <thead>
-            <tr><th>아이디</th><th>이름</th><th>역할</th><th>상태</th><th>최근 로그인</th></tr>
+            <tr><th>아이디</th><th>이름</th><th>역할</th><th>상태</th><th>가입일</th></tr>
           </thead>
           <tbody>
-            {accountData.map((row, i) => (
-              <tr key={i}>
-                <td>{row.id}</td><td>{row.name}</td><td>{row.role}</td>
-                <td><span className={`dot ${row.state === '활성' ? 'active' : 'inactive'}`}></span>{row.state}</td>
-                <td>{row.date}</td>
-              </tr>
-            ))}
+            {previewData.accounts.length > 0 ? (
+              previewData.accounts.map((user, i) => (
+                <tr key={i}>
+                  <td>{user.username}</td>
+                  <td>{user.name}</td>
+                  <td>{user.roles && user.roles[0]}</td>
+                  <td>
+                    <span className={`dot ${user.status === 'ACTIVE' ? 'active' : 'inactive'}`}></span>
+                    {user.status}
+                  </td>
+                  <td>{user.createdAt ? user.createdAt.substring(0, 10) : '-'}</td>
+                </tr>
+              ))
+            ) : (
+              <tr><td colSpan="5" style={{textAlign:'center', padding:'20px', color: '#888'}}>검색 결과가 없습니다.</td></tr>
+            )}
           </tbody>
         </table>
         <div className="card-footer" onClick={() => navigate('/admin/account')}>모두 보기 →</div>
       </div>
 
-      {/* 2. 게시판관리 섹션 */}
+      {/* 2. 게시판관리 */}
       <div className="dash-card">
         <div className="dash-header">
           <h3>게시판관리</h3>
           <span className="status-badge green">요약</span>
         </div>
         <div className="stats-box">
-          <div><span>게시판 수</span> <strong>7</strong></div>
-          <div><span>자유글</span> <strong>6</strong></div>
-          <div><span>비공개</span> <strong>2</strong></div>
-          <div><span>금주 질문</span> <strong>1</strong></div>
+          <div><span>게시판 수</span> <strong>{allData.boards.length}</strong></div>
+          <div><span>총 게시글</span> <strong>{stats.totalPosts}</strong></div>
         </div>
         <div className="action-bar">
-          <input type="text" placeholder="게시판명 검색" />
-          <button className="btn-dark">검색</button>
+          <input 
+            type="text" 
+            placeholder="게시판명 검색" 
+            value={searchInputs.board}
+            onChange={(e) => handleSearchChange('board', e.target.value)}
+            onKeyDown={(e) => handleKeyDown(e, 'board')}
+          />
+          <button className="btn-dark" onClick={() => handleLocalSearch('board')}>검색</button>
           <button className="btn-blue" onClick={() => navigate('/admin/board')}>게시판 생성</button>
         </div>
         <table className="dash-table">
@@ -98,92 +223,121 @@ const AdminDashboard = () => {
             <tr><th>게시판명</th><th>권한</th><th>상태</th><th>게시물수</th><th>수정일</th></tr>
           </thead>
           <tbody>
-            {boardData.map((row, i) => (
-              <tr key={i}>
-                <td>{row.name}</td><td>{row.scope}</td>
-                <td><span className={`dot ${row.state === '사용' ? 'active' : 'inactive'}`}></span>{row.state}</td>
-                <td>{row.count}</td><td>{row.date}</td>
-              </tr>
-            ))}
+            {previewData.boards.length > 0 ? (
+              previewData.boards.map((board, i) => (
+                <tr key={i}>
+                  <td>{board.name}</td>
+                  <td>{board.readRole}</td>
+                  <td>
+                    <span className={`dot ${board.status === 'ACTIVE' ? 'active' : 'inactive'}`}></span>
+                    {board.status === 'ACTIVE' ? '사용' : '중지'}
+                  </td>
+                  <td>{board.postCount || 0}</td>
+                  <td>{board.updatedAt ? board.updatedAt.substring(0, 10) : '-'}</td>
+                </tr>
+              ))
+            ) : (
+              <tr><td colSpan="5" style={{textAlign:'center', padding:'20px', color: '#888'}}>검색 결과가 없습니다.</td></tr>
+            )}
           </tbody>
         </table>
         <div className="card-footer" onClick={() => navigate('/admin/board')}>모두 보기 →</div>
       </div>
 
-      {/* 3. 팝업관리 섹션 */}
+      {/* 3. 팝업/부스 관리 */}
       <div className="dash-card">
         <div className="dash-header">
-          <h3>팝업관리</h3>
+          <h3>팝업/부스 관리</h3>
           <span className="status-badge green">요약</span>
         </div>
         <div className="stats-box">
-          <div><span>전체 팝업</span> <strong>12</strong></div>
-          <div><span>진행중</span> <strong>3</strong></div>
-          <div><span>오늘 완료</span> <strong>1</strong></div>
-          <div><span>금주 신규</span> <strong>1</strong></div>
+          <div><span>전체 등록</span> <strong>{stats.totalBooths}</strong></div>
+          <div><span>진행중</span> <strong>-</strong></div>
         </div>
         <div className="action-bar">
-          <input type="text" placeholder="팝업 제목 검색" />
-          <button className="btn-dark">검색</button>
-          <button className="btn-blue" onClick={() => navigate('/admin/popup')}>신규 팝업</button>
+          <input 
+            type="text" 
+            placeholder="부스 제목 검색" 
+            value={searchInputs.booth}
+            onChange={(e) => handleSearchChange('booth', e.target.value)}
+            onKeyDown={(e) => handleKeyDown(e, 'booth')}
+          />
+          <button className="btn-dark" onClick={() => handleLocalSearch('booth')}>검색</button>
+          <button className="btn-blue" onClick={() => navigate('/admin/popup')}>신규 등록</button>
         </div>
         <table className="dash-table">
           <thead>
-            <tr><th>제목</th><th>기간</th><th>상태</th><th>우선순위</th></tr>
+            <tr><th>제목</th><th>기간(운영일)</th><th>상태</th><th>우선순위</th></tr>
           </thead>
           <tbody>
-            {popupData.map((row, i) => (
-              <tr key={i}>
-                <td>{row.title}</td><td>{row.period}</td>
-                <td>
-                    <span className={`status-text ${row.state === '활성' ? 'text-green' : row.state === '만료 예정' ? 'text-orange' : 'text-gray'}`}>
-                        {row.state}
+            {previewData.booths.length > 0 ? (
+              previewData.booths.map((booth, i) => (
+                <tr key={i}>
+                  <td>{booth.title}</td>
+                  <td>{booth.eventDate}</td>
+                  <td>
+                    <span className={`status-text ${booth.isShow ? 'text-green' : 'text-gray'}`}>
+                      {booth.isShow ? '활성' : '비활성'}
                     </span>
-                </td>
-                <td>{row.priority}</td>
-              </tr>
-            ))}
+                  </td>
+                  <td>{booth.priority}</td>
+                </tr>
+              ))
+            ) : (
+              <tr><td colSpan="4" style={{textAlign:'center', padding:'20px', color: '#888'}}>검색 결과가 없습니다.</td></tr>
+            )}
           </tbody>
         </table>
         <div className="card-footer" onClick={() => navigate('/admin/popup')}>모두 보기 →</div>
       </div>
 
-      {/* 4. 로그 기록 섹션 */}
+      {/* 4. 로그 기록 */}
       <div className="dash-card">
         <div className="dash-header">
           <h3>로그 기록</h3>
           <span className="status-badge green">요약</span>
         </div>
         <div className="stats-box">
-          <div><span>오늘 접속</span> <strong>1,204</strong></div>
-          <div><span>오류</span> <strong>3</strong></div>
-          <div><span>경고</span> <strong>9</strong></div>
-          <div><span>관리자 작업</span> <strong>28</strong></div>
+          <div><span>오늘 접속</span> <strong>{stats.totalVisitors}</strong></div>
+          <div><span>새 로그</span> <strong>{allData.logs.length}</strong></div>
         </div>
         <div className="action-bar">
-          <input type="text" placeholder="기간/유형/IP 검색" />
-          <button className="btn-dark">검색</button>
+          <input 
+            type="text" 
+            placeholder="유형/메시지 검색" 
+            value={searchInputs.log}
+            onChange={(e) => handleSearchChange('log', e.target.value)}
+            onKeyDown={(e) => handleKeyDown(e, 'log')}
+          />
+          <button className="btn-dark" onClick={() => handleLocalSearch('log')}>검색</button>
           <button className="btn-green">엑셀</button>
-          <button className="btn-red">에러만</button>
         </div>
         <table className="dash-table">
           <thead>
             <tr><th>시간</th><th>유형</th><th>주체</th><th>IP</th><th>요약</th></tr>
           </thead>
           <tbody>
-            {logData.map((row, i) => (
-              <tr key={i} className={row.type === 'ERROR' ? 'row-error' : ''}>
-                <td>{row.time}</td>
-                <td className={row.type === 'ERROR' ? 'text-red' : ''}>{row.type}</td>
-                <td>{row.user}</td><td>{row.ip}</td><td>{row.msg}</td>
-              </tr>
-            ))}
+            {previewData.logs.length > 0 ? (
+              previewData.logs.map((log, i) => (
+                <tr key={i} className={log.actionType === 'ERROR' ? 'row-error' : ''}>
+                  <td>{log.occurredAt ? new Date(log.occurredAt).toLocaleTimeString() : '-'}</td>
+                  <td className={log.actionType === 'ERROR' ? 'text-red' : ''}>{log.actionType || 'INFO'}</td>
+                  <td>{log.username || 'System'}</td>
+                  <td>{log.ipAddress}</td>
+                  <td className="text-ellipsis" title={`${log.actionType} ${log.message}`}>
+                    {log.actionType} {log.message}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr><td colSpan="5" style={{textAlign:'center', padding:'20px', color: '#888'}}>검색 결과가 없습니다.</td></tr>
+            )}
           </tbody>
         </table>
         <div className="card-footer" onClick={() => navigate('/admin/log')}>모두 보기 →</div>
       </div>
+      
       </div>
-
     </div>
   );
 };

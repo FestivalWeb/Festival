@@ -27,7 +27,7 @@ public class BoothController {
         return ResponseEntity.ok(boothService.getBoothDetail(id));
     }
 
-    // 작성 (관리자만 가능 - SecurityConfig에서 /api/booths POST는 막아야 함)
+    // 작성 (관리자만 가능)
     @PostMapping
     public ResponseEntity<String> create(@RequestBody BoothDto.CreateRequest request) {
         boothService.createBooth(request);

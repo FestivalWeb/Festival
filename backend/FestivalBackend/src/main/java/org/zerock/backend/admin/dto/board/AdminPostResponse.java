@@ -2,7 +2,7 @@ package org.zerock.backend.admin.dto.board;
 
 import lombok.Builder;
 import lombok.Getter;
-import org.zerock.backend.entity.Post; // (클래스명 post -> Post 권장)
+import org.zerock.backend.entity.Post;
 
 import java.time.LocalDateTime;
 
@@ -11,33 +11,49 @@ import java.time.LocalDateTime;
 public class AdminPostResponse {
 
     private Long postId;
-    private Long boardId;       // 게시판 ID
-    private String boardName;   // 게시판 이름 (예: "공지사항", "자유게시판")
+    private Long boardId;       
+    private String boardName;   
     
     private String title;
     private String content;
     private Long viewCount;
     
-    private Long writerId;      // 작성자(관리자) ID
-    private String writerName;  // 작성자 이름
+    private Long writerId;      
+    private String writerName;  
     
-    private boolean important;  // 중요(상단고정) 여부
+    private boolean important;  
     
     private LocalDateTime createDate;
     private LocalDateTime updateDate;
 
     // Entity -> DTO 변환 메서드
     public static AdminPostResponse from(Post entity) {
+        // 1. 작성자 이름 안전하게 가져오기
+        String actualWriterName = "알 수 없음";
+        if (entity.getUser() != null) {
+            actualWriterName = entity.getUser().getName();
+        } else if (entity.getAdminUser() != null) {
+            actualWriterName = entity.getAdminUser().getName();
+        }
+
+        // [핵심 수정] 게시판(Board)이 null일 경우 에러 방지 처리
+        Long bId = null;
+        String bName = "미지정(삭제됨)";
+
+        if (entity.getBoard() != null) {
+            bId = entity.getBoard().getBoardId();
+            bName = entity.getBoard().getName();
+        }
+
         return AdminPostResponse.builder()
                 .postId(entity.getPostId())
-                .boardId(entity.getBoard().getBoardId())
-                .boardName(entity.getBoard().getName()) // Board 엔티티 접근
+                .boardId(bId)       // null 허용
+                .boardName(bName)   // 게시판 없으면 "미지정" 출력
                 .title(entity.getTitle())
-                .content(entity.getContext()) // 엔티티 필드명이 context라면
+                .content(entity.getContext())
                 .viewCount(entity.getView())
                 .writerId(entity.getAdminId()) 
-                // 작성자 이름은 서비스 계층에서 AdminUserRepository로 조회해서 넣거나, 
-                // post 엔티티에 연관관계가 있다면 entity.getAdminUser().getName() 사용
+                .writerName(actualWriterName)
                 .createDate(entity.getCreateDate())
                 .updateDate(entity.getUpdateDate())
                 .build();

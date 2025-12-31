@@ -42,36 +42,16 @@ public class PostServiceImpl implements PostService {
                 .build();
     }
 
+    // [수정] 위에서 고친 DTO의 from 메서드 사용
     private PostSummaryResponse toSummaryResponse(Post p) {
-        Long thumbnailId = null;
-        String thumbnailUri = null;
-
-        if (p.getImages() != null && !p.getImages().isEmpty()) {
-            PostImgMapping first = p.getImages().iterator().next();
-            if (first.getFile() != null) {
-                MediaFile file = first.getFile();
-                thumbnailId = file.getFileId();
-                thumbnailUri = (file.getThumbUri() != null) ? file.getThumbUri() : file.getStorageUri();
-            }
-        }
-
-        return PostSummaryResponse.builder()
-                .postId(p.getPostId())
-                .title(p.getTitle())
-                .userId(p.getUser().getUserId()) 
-                .view(p.getView())
-                .createDate(p.getCreateDate())
-                .thumbnailFileId(thumbnailId)
-                .thumbnailUri(thumbnailUri)
-                .build();
+        return PostSummaryResponse.from(p);
     }
 
     // ---------------- 기능 구현 ----------------
 
-   @Override
+    @Override
     @SuppressWarnings("null")
     public PostCreateResponse createPost(String loginUserId, PostCreateRequest request) {
-        // 1. 작성자 확인 및 게시글 엔티티 생성
         UserEntity writer = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
@@ -82,19 +62,14 @@ public class PostServiceImpl implements PostService {
                 .createDate(java.time.LocalDateTime.now())
                 .build();
 
-        // 2. 게시글 먼저 저장 (그래야 ID가 생김)
         Post savedPost = postRepository.save(newPost);
 
-        // 3. 이미지 연결 (이 부분이 가장 중요합니다!)
         List<Long> fileIds = request.getFileIds();
 
-        System.out.println("======================================");
-        System.out.println("받은 파일 ID 목록: " + fileIds);
         if (fileIds != null && !fileIds.isEmpty()) {
             List<MediaFile> files = mediaFileRepository.findAllById(fileIds);
 
             for (MediaFile file : files) {
-                // (1) 중간 테이블(매핑) 저장
                 PostImgMappingId mappingId = new PostImgMappingId(savedPost.getPostId(), file.getFileId());
                 PostImgMapping mapping = PostImgMapping.builder()
                         .id(mappingId)
@@ -103,11 +78,8 @@ public class PostServiceImpl implements PostService {
                         .build();
                 postImgMappingRepository.save(mapping);
 
-                // ▼▼▼ [필수 추가] 이 코드가 있어야 갤러리에 뜹니다! ▼▼▼
-                // 파일 자체에 "이 게시글(5번)이 내 주인이야"라고 도장을 찍어줍니다.
                 file.setPost(savedPost); 
-                mediaFileRepository.save(file); // 변경된 내용(post_id)을 DB에 꼭 저장!
-                // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+                mediaFileRepository.save(file);
             }
         }
 
@@ -142,13 +114,15 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @Transactional
+    @Transactional // [수정] 조회수 증가를 위해 readOnly 해제
     @SuppressWarnings("null")
     public PostDetailResponse getPostDetail(Long postId) {
+        // 1. 조회수 먼저 증가 (DB 반영)
+        postRepository.increaseViewCount(postId);
+
+        // 2. 데이터 조회 (증가된 조회수 포함)
         Post entity = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
-
-        postRepository.increaseViewCount(postId);
 
         List<PostImageResponse> images = entity.getImages().stream()
                 .filter(m -> m.getFile() != null)
@@ -160,7 +134,7 @@ public class PostServiceImpl implements PostService {
                 .title(entity.getTitle())
                 .context(entity.getContext())
                 .userId(entity.getUser().getUserId())
-                .view(entity.getView() + 1)
+                .view(entity.getView()) // 최신 조회수 반환
                 .createDate(entity.getCreateDate())
                 .updateDate(entity.getUpdateDate())
                 .images(images)
@@ -177,20 +151,24 @@ public class PostServiceImpl implements PostService {
             throw new IllegalStateException("본인 글만 수정 가능합니다.");
         }
 
-        // 내용 수정
         entity.updatePost(request.getTitle(), request.getContext());
 
-        // [핵심 수정 1] 기존 이미지 삭제
-        // orphanRemoval만 믿지 말고 리포지토리 메서드로 명시적 삭제 수행
-        // 단, entity 컬렉션도 비워줘야 1차 캐시 정합성이 맞음
+        // 1. 기존 이미지들의 Post 연결 끊기 (갤러리에서 사라짐)
+        for (PostImgMapping mapping : entity.getImages()) {
+            if (mapping.getFile() != null) {
+                mapping.getFile().setPost(null);
+                mediaFileRepository.save(mapping.getFile());
+            }
+        }
+        
+        // 2. 매핑 삭제
         entity.getImages().clear();
         postImgMappingRepository.deleteByPost_PostId(entity.getPostId()); 
         
-        // [핵심 수정 2] 새 이미지 등록 부분
+        // 3. 새 이미지 등록
         if (request.getFileIds() != null && !request.getFileIds().isEmpty()) {
             List<MediaFile> files = mediaFileRepository.findAllById(request.getFileIds());
             for (MediaFile file : files) {
-                // (1) 매핑 저장
                 PostImgMappingId mappingId = new PostImgMappingId(entity.getPostId(), file.getFileId());
                 PostImgMapping mapping = PostImgMapping.builder()
                         .id(mappingId)
@@ -199,14 +177,29 @@ public class PostServiceImpl implements PostService {
                         .build();
                 postImgMappingRepository.save(mapping);
                 
-                // ▼▼▼ [필수 추가] 수정 시에도 주인 설정! ▼▼▼
+                // 새 주인 설정
                 file.setPost(entity);
                 mediaFileRepository.save(file);
-                // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
             }
         }
         
-        return getPostDetail(postId);
+        // 결과 반환 (빌더 사용)
+        return PostDetailResponse.builder()
+                .postId(entity.getPostId())
+                .title(entity.getTitle())
+                .context(entity.getContext())
+                .userId(entity.getUser().getUserId())
+                .view(entity.getView())
+                .createDate(entity.getCreateDate())
+                .updateDate(entity.getUpdateDate())
+                .images(entity.getImages().stream()
+                        .filter(m -> m.getFile() != null)
+                        .map(m -> PostImageResponse.builder() // 간단 변환
+                            .fileId(m.getFile().getFileId())
+                            .storageUri(m.getFile().getStorageUri())
+                            .build())
+                        .collect(Collectors.toList()))
+                .build();
     }
 
     @Override
@@ -229,17 +222,30 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public List<PostGalleryResponse> getGalleryList() {
-        // 1. 게시글이 있는 파일들만 DB에서 가져옴
-        List<MediaFile> files = mediaFileRepository.findByPostIsNotNullOrderByFileIdDesc();
+        // Post가 있거나 Notice가 있는 파일들 모두 조회
+        List<MediaFile> files = mediaFileRepository.findByPostIsNotNullOrNoticeIsNotNullOrderByFileIdDesc();
 
-        // 2. DTO로 변환
         return files.stream().map(file -> {
-            // 게시글 정보 가져오기 (혹시 null일까봐 안전장치)
-            String writer = (file.getPost().getUser() != null) ? file.getPost().getUser().getUserId() : "알수없음";
-            String title = file.getPost().getTitle();
-            Long postId = file.getPost().getPostId();
-            
-            // 썸네일이 있으면 썸네일, 없으면 원본 이미지
+            String writer = "알수없음";
+            String title = "제목없음";
+            Long id = 0L; // PostId or NoticeId
+            String type = "UNKNOWN";
+
+            // 게시글 이미지인 경우
+            if (file.getPost() != null) {
+                writer = (file.getPost().getUser() != null) ? file.getPost().getUser().getUserId() : "알수없음";
+                title = file.getPost().getTitle();
+                id = file.getPost().getPostId();
+                type = "POST";
+            } 
+            // 공지사항 이미지인 경우
+            else if (file.getNotice() != null) {
+                writer = (file.getNotice().getAdminUser() != null) ? file.getNotice().getAdminUser().getName() : "관리자";
+                title = file.getNotice().getTitle();
+                id = file.getNotice().getNoticeId();
+                type = "NOTICE";
+            }
+
             String uri = (file.getThumbUri() != null) ? file.getThumbUri() : file.getStorageUri();
 
             return PostGalleryResponse.builder()
@@ -247,8 +253,9 @@ public class PostServiceImpl implements PostService {
                     .imageUri(uri)
                     .title(title)
                     .writer(writer)
-                    .postId(postId)
+                    .postId(id) // 프론트에서 클릭 시 이동할 ID
+                    .type(type)
                     .build();
         }).collect(Collectors.toList());
     }
-}   
+}

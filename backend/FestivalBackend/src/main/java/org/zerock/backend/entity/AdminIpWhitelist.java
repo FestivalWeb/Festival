@@ -16,7 +16,7 @@ public class AdminIpWhitelist {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "ip_address", length = 50, nullable = false, unique = true)
+   @Column(name = "ip_address", length = 50, nullable = false) 
     private String ipAddress;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -3,13 +3,12 @@ import { useNavigate, useLocation } from "react-router-dom";
 import SearchBar from "../board/SearchBar";
 import BoardTable from "../board/BoardTable";
 import Pagination from "../board/Pagination";
-// import postData from "../data/postData"; // 더미 데이터는 주석 처리 또는 삭제
 import { useAuth } from "../../context/AuthContext";
 
 export default function PostPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth(); // AuthContext에서 사용자 정보 가져옴 (없으면 null)
+  const { user } = useAuth(); 
 
   // 데이터 상태 관리
   const [posts, setPosts] = useState([]);
@@ -20,14 +19,14 @@ export default function PostPage() {
   const [keyword, setKeyword] = useState("");
   const [searchType, setSearchType] = useState("ALL");
 
-  // 1. URL 쿼리스트링(헤더 검색) 확인
+  // 1. URL 쿼리스트링(헤더 검색 등) 확인
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const queryKeyword = params.get("keyword");
     
     if (queryKeyword) {
       setKeyword(queryKeyword);
-      setSearchType("TITLE"); // 헤더 검색은 기본적으로 제목 검색 등으로 설정
+      setSearchType("TITLE"); 
     }
   }, [location.search]);
 
@@ -49,21 +48,21 @@ export default function PostPage() {
       if (response.ok) {
         const data = await response.json();
         
-        // 전체 게시글 수 가져오기
+        // 전체 게시글 수 가져오기 (가짜 번호 계산용)
         const totalElements = data.totalElements; 
         
         // 백엔드 응답을 BoardTable 포맷에 맞게 변환
         const formattedData = data.content.map((p, index) => ({
           // [보여주기용 가상 번호 계산]
-          // 공식: 전체개수 - (현재페이지 * 10) - 현재인덱스
+          // 공식: 전체개수 - ((현재페이지-1) * 10) - 현재인덱스
           id: totalElements - ((page - 1) * 10) - index, 
           
-          realId: p.postId, // [중요] 실제 DB ID (클릭 시 이동용)
+          realId: p.postId, // [중요] 실제 DB ID (상세 페이지 이동용)
           title: p.title,
-          dept: p.userId, 
-          views: p.view,
-          date: p.createDate ? p.createDate.split('T')[0] : '',
-          file: p.thumbnailUri
+          dept: p.userId,   // DTO의 userId (작성자 닉네임)
+          views: p.view,    // DTO의 view (조회수)
+          date: p.createDate ? p.createDate.split('T')[0] : '', // 날짜 포맷팅
+          file: p.thumbnailUri // 썸네일/아이콘 여부
         }));
 
         setPosts(formattedData);
@@ -82,8 +81,7 @@ export default function PostPage() {
   };
 
   const handleWriteClick = () => {
-    // 1. 로그인 체크 (Context 사용 권장)
-    // localStorage도 가능하지만 Context와 동기화가 안 될 수 있음
+    // 1. 로그인 체크
     const userId = localStorage.getItem("userId"); 
 
     if (!userId) {
@@ -92,7 +90,7 @@ export default function PostPage() {
       return;
     }
     
-    // [핵심 수정] 글쓰기 경로를 /write -> /post/write 로 변경
+    // 글쓰기 페이지로 이동
     navigate("/post/write");
   };
 
@@ -121,11 +119,11 @@ export default function PostPage() {
           totalPages={totalPages}
           onPageChange={(page) => setCurrentPage(page)}
         />
-       <div className="write-button-wrapper">
-        <button className="write-fab" onClick={handleWriteClick}>
-          글쓰기
-        </button>
-      </div>
+        <div className="write-button-wrapper">
+         <button className="write-fab" onClick={handleWriteClick}>
+           글쓰기
+         </button>
+       </div>
     </div>
     </div>
   );

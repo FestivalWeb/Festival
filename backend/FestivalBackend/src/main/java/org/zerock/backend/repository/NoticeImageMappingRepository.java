@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.zerock.backend.entity.NoticeImageMapping;
+import org.zerock.backend.entity.Notice;
 import org.zerock.backend.entity.NoticeImageId;
 
 import java.util.List;
@@ -34,4 +35,6 @@ public interface NoticeImageMappingRepository extends JpaRepository<NoticeImageM
     // 7) 공지 기준으로 이미지 + MediaFile까지 한 번에 가져오기 (fetch join 예시)
     @Query("select nim from NoticeImageMapping nim join fetch nim.mediaFile where nim.notice.noticeId = :noticeId")
     List<NoticeImageMapping> findWithMediaFileByNoticeId(Long noticeId);
+
+    void deleteByNotice(Notice notice);
 }

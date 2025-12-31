@@ -46,16 +46,21 @@ public class AuthService {
     public UserLoginResponseDto login(UserLoginRequestDto dto) {
         // 1. 아이디 조회 실패 시
         UserEntity user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new LoginException("존재하지 않는 아이디입니다.")); // LoginException 사용
+                .orElseThrow(() -> new LoginException("존재하지 않는 아이디입니다.")); 
 
         // 2. 비밀번호 불일치 시
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-            throw new LoginException("비밀번호가 일치하지 않습니다."); // LoginException 사용
+            throw new LoginException("비밀번호가 일치하지 않습니다."); 
+        }
+
+        // [추가] 2-1. 정지된 계정 확인
+        if (!user.isActive()) {
+            throw new LoginException("정지된 계정입니다. 관리자에게 문의하세요.");
         }
 
         // 3. 이메일 미인증 시
         if (!user.isVerified()) {
-             throw new LoginException("이메일 인증이 완료되지 않은 계정입니다."); // LoginException 사용
+             throw new LoginException("이메일 인증이 완료되지 않은 계정입니다.");
         }
         
         return createSession(user, "로그인 성공");
@@ -92,6 +97,11 @@ public class AuthService {
                     newUser.setRole("USER");
                     return userRepository.save(newUser);
                 });
+
+        // [추가] 카카오 로그인도 정지 계정 체크
+        if (!user.isActive()) {
+            throw new RuntimeException("정지된 계정입니다. 관리자에게 문의하세요.");
+        }
 
         // 5. 세션 생성 및 반환
         return createSession(user, "카카오 로그인 성공");
@@ -142,9 +152,6 @@ public class AuthService {
         }
     }
 
-    // (아래 createSession, getKakaoAccessToken, getKakaoUserInfo 메서드는 기존과 동일)
-    // 편의를 위해 createSession만 다시 적어드립니다. 나머지는 기존 코드 유지하세요.
-
     private UserLoginResponseDto createSession(UserEntity user, String message) {
         String sessionId = UUID.randomUUID().toString();
         String refreshToken = UUID.randomUUID().toString();
@@ -168,7 +175,6 @@ public class AuthService {
                 .name(user.getName())
                 .email(user.getEmail())
                 .role(user.getRole() != null ? user.getRole() : "USER")
-                // ▼▼▼ [필수 추가] DB에 저장된 provider 값을 꺼내서 담아줍니다. ▼▼▼
                 .provider(user.getProvider()) 
                 .build();
     }

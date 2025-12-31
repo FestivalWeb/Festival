@@ -58,4 +58,7 @@ public interface MediaFileRepository extends JpaRepository<MediaFile, Long> {
 
     List<MediaFile> findByPostIsNotNullOrderByFileIdDesc();
 
+    // [추가] 게시글 OR 공지사항 이미지를 모두 조회 (갤러리용)
+    List<MediaFile> findByPostIsNotNullOrNoticeIsNotNullOrderByFileIdDesc();
+
 }

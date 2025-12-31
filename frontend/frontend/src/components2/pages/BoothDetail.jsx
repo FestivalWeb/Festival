@@ -26,14 +26,20 @@ const BoothDetail = () => {
   }, [id]);
 
   // [핵심 추가] 이미지 URL 생성 함수 (메인 페이지와 동일 로직)
-  const getImageUrl = (boothData) => {
+ const getImageUrl = (boothData) => {
     if (!boothData) return "/images/booth1.jpg";
 
     // 1순위: booth.img (대표 이미지)
     if (boothData.img) {
+      // (1) 외부 링크인 경우
       if (boothData.img.startsWith("http")) {
         return boothData.img;
       }
+      // (2) [중요] 프론트엔드 public 폴더 이미지인 경우 (/images 로 시작) -> 백엔드 주소 붙이면 안됨!
+      if (boothData.img.startsWith("/images")) {
+        return boothData.img;
+      }
+      // (3) 그 외(백엔드 업로드 파일)인 경우 -> 백엔드 주소 붙임
       return `http://localhost:8080${boothData.img}`;
     }
 

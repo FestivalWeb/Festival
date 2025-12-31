@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.zerock.backend.entity.Board;
 import org.zerock.backend.entity.Post;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
@@ -29,11 +30,12 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     // UserEntity 안의 userId 필드를 탐색 (User_UserId)
     Page<Post> findByUser_UserIdContainingIgnoreCase(String keyword, Pageable pageable);
 
-    // 5. 조회수 증가
-    @Modifying
-    // [수정] JPQL 엔티티 이름은 대소문자를 구분하므로 'post' -> 'Post' (클래스명)로 수정
+   // [추가] 게시글 조회수 증가 (clearAutomatically = true 필수)
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE Post p SET p.view = p.view + 1 WHERE p.postId = :postId")
     void increaseViewCount(@Param("postId") Long postId);
 
     void deleteByUser_UserId(String userId);
+
+    long countByBoard(Board board);
 }
