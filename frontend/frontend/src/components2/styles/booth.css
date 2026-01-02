@@ -1,0 +1,222 @@
+/* BoothPage.js */
+
+/* 전체 리스트 세로 배치 */
+.booth2-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2vw;      /* gap도 비율로 */
+  width: 90%;    /* 전체 화면 폭 비율 */
+  max-width: 1200px; /* 너무 커지지 않게 제한 */
+  margin: 0 auto;
+}
+
+/* 각 아이템 */
+.booth2-item {
+  display: flex;
+  background: #fff;
+  border-radius: 1.5vw;  /* 픽셀 -> 비율 */
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 0.5vw 1.5vw rgba(0, 0, 0, 0.08);
+  transition: transform 0.15s ease;
+}
+
+.booth2-item:hover {
+  transform: translateY(-0.3vw);
+}
+
+/* 왼쪽 이미지 */
+.booth2-image-wrap {
+  flex: 0 0 35%;   /* 고정 폭이 아니라 전체 대비 비율 */
+  height: auto;    /* 이미지 비율 유지 */
+}
+
+.booth2-image {
+  width: 100%;
+  height: auto;    /* 높이 자동으로 비율 유지 */
+  object-fit: cover;
+}
+
+/* 오른쪽 박스 */
+.booth2-info-box {
+  flex: 1;    /* 남은 공간을 채움 */
+  background: #faf4f5;
+  padding: 2vw; /* padding도 비율 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* 제목 + 태그 */
+.booth2-title {
+  margin: 0 0 1vw 0;
+  font-size: 1.3vw;
+  display: flex;
+  align-items: center;
+  gap: 0.5vw;
+}
+
+.booth2-tag {
+  background: #ff5777;
+  color: #fff;
+  padding: 0.3vw 0.8vw;
+  border-radius: 0.6vw;
+  font-size: 0.9vw;
+}
+
+/* 정보 목록 */
+.booth2-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7vw;
+  font-size: 0.9vw;
+  color: #444;
+}
+
+.booth2-info-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5vw;
+}
+
+/* BoothDetail.js */
+
+/* 전체 컨테이너 */
+.detail-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2vw;
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2vw;
+  background: #fff;
+  border-radius: 1vw;
+  box-shadow: 0 0.2vw 0.8vw rgba(0,0,0,0.1);
+}
+
+/* 상단 영역: 이미지 + 상세설명 */
+.detail-top {
+  display: flex;
+  gap: 2vw;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+/* 왼쪽 사진 */
+.detail-image-wrapper {
+  flex: 1;
+  min-width: 30%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.detail-main-image {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 1vw;
+  object-fit: cover;
+}
+
+/* 오른쪽 상세설명 */
+.detail-info-box {
+  flex: 1.2;
+  min-width: 0; /* 중요: flex 아이템이 줄어들 수 있게 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1vw;
+}
+
+/* 모든 텍스트 font-size 통일 */
+.detail-title,
+.reserve-title,
+.detail-row,
+.booth2-detail h2,
+.booth2-detail p {
+  font-size: 1.3vw; /* booth-title과 동일 */
+  line-height: 1.4;
+  color: #333;
+  margin: 0;
+}
+
+/* 예약 정보 아래쪽 */
+.detail-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5vw;
+  margin-top: 2vw;
+}
+
+/* 각 행 */
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7vw;
+}
+
+/* 입력 */
+.people-input {
+  width: 5vw;
+  padding: 0.3vw;
+  font-size: 1.3vw; /* 통일 */
+}
+
+/* 예약 버튼 */
+.reserve-btn {
+  background-color: #009688;
+  color: white;
+  border: none;
+  padding: 0.8vw 1.2vw;
+  border-radius: 0.5vw;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s;
+  width: 100%;       /* 부모 폭 기준 */
+  max-width: 200px;  /* 최대 너비 */
+  min-width: 80px;   /* 최소 너비 */
+  font-size: 1.3vw;  /* 텍스트 통일 */
+  text-align: center;
+}
+
+.reserve-btn:hover {
+  background-color: #00796b;
+}
+
+/* 달력 아이콘 */
+.calendar-icon-wrapper {
+  margin-bottom: 1vw;
+  cursor: pointer;
+}
+
+.emoji-icon {
+  font-size: 1.5vw;
+  cursor: pointer;
+  margin-right: 0.5vw;
+}
+
+/* BoothImageDetail.jsx */
+
+/* 갤러리 부스 상세페이지 중앙 정렬 */
+.booth2-detail {
+  width: 90%;
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 0;
+}
+
+.booth2-detail-img {
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  border-radius: 8px;
+  object-fit: cover;
+  display: block;
+    margin-top: 20px;   /* 상단 간격 */
+  margin-bottom: 20px; /* 하단 간격 */
+}

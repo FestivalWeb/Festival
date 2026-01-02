@@ -1,0 +1,168 @@
+/* 전체 페이지: 배경은 body 분홍, 여기서는 가운데 정렬 + 여백만 */
+.detail-page {
+  padding: 48px 16px 80px;
+}
+
+/* 메인 카드: 폭 1200px, MainHero랑 맞추기 */
+.detail-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 28px 28px 40px;
+  box-shadow: 0 16px 40px rgba(255, 130, 170, 0.18);
+}
+
+/* 상단 로고 + 제목 줄 */
+.detail-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+.detail-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-logo-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 30% 20%, #ff7ca3, #ff3159);
+  box-shadow: 0 4px 10px rgba(255, 70, 120, 0.35);
+  font-size: 18px;
+}
+
+.detail-logo-text {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.detail-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #ff2f72;
+}
+
+/* 상단 탭 3개 (연혁/인사말/행사기록) */
+.detail-top-tabs {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ffe0ed;
+}
+
+.detail-tab-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 14px;
+  cursor: pointer;
+  background: #ffe9f3;
+  color: #555;
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+}
+
+.detail-tab-btn:hover {
+  transform: translateY(-1px);
+  background: #ffd4ea;
+}
+
+.detail-tab-btn--active {
+  background: #ff4773;
+  color: #ffffff;
+}
+
+/* 본문 영역 */
+.detail-main {
+  margin-top: 24px;
+}
+
+/* 각 섹션 공통 */
+.detail-section {
+  margin-bottom: 40px;
+}
+
+.detail-section-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #222;
+}
+
+/* 카드 박스 */
+.detail-card {
+  background: #fff9fc;
+  border-radius: 18px;
+  padding: 20px 24px 24px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.04);
+}
+
+/* 연혁 / 행사기록 테이블 */
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.detail-table thead {
+  background: #ffe5f0;
+}
+
+.detail-table th,
+.detail-table td {
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.detail-table tbody tr:nth-child(every) {
+  background: #fff;
+}
+
+.detail-table tbody tr + tr {
+  border-top: 1px solid #f3d7e5;
+}
+
+/* 인사말 카드 레이아웃 */
+.detail-greeting-card {
+  display: grid;
+  grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+  gap: 24px;
+}
+
+.detail-greeting-photo {
+  border-radius: 16px;
+  background: #e6e6e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  font-size: 14px;
+}
+
+.detail-greeting-text h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.detail-greeting-text p {
+  margin: 0;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+/* 반응형: 폭 좁으면 인사말 카드 한 줄로 */
+@media (max-width: 900px) {
+  .detail-greeting-card {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,406 @@
+/* 사이드바 */
+.admin-sidebar {
+  width: 220px;
+  background: #020617;
+  border-right: 1px solid #111827;
+  padding: 72px 16px 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 32px;
+}
+
+.admin-logo-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.admin-logo-text {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-nav-section {
+  margin-top: 8px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.admin-nav-item {
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.admin-nav-item:hover {
+  background: #111827;
+  color: #e5e7eb;
+}
+
+.admin-nav-item--active {
+  background: #1d4ed8;
+  color: #f9fafb;
+}
+
+/* 메인 영역 */
+.admin-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #020617;
+}
+
+/* 상단 바 */
+.admin-topbar {
+  height: 70px;
+  border-bottom: 1px solid #111827;
+  padding: 12px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-topbar-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-topbar-path {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.admin-topbar-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.admin-topbar-right {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* 콘텐츠 카드 */
+.admin-content-card {
+  margin: 20px 28px 24px;
+  padding: 18px 18px 16px;
+  border-radius: 10px;
+  background: #020617;
+  box-shadow: 0 0 0 1px #111827;
+}
+
+/* 필터 / 액션 */
+.admin-filters-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 180px)) minmax(0, 1fr);
+  gap: 14px;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+.admin-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-filter-label {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.admin-input,
+.admin-select {
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #374151;
+  background: #020617;
+  color: #e5e7eb;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.admin-input::placeholder {
+  color: #6b7280;
+}
+
+.admin-input:focus,
+.admin-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.admin-filter-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* 버튼들 */
+.admin-btn {
+  border-radius: 6px;
+  border: none;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.admin-btn--ghost {
+  background: #111827;
+  color: #e5e7eb;
+}
+
+.admin-btn--ghost:hover {
+  background: #1f2937;
+}
+
+.admin-btn--primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.admin-btn--primary:hover {
+  background: #2563eb;
+}
+
+.admin-btn--danger {
+  background: #b91c1c;
+  color: #f9fafb;
+}
+
+.admin-btn--danger:hover {
+  background: #dc2626;
+}
+
+/* 테이블 */
+.admin-table-wrapper {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #111827;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.admin-table thead {
+  background: #020617;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #111827;
+}
+
+.admin-table th {
+  text-align: left;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.admin-table tbody tr:nth-child(even) {
+  background: #020617;
+}
+
+.admin-table tbody tr:nth-child(odd) {
+  background: #020617;
+}
+
+.admin-table tbody tr:hover {
+  background: #111827;
+}
+
+/* 역할 / 상태 뱃지 */
+.admin-role-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #0f172a;
+  border: 1px solid #1f2937;
+  font-size: 11px;
+}
+
+.admin-status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+
+.admin-status-pill--active {
+  background: #065f46;
+  color: #bbf7d0;
+}
+
+.admin-status-pill--disabled {
+  background: #7f1d1d;
+  color: #fecaca;
+}
+
+/* 테이블 하단 */
+.admin-table-footer {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.admin-pagination {
+  display: flex;
+  gap: 4px;
+}
+
+.admin-page-btn {
+  min-width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid #111827;
+  background: #020617;
+  color: #e5e7eb;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.admin-page-btn--active {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+/* ===== 메뉴 열고닫기 공통 레이아웃 ===== */
+.admin-layout {
+  display: flex; /* 사이드바 + 메인 나란히 배치 */
+}
+
+/* 사이드바 기본 스타일(이미 있다면 transition만 추가해도 됨) */
+.admin-sidebar {
+  width: 240px;
+  transition: transform 0.25s ease;
+}
+
+/* 열림 / 닫힘 상태에 따라 사이드바 위치 변경 */
+.admin-layout.sidebar-open .admin-sidebar {
+  transform: translateX(0);
+}
+
+.admin-layout.sidebar-closed .admin-sidebar {
+  transform: translateX(-100%);
+}
+
+/* 메인 영역 기본 */
+.admin-main {
+  flex: 1;
+  position: relative;
+  transition: padding-left 0.25s ease;
+}
+
+/* ===== 햄버거(메뉴 토글) 버튼 ===== */
+.admin-menu-toggle {
+  position: fixed;
+  left: 20px;
+  top: 18px;
+  z-index: 100;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid #2b3550;
+  background: #0c1324;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45);
+}
+
+.admin-menu-toggle-bar {
+  width: 16px;
+  height: 2px;
+  border-radius: 999px;
+  background: #f7f7ff;
+}
+
+.admin-layout {
+  display: flex;
+  min-height: 100vh; /* 화면 전체 높이 사용 */
+  width: 100vw;      /* 화면 전체 너비 사용 */
+  background: #020617;
+  color: #e5e7eb;
+}
+
+/* [추가] 헤더 우측 사용자 정보 스타일 */
+.admin-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* 텍스트와 다른 요소 사이 간격 */
+  font-size: 13px; /* 폰트 크기 살짝 키움 */
+}
+
+/* 사용자 이메일/이름 텍스트 */
+.admin-user-email {
+  color: #e5e7eb;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+/* 권한 뱃지 (SUPER, MANAGER 등) */
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  padding: 0 8px;
+  margin-left: 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: #3b82f6; /* 기본 파란색 (SUPER) */
+  color: white;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* (선택 사항) 권한별 색상 다르게 주기 */
+.role-badge.super {
+  background: #ef4444; /* 빨간색 */
+}
+.role-badge.manager {
+  background: #f59e0b; /* 주황색 */
+}
+.role-badge.staff {
+  background: #10b981; /* 초록색 */
+}

@@ -1,0 +1,233 @@
+/* 대시보드 전체 영역 래퍼 */
+.admin-dashboard {
+  width: 100%;
+}
+
+/* 대시보드 그리드 레이아웃 */
+.admin-dashboard .dashboard-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2열 배치 */
+  gap: 20px;
+  width: 100%;
+}
+
+/* 카드 공통 스타일 */
+.admin-dashboard .dash-card {
+  background-color: #1e212b; /* 카드 배경 (어두운 남색) */
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* 카드 헤더 */
+.admin-dashboard .dash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.admin-dashboard .dash-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #fff;
+  font-weight: 600;
+}
+
+.admin-dashboard .status-badge {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+.admin-dashboard .status-badge.green {
+  background-color: rgba(46, 204, 113, 0.2);
+  color: #2ecc71;
+}
+
+/* 상단 통계 박스 */
+.admin-dashboard .stats-box {
+  display: flex;
+  justify-content: space-between;
+  background-color: #252833;
+  padding: 12px 20px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+
+.admin-dashboard .stats-box div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #aaa;
+}
+
+.admin-dashboard .stats-box strong {
+  font-size: 1.1rem;
+  color: #fff;
+  margin-top: 4px;
+}
+
+/* 검색 및 버튼 영역 */
+.admin-dashboard .action-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.admin-dashboard .action-bar input {
+  flex: 1;
+  background-color: #121418;
+  border: 1px solid #444;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.admin-dashboard .action-bar button {
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: white;
+  white-space: nowrap;
+}
+
+/* 버튼 색상 */
+.admin-dashboard .btn-dark {
+  background-color: #3e4452;
+}
+.admin-dashboard .btn-dark:hover {
+  background-color: #4e5563;
+}
+
+.admin-dashboard .btn-blue {
+  background-color: #3b82f6;
+}
+.admin-dashboard .btn-blue:hover {
+  background-color: #2563eb;
+}
+
+.admin-dashboard .btn-green {
+  background-color: #10b981;
+}
+
+.admin-dashboard .btn-red {
+  background-color: #ef4444;
+}
+
+/* 테이블 스타일 */
+.admin-dashboard .dash-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-bottom: auto;
+}
+
+.admin-dashboard .dash-table th {
+  text-align: left;
+  padding: 10px 8px;
+  color: #9ca3af;
+  border-bottom: 1px solid #444;
+  font-weight: 500;
+}
+
+.admin-dashboard .dash-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #2f3340;
+  color: #e5e7eb;
+}
+
+/* 상태 점 (Dot) */
+.admin-dashboard .dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.admin-dashboard .dot.active {
+  background-color: #2ecc71;
+}
+
+.admin-dashboard .dot.inactive {
+  background-color: #9ca3af;
+}
+
+/* 텍스트 컬러 유틸리티 */
+.admin-dashboard .text-green {
+  color: #2ecc71;
+}
+
+.admin-dashboard .text-orange {
+  color: #f59e0b;
+}
+
+.admin-dashboard .text-gray {
+  color: #9ca3af;
+}
+
+.admin-dashboard .text-red {
+  color: #ef4444;
+  font-weight: bold;
+}
+
+.admin-dashboard .row-error {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* 하단 '모두 보기' */
+.admin-dashboard .card-footer {
+  text-align: right;
+  margin-top: 15px;
+  font-size: 0.8rem;
+  color: #60a5fa;
+  cursor: pointer;
+}
+
+.admin-dashboard .card-footer:hover {
+  text-decoration: underline;
+}
+
+/* 반응형 */
+@media (max-width: 1200px) {
+  .admin-dashboard .dashboard-wrapper {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 로딩 컨테이너 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 80vh; /* 화면 중앙 정렬 */
+  font-size: 1.2rem;
+  color: #fff;
+}
+
+/* 빙글빙글 도는 스피너 */
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(255, 255, 255, 0.3);
+  border-top: 5px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
