@@ -29,7 +29,8 @@ public class WebConfig implements WebMvcConfigurer {
         String uploadPath = Paths.get("uploads").toAbsolutePath().toUri().toString();
 
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations(uploadPath);
+                .addResourceLocations(uploadPath)
+                .addResourceLocations("file:///C:/upload/");
     }
 
     // [삭제함] corsConfigurationSource 빈은 SecurityConfig에 이미 있으므로 제거하여 충돌 방지
