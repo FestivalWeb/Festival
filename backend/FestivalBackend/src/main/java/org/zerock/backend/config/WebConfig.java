@@ -30,7 +30,7 @@ public class WebConfig implements WebMvcConfigurer {
 
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations(uploadPath)
-                .addResourceLocations("file:///C:/upload/");
+                .addResourceLocations("file:///C:/gnsdlxx-admin/uploads/");
     }
 
     // [삭제함] corsConfigurationSource 빈은 SecurityConfig에 이미 있으므로 제거하여 충돌 방지

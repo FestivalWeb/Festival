@@ -1,14 +1,17 @@
-/* Login Page Styling - Strawberry Festival Theme */
+/* 로그인 페이지 스타일 — 딸기 축제 테마 */
 
 .login-wrapper {
   min-height: 100vh;
-  background: linear-gradient(180deg, #f7f8f9 0%, #f3f4f5 60%); /* 은은한 회색 그라데이션 */
+  background: #ffffff; /* 전체 배경을 흰색으로 변경 (카드 없음) */
   display: flex;
-  align-items: center; /* 카드가 수직 중앙에 오도록 */
+  align-items: center;
   justify-content: center;
-  padding: 64px 16px; /* 카드 주변 여유 확보 */
+  padding: 64px 16px;
   font-family: system-ui, -apple-system, sans-serif;
 }
+
+/* Auth sizing variables: 여기 값들을 조정하면 모든 auth 페이지의 입력/폼 크기를 제어합니다. */
+/* 공통 변수와 레이아웃은 AuthCommon.css로 추출되었습니다 */
 
 .login-wrapper { box-sizing: border-box; }
 
@@ -24,7 +27,7 @@
   box-sizing: border-box;
 }
 
-/* Break-out to full viewport width while keeping card centered */
+/* 카드를 중앙에 유지하면서 전체 뷰포트 너비로 확장 */
 .login-container.full-bleed {
   width: 100vw;
   max-width: 100vw;
@@ -60,26 +63,24 @@
 
 /* 중앙 로그인 폼 */
 .login-form-area {
-  background: #ffffff;
-  border-radius: 18px;
-  padding: 40px 42px;
+  background: transparent; /* 카드 배경 제거 */
+  border-radius: 0;
+  padding: var(--auth-card-padding-vertical) var(--auth-card-padding-horizontal); /* 내부 여백 */
   width: 100%;
-  max-width: 480px; /* 카드 너비 기준 */
-  min-height: 60vh; /* 화면의 중심에 자리하도록 충분한 높이 확보 */
+  max-width: var(--auth-card-max-width); /* 중앙 정렬 폭 유지 */
+  min-height: auto;
   box-sizing: border-box;
   text-align: center;
-  border: 1px solid rgba(0,0,0,0.04);
-  box-shadow: 0 18px 50px rgba(16,24,40,0.06), 0 6px 18px rgba(16,24,40,0.04);
+  border: none;
+  box-shadow: none;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* 수직 중앙 정렬 */
-  align-items: center; /* 수평 중앙 정렬 */
-  gap: 18px;
-  overflow: hidden;
-  position: relative; /* make back button position relative to card */
+  align-items: center;
+  margin: 0 auto;
+  position: relative; /* 뒤로가기 버튼 위치 기준 유지 */
 }
 
-/* accent bar removed per request */
+/* 요청으로 강조 바 제거 */
 
 /* 제목 */
 .login-header {
@@ -104,18 +105,23 @@
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--auth-gap);
   width: 100%;
 }
 
+/* 내부 폼 너비 제한 — 입력/버튼을 더 짧게 유지 */
+.login-form { max-width: 360px; margin: 0 auto; }
+
 .login-input {
-  padding: 12px 14px;
+  height: var(--auth-input-height);
+  padding: var(--auth-input-padding);
   border-radius: 8px;
   border: 1px solid #e0e0e0;
   background: #f8f8f8;
   font-size: 14px;
   color: #333;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .login-input::placeholder {
@@ -150,7 +156,7 @@
 
 /* 로그인 버튼 (초록색) */
 .login-btn-green {
-  padding: 14px 16px;
+  padding: 10px 16px;
   border-radius: 8px;
   border: none;
   background: linear-gradient(90deg, #a4c639 0%, #87b13a 100%);
@@ -160,7 +166,8 @@
   cursor: pointer;
   transition: all 0.3s ease;
   margin-top: 4px;
-  width: 100%;
+  width: auto;
+  min-width: 140px;
 }
 
 .login-btn-green:hover {
@@ -174,7 +181,7 @@
 
 /* 카카오톡 버튼 (노란색) */
 .login-btn-yellow {
-  padding: 14px 16px;
+  padding: 12px 14px;
   border-radius: 8px;
   border: none;
   background: #ffd700;
@@ -183,11 +190,12 @@
   font-size: 15px;
   cursor: pointer;
   transition: all 0.3s ease;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: 100%;
+  width: auto;
+  min-width: 140px;
 }
 
 .login-btn-yellow:hover {
@@ -207,12 +215,12 @@
 
 /* 하단 링크 */
 .login-footer {
-  margin-top: 18px;
+  margin-top: 12px;
   font-size: 12px;
-  color: #999;
+  color: #777;
   text-align: center;
-  padding-top: 14px;
-  border-top: 1px solid #ebe7e7;
+  padding-top: 8px;
+  border-top: none; /* 카드 구분선 제거 */
 }
 
 .login-footer a {
@@ -266,3 +274,140 @@
     font-size: 13px;
   }
 }
+
+.login-wrapper .findid-card.login-form-area,
+.login-wrapper .findid-card {
+  max-width: var(--auth-card-max-width) !important;
+  padding: var(--auth-card-padding-vertical) var(--auth-card-padding-horizontal) !important;
+  min-height: auto !important;
+  box-sizing: border-box !important;
+  display: block !important;
+  margin: 0 auto !important;
+}
+
+/* login-wrapper/container 사용 시 findid/forgot 페이지와의 일관성 강제 */
+.login-wrapper .findid-card.login-form-area,
+.login-wrapper .findid-card {
+  max-width: var(--auth-card-max-width) !important;
+  padding: var(--auth-card-padding-vertical) var(--auth-card-padding-horizontal) !important;
+  min-height: auto !important;
+  box-sizing: border-box !important;
+  display: block !important;
+  margin: 0 auto !important;
+}
+
+.login-wrapper .findid-header { margin-bottom: 28px !important; }
+
+.login-wrapper .findid-form-card { max-width: 420px !important; padding: 0 !important; background: transparent !important; border: none !important; }
+
+.login-wrapper .findid-input { box-sizing: border-box !important; max-width: 100% !important; }
+
+.login-wrapper, .signup-wrapper, .findid-wrapper, .findid-wrapper.no-bottom {
+  min-height: 100vh;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 16px;
+  box-sizing: border-box;
+}
+
+/* 전역 인증 페이지 일관성: login/signup/findid/forgot에 동일한 카드 레이아웃 적용 */
+.login-wrapper, .signup-wrapper, .findid-wrapper, .findid-wrapper.no-bottom {
+  min-height: 100vh;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 16px;
+  box-sizing: border-box;
+}
+
+.login-container, .signup-container, .findid-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 720px;
+  min-height: 0;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.login-container.full-bleed, .signup-container.full-bleed, .findid-container.full-bleed {
+  width: 100vw;
+  max-width: 100vw;
+  box-sizing: border-box;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.login-form-area, .signup-form-area, .findid-card, .findid-card.login-form-area {
+  background: transparent;
+  border-radius: 0;
+  padding: var(--auth-card-padding-vertical) var(--auth-card-padding-horizontal) !important;
+  width: 100%;
+  max-width: var(--auth-card-max-width);
+  min-height: auto;
+  box-sizing: border-box;
+  text-align: center;
+  border: none;
+  box-shadow: none;
+  display: block;
+  gap: var(--auth-gap);
+  overflow: visible;
+  position: relative;
+}
+
+/* 모든 인증 페이지에서 사용하는 카드 영역 */
+.login-form-area, .signup-form-area, .findid-card, .findid-card.login-form-area {
+  background: transparent;
+  border-radius: 0;
+  padding: var(--auth-card-padding-vertical) var(--auth-card-padding-horizontal) !important;
+  width: 100%;
+  max-width: var(--auth-card-max-width);
+  min-height: auto;
+  box-sizing: border-box;
+  text-align: center;
+  border: none;
+  box-shadow: none;
+  display: block;
+  gap: var(--auth-gap);
+  overflow: visible;
+  position: relative;
+}
+
+.findid-form-card, .signup-step, .verify-card, .complete-card, .done-card {
+  background: transparent !important;
+  padding: 0 !important;
+  border: none !important;
+  max-width: 420px !important;
+  width: 100% !important;
+}
+
+/* 내부 폼 래퍼가 추가 패딩/박스를 추가하지 않도록 설정 */
+.findid-form-card, .signup-step, .verify-card, .complete-card, .done-card {
+  background: transparent !important;
+  padding: 0 !important;
+  border: none !important;
+  max-width: 420px !important;
+  width: 100% !important;
+}
+
+
+
+/* 입력/버튼을 카드 너비에 고정 */
+.findid-input, .login-input, .signup-input {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 12px 14px !important;
+}
+
+.actions-row { width: 100%; display:flex; justify-content:center; }
+
+.login-back-btn, .findid-back-btn { position: absolute; top: 12px; right: 12px; }
+/* 뒤로가기 버튼 통일 */
