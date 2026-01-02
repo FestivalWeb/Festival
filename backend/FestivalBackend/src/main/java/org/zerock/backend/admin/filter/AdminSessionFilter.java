@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j; // 로그 출력을 위해 추가
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -15,20 +17,26 @@ import org.zerock.backend.entity.AdminUser;
 import org.zerock.backend.repository.AdminSessionRepository;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
 
 import org.springframework.lang.NonNull;
 
+@Slf4j // 롬복 로그 추가
 @Component
 @RequiredArgsConstructor
 public class AdminSessionFilter extends OncePerRequestFilter {
 
     private final AdminSessionRepository adminSessionRepository;
 
-    // 로그인 서비스와 맞춰 주기 (2시간)
+    // 로그인 유지 시간 (2시간)
     private static final long SESSION_HOURS = 2L;
+    
+    // [핵심] DB 업데이트 최소 간격 (예: 60초)
+    // 60초가 안 지났으면 굳이 DB에 update 쿼리를 날리지 않음 -> 동시성 충돌 방지
+    private static final long UPDATE_INTERVAL_SECONDS = 60L;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -36,67 +44,68 @@ public class AdminSessionFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
-        // 1. 쿠키에서 ADMIN_SESSION_ID 꺼내기
         String sessionId = extractSessionIdFromCookie(request);
 
         if (sessionId != null) {
             LocalDateTime now = LocalDateTime.now();
 
-            // 2. DB에서 세션 조회 (유효/만료/취소 여부 다 보고 싶으니 findById 사용)
-            Optional<AdminSession> opt = adminSessionRepository.findById(sessionId);
+            try {
+                // DB 조회
+                Optional<AdminSession> opt = adminSessionRepository.findById(sessionId);
 
-            if (opt.isPresent()) {
-                AdminSession session = opt.get();
+                if (opt.isPresent()) {
+                    AdminSession session = opt.get();
 
-                // 2-1. 취소됐거나, 만료 시간이 지났으면 → 세션 삭제 + 쿠키 제거
-                if (session.isRevoked() || session.getExpiresAt().isBefore(now)) {
+                    // 1. 만료/취소 체크
+                    if (session.isRevoked() || session.getExpiresAt().isBefore(now)) {
+                        adminSessionRepository.delete(session);
+                        clearSessionCookie(response);
+                    } else {
+                        // 2. 유효한 세션
+                        
+                        // [핵심 로직 변경] 매번 DB를 업데이트하지 않고, 일정 시간이 지났을 때만 업데이트
+                        long secondsSinceLastAccess = Duration.between(session.getLastAccessAt(), now).getSeconds();
+                        
+                        if (secondsSinceLastAccess > UPDATE_INTERVAL_SECONDS) {
+                            try {
+                                session.setLastAccessAt(now);
+                                session.setExpiresAt(now.plusHours(SESSION_HOURS));
+                                adminSessionRepository.save(session);
+                            } catch (Exception e) {
+                                // [중요] 동시 요청(대시보드 로딩 등)으로 인해 다른 스레드가 먼저 업데이트했을 경우
+                                // "Record has changed" 에러가 날 수 있음.
+                                // 이 경우, 이미 누군가 갱신했다는 뜻이므로 쿨하게 무시하고 진행한다.
+                                log.warn("세션 갱신 중 동시성 충돌 발생 (무시함): {}", e.getMessage());
+                            }
+                        }
 
-                    adminSessionRepository.delete(session);  // DB에서 삭제
+                        // 쿠키는 브라우저 만료 시간 연장을 위해 매번 갱신해도 됨 (DB 부하 없음)
+                        refreshSessionCookie(response, sessionId);
 
-                    clearSessionCookie(response);            // 브라우저 쿠키 제거
+                        AdminUser loginAdmin = session.getAdminUser();
+                        request.setAttribute("loginAdminId", loginAdmin.getAdminId());
+                    }
                 } else {
-                    // 2-2. 아직 유효한 세션이면 → 슬라이딩 만료 적용
-
-                    // 마지막 접근 시각 갱신
-                    session.setLastAccessAt(now);
-                    // 만료 시간도 "지금 기준 + 2시간"으로 연장
-                    session.setExpiresAt(now.plusHours(SESSION_HOURS));
-                    adminSessionRepository.save(session);
-
-                    // 쿠키도 다시 내려서 브라우저 쪽 만료 시간 연장
-                    refreshSessionCookie(response, sessionId);
-
-                    // (선택) 필요하다면 요청에 현재 관리자 정보 심어줄 수도 있음
-                    AdminUser loginAdmin = session.getAdminUser();
-                    request.setAttribute("loginAdminId", loginAdmin.getAdminId());
+                    clearSessionCookie(response);
                 }
-            } else {
-                // DB에 없는 sessionId면, 쿠키만 떠돌고 있는 상태 → 쿠키 정리
-                clearSessionCookie(response);
+            } catch (Exception e) {
+                log.error("세션 필터 처리 중 에러 발생", e);
+                // 치명적인 에러가 아니면 통과시킬지, 401을 줄지 결정.
+                // 보통 세션 DB 에러면 로그인을 유지하기 어려우므로 쿠키 지우는 게 안전할 수도 있음.
             }
         }
 
-        // 3. 다음 필터 또는 컨트롤러로 요청 넘김
         filterChain.doFilter(request, response);
     }
 
-    /**
-     * 이 필터를 적용하지 않을 URL을 정의
-     * - 여기서는 /api/admin/** 만 필터 타게 해서, 다른 일반 API에는 영향 주지 않음.
-     */
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
         String uri = request.getRequestURI();
-
-        // /api/admin/ 로 시작하는 요청만 세션 체크
         return !uri.startsWith("/api/admin/");
     }
 
-    // ─────────────────────────────────────────────
-    // 아래는 편의 메서드들
-    // ─────────────────────────────────────────────
+    // --- 편의 메서드들 ---
 
-    // 요청 쿠키에서 ADMIN_SESSION_ID 값 추출
     private String extractSessionIdFromCookie(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies == null) return null;
@@ -108,23 +117,21 @@ public class AdminSessionFilter extends OncePerRequestFilter {
                 .orElse(null);
     }
 
-    // 세션 쿠키 갱신 (만료 시간 연장)
     private void refreshSessionCookie(HttpServletResponse response, String sessionId) {
         ResponseCookie cookie = ResponseCookie.from("ADMIN_SESSION_ID", sessionId)
                 .httpOnly(true)
                 .path("/")
-                .maxAge(SESSION_HOURS * 60 * 60) // 2시간
+                .maxAge(SESSION_HOURS * 60 * 60)
                 .sameSite("Lax")
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
     }
 
-    // 세션 쿠키 삭제 (로그아웃/만료된 세션 정리용)
     private void clearSessionCookie(HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from("ADMIN_SESSION_ID", "")
                 .httpOnly(true)
                 .path("/")
-                .maxAge(0) // 0초 → 즉시 만료
+                .maxAge(0)
                 .sameSite("Lax")
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());

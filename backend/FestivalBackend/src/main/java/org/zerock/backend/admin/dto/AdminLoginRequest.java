@@ -1,10 +1,14 @@
 package org.zerock.backend.admin.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
-@Setter
+@Data
+@Builder
+@NoArgsConstructor // [중요] JSON 파싱을 위한 기본 생성자
+@AllArgsConstructor
 public class AdminLoginRequest {
     private String username;
     private String password;

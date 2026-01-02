@@ -9,14 +9,17 @@ const PostImages = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. 기존에 쓰시던 '갤러리 전용 API' 주소로 복구
+    // 1. 갤러리 API 호출
     api.get("/api/posts/gallery")
       .then((res) => {
         console.log("갤러리 데이터:", res.data); // 데이터 확인용 로그
         // 데이터가 배열인지 확인 후 설정
         if (Array.isArray(res.data)) {
+           // [핵심 추가] 게시글(POST) 타입만 필터링
+           const postImages = res.data.filter((item) => item.type === "POST");
+           
            // 최신글(postId 큰 순서) 정렬
-           const sortedData = res.data.sort((a, b) => b.postId - a.postId);
+           const sortedData = postImages.sort((a, b) => b.postId - a.postId);
            setPosts(sortedData);
         } else {
            setPosts([]);
@@ -108,7 +111,7 @@ const PostImages = () => {
           ))
         ) : (
           <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '50px' }}>
-            <p>등록된 게시글이 없습니다.</p>
+            <p>등록된 게시글 이미지가 없습니다.</p>
           </div>
         )}
       </div>

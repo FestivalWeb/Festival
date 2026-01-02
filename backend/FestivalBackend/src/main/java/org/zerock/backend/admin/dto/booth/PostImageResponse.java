@@ -10,9 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PostImageResponse {
-    
-    // [수정] 기존 id -> fileId로 이름 변경!
-    // BoothService에서 .fileId()로 호출하고 있기 때문입니다.
+    // 여기가 id면 안되고 fileId 여야 빌더에서 .fileId()를 쓸 수 있음
     private Long fileId; 
     
     private String originalName;

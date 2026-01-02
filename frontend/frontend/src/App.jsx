@@ -94,9 +94,9 @@ function AppContent() {
         <Route path="/admin" element={<AdminPage />}>
           <Route index element={<AdminDashboard />} />
           <Route path="dashboard" element={<AdminDashboard />} />
-          <Route path="account" element={<AccountMgmt />} />
-          <Route path="board" element={<BoardMgmt />} />
-          <Route path="popup" element={<PopupMgmt />} />
+          <Route path="account" element={<AccountMgmt />} />    {/* 계정 관리 */}
+          <Route path="board" element={<BoardMgmt />} />        {/* 게시판 관리 */}
+          <Route path="popup" element={<PopupMgmt />} />        {/* 부스/팝업 관리 */}
           <Route path="log" element={<LogDetail />} />
         </Route>
 

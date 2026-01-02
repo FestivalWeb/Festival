@@ -32,12 +32,22 @@ export default function BoothImage() {
   }, [currentPage]);
 
   // [팀원 로직] 이미지 주소 추출 함수
-  const getImageUrl = (booth) => {
-    if (booth.images && booth.images.length > 0) {
-        // 백엔드가 주는 이미지 객체 구조에 따라 .url 또는 .storageUri 선택
-        return booth.images[0].url || booth.images[0].storageUri; 
+ const getImageUrl = (booth) => {
+    // 1순위: 대표 이미지 (img 컬럼) 확인
+    if (booth.img) {
+        if (booth.img.startsWith("http")) return booth.img;
+        if (booth.img.startsWith("/images")) return booth.img; // 프론트엔드 이미지
+        return `http://localhost:8080${booth.img}`; // 백엔드 이미지
     }
-    return "/images/booth1.jpg"; // 기본 이미지
+
+    // 2순위: 첨부 파일 (images 리스트) 확인
+    if (booth.images && booth.images.length > 0) {
+        const uri = booth.images[0].storageUri || booth.images[0].url;
+        return `http://localhost:8080${uri}`; 
+    }
+    
+    // 3순위: 기본 이미지
+    return "/images/booth1.jpg"; 
   };
 
   return (

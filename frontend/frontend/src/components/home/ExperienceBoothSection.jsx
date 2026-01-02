@@ -37,15 +37,19 @@ function ExperienceBoothSection() {
     navigateWithScroll(`/booth/${id}`);
   };
 
-  // [핵심 수정] 이미지 URL 생성 함수 (BoothPage와 로직 통일)
+  // [수정 완료] 이미지 URL 생성 함수
   const getImageUrl = (booth) => {
     // 1순위: 예약 페이지에서 쓰는 대표 이미지(img) 필드가 있으면 이걸 씁니다.
     if (booth.img) {
-      // 만약 http로 시작하면(외부 링크) 그대로 사용
+      // (1) http로 시작하면(외부 링크) 그대로 사용
       if (booth.img.startsWith("http")) {
         return booth.img;
       }
-      // 아니면 백엔드 주소 붙여서 사용
+      // (2) [추가된 로직] 프론트엔드 public 폴더 이미지인 경우 (/images 로 시작) -> 그대로 반환
+      if (booth.img.startsWith("/images")) {
+        return booth.img;
+      }
+      // (3) 그 외(백엔드 업로드 파일)인 경우 -> 백엔드 주소 붙여서 사용
       return `http://localhost:8080${booth.img}`;
     }
 

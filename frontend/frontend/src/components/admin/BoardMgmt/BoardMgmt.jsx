@@ -1,357 +1,403 @@
 import React, { useState, useEffect } from 'react';
-import adminApi from '../../../api/api';
+import adminApi from '../../../api/api'; // adminApi 인스턴스 사용
 import './BoardMgmt.css';
 
 const BoardMgmt = () => {
-  // 1. 상태 관리 (Mock Data 삭제 -> 빈 배열 초기화)
-  const [boards, setBoards] = useState([]);
+  // 'notice' | 'post'
+  const [activeTab, setActiveTab] = useState('notice');
   
-  const [searchTerm, setSearchTerm] = useState('');
-  const [scopeFilter, setScopeFilter] = useState('ALL');
-  const [stateFilter, setStateFilter] = useState('ALL');
+  // 데이터 상태
+  const [dataList, setDataList] = useState([]);
+  const [loading, setLoading] = useState(false);
   
+  // 페이지네이션 및 검색
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
-  const [selectedIds, setSelectedIds] = useState([]);
+  const itemsPerPage = 10;
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // 모달 상태
+  // 모달 상태 (생성/수정)
   const [showModal, setShowModal] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [modalMode, setModalMode] = useState('create'); // 'create' or 'edit'
+  const [selectedItem, setSelectedItem] = useState(null);
   
-  // [수정] 입력 폼 상태 (visibility 삭제 -> readRole, writeRole 추가)
+  // 폼 입력값
   const [formData, setFormData] = useState({
-    id: null,
-    name: '',
-    readRole: 'PUBLIC',  // 읽기 권한 기본값
-    writeRole: 'MEMBER', // 쓰기 권한 기본값
-    skin: 'basic',
-    status: true
+    title: '',
+    content: '',
+    isImportant: false, 
   });
 
-  // --- 2. 백엔드 데이터 불러오기 (Read) ---
-  const fetchBoards = async () => {
+  // [추가] 파일 업로드 관련 상태
+  const [uploadedFileIds, setUploadedFileIds] = useState([]); // 업로드된 파일 ID 목록
+
+  // ---------------------------------------------------------
+  // 1. 데이터 불러오기
+  // ---------------------------------------------------------
+  useEffect(() => {
+    fetchData();
+    setCurrentPage(1); 
+    setSearchTerm('');
+  }, [activeTab]);
+
+  const fetchData = async () => {
+    setLoading(true);
     try {
-      // GET /api/admin/boards
-      const response = await adminApi.get('/api/admin/boards');
+      let url = '';
+      if (activeTab === 'notice') {
+        url = '/api/notices'; 
+      } else {
+        // [주의] 관리자용 게시글 조회 API 경로
+        url = '/api/admin/posts'; 
+      }
+
+      const res = await adminApi.get(url);
+      const rawData = Array.isArray(res.data) ? res.data : (res.data.content || []);
       
-      // 백엔드 데이터 -> 프론트엔드 포맷 매핑
-      const mappedData = response.data.map(board => ({
-        id: board.boardId,
-        name: board.name,
-        readRole: board.readRole,   // [추가]
-        writeRole: board.writeRole, // [추가]
-        state: board.status === 'ACTIVE' ? '사용' : '중지', // 상태 문자열 변환
-        count: board.postCount,
-        skin: board.skin,
-        date: board.updatedAt ? board.updatedAt.substring(0, 10) : '-'
+      const formatted = rawData.map(item => ({
+        id: item.postId || item.noticeId || item.id,
+        title: item.title,
+        content: item.content,
+        // DTO 필드명(writerName) 확인 필요. 백엔드 Response에 맞게 조정
+        writer: item.writerName || item.writer || (item.user ? item.user.name : '관리자'),
+        regDate: item.createDate || item.regDate || '-',
+        viewCount: item.viewCount || 0
       }));
-      setBoards(mappedData);
-    } catch (error) {
-      console.error("게시판 목록 로딩 실패:", error);
+
+      // 최신순 정렬
+      formatted.sort((a, b) => new Date(b.regDate) - new Date(a.regDate));
+      
+      setDataList(formatted);
+    } catch (err) {
+      console.error(`${activeTab} 로딩 실패:`, err);
+      setDataList([]);
+    } finally {
+      setLoading(false);
     }
   };
-  useEffect(() => {
-    fetchBoards();
-  }, []);
 
+  // ---------------------------------------------------------
+  // 2. 파일 업로드 핸들러 [추가됨]
+  // ---------------------------------------------------------
+  const handleFileChange = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
 
-  // --- 3. 로직 처리 ---
+    const uploadData = new FormData();
+    files.forEach(file => {
+      uploadData.append('files', file); // 백엔드 @RequestParam("files") 와 일치해야 함
+    });
 
-  const filteredBoards = boards.filter(item => {
-    const matchSearch = item.name.includes(searchTerm);
-    // [참고] 필터링 로직은 필요에 따라 readRole 또는 writeRole 기준으로 수정 가능
-    // const matchRole = roleFilter === 'ALL' || item.readRole === roleFilter; 
-    const matchState = stateFilter === 'ALL' || item.state === stateFilter;
-    return matchSearch && matchState;
-  });
+    try {
+      // MediaController에 정의된 업로드 엔드포인트 호출
+      const res = await adminApi.post('/api/media/upload', uploadData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
 
-  const totalPages = Math.ceil(filteredBoards.length / itemsPerPage);
-  const currentData = filteredBoards.slice(
-    (currentPage - 1) * itemsPerPage,
+      // 응답 예시: [{fileId: 1, url: '...'}, {fileId: 2, url: '...'}]
+      const newIds = res.data.map(f => f.fileId);
+      
+      // 기존 ID 목록에 추가
+      setUploadedFileIds(prev => [...prev, ...newIds]);
+      
+      alert(`이미지 ${files.length}개가 업로드되었습니다.`);
+    } catch (err) {
+      console.error("파일 업로드 실패:", err);
+      alert("이미지 업로드 중 오류가 발생했습니다.");
+    }
+  };
+
+  // ---------------------------------------------------------
+  // 3. CRUD 핸들러
+  // ---------------------------------------------------------
+
+  // [삭제]
+  const handleDelete = async (id) => {
+    if (!window.confirm("정말 삭제하시겠습니까? (복구 불가)")) return;
+
+    try {
+      const url = activeTab === 'notice' 
+        ? `/api/admin/notices/${id}` 
+        : `/api/admin/posts/${id}`;
+        
+      await adminApi.delete(url);
+      alert("삭제되었습니다.");
+      fetchData(); 
+    } catch (err) {
+      console.error("삭제 실패:", err);
+      alert("삭제에 실패했습니다.");
+    }
+  };
+
+  // [모달 열기 - 생성]
+  const openCreateModal = () => {
+    setModalMode('create');
+    setFormData({ title: '', content: '', isImportant: false });
+    setUploadedFileIds([]); // 파일 ID 초기화
+    setSelectedItem(null);
+    setShowModal(true);
+  };
+
+  // [모달 열기 - 수정]
+  const openEditModal = (item) => {
+    setModalMode('edit');
+    setFormData({
+      title: item.title,
+      content: item.content,
+      isImportant: false 
+    });
+    setUploadedFileIds([]); // 수정 시 기존 파일 유지는 별도 로직 필요, 일단 초기화
+    setSelectedItem(item);
+    setShowModal(true);
+  };
+
+  // [저장 (생성/수정)]
+  const handleSave = async () => {
+    // 1. 유효성 검사
+    if (!formData.title.trim() || !formData.content.trim()) {
+      alert("제목과 내용을 모두 입력해주세요.");
+      return;
+    }
+
+    // 2. 전송할 데이터 (이미지 ID 포함)
+    const payload = {
+      ...formData,
+      fileIds: uploadedFileIds
+    };
+
+    try {
+      if (activeTab === 'notice') {
+        // [공지사항] 생성, 수정 모두 가능
+        if (modalMode === 'create') {
+          await adminApi.post('/api/admin/notices', payload);
+        } else {
+          await adminApi.put(`/api/admin/notices/${selectedItem.id}`, payload);
+        }
+      } else {
+        // [게시글] 관리자는 "수정"만 가능하도록 변경 (작성 시도는 차단)
+        if (modalMode === 'create') {
+           alert("관리자 권한으로 게시글을 직접 작성할 수 없습니다.\n(공지사항을 이용하거나, 회원이 쓴 글을 수정/삭제만 가능합니다.)");
+           return; // 여기서 함수 종료 (API 호출 안 함)
+        } else {
+           // 수정은 정상적으로 진행
+           await adminApi.put(`/api/admin/posts/${selectedItem.id}`, payload);
+        }
+      }
+
+      alert(modalMode === 'create' ? "등록되었습니다." : "수정되었습니다.");
+      setShowModal(false);
+      setUploadedFileIds([]); // 파일 ID 초기화
+      fetchData(); // 목록 갱신
+    } catch (err) {
+      console.error("저장 실패:", err);
+      alert("저장 중 오류가 발생했습니다: " + (err.response?.data?.message || err.message));
+    }
+  };
+
+  // ---------------------------------------------------------
+  // 4. 렌더링 헬퍼
+  // ---------------------------------------------------------
+  const filteredData = dataList.filter(item => 
+    item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item.writer && item.writer.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
+  const currentData = filteredData.slice(
+    (currentPage - 1) * itemsPerPage, 
     currentPage * itemsPerPage
   );
 
-  const handleSelectAll = (e) => {
-    if (e.target.checked) setSelectedIds(currentData.map(b => b.id));
-    else setSelectedIds([]);
-  };
-
-  const handleSelectOne = (id) => {
-    if (selectedIds.includes(id)) setSelectedIds(selectedIds.filter(sid => sid !== id));
-    else setSelectedIds([...selectedIds, id]);
-  };
-
-  // 모달 열기 (생성)
-  const openCreateModal = () => {
-    setIsEditMode(false);
-    // [수정] 초기값 설정
-    setFormData({ 
-      id: null, 
-      name: '', 
-      readRole: 'PUBLIC', 
-      writeRole: 'MEMBER', 
-      skin: 'basic', 
-      status: true 
-    });
-    setShowModal(true);
-  };
-
-  // 모달 열기 (수정)
-  const openEditModal = () => {
-    if (selectedIds.length !== 1) {
-      alert('수정할 게시판을 "하나만" 선택해주세요.');
-      return;
-    }
-    const board = boards.find(b => b.id === selectedIds[0]);
-    setIsEditMode(true);
-    // [수정] 기존 데이터 불러오기
-    setFormData({
-      id: board.id,
-      name: board.name,
-      readRole: board.readRole,
-      writeRole: board.writeRole,
-      skin: board.skin,
-      status: board.state === '사용'
-    });
-    setShowModal(true);
-  };
-
-  // [기능] 저장 (생성/수정)
-  const handleSave = async () => {
-    try {
-      const payload = {
-        name: formData.name,
-        readRole: formData.readRole,
-        writeRole: formData.writeRole,
-        skin: formData.skin,
-        status: formData.status
-      };
-
-      if (isEditMode) {
-        // PUT /api/admin/boards/{id}
-        await adminApi.put(`/api/admin/boards/${formData.id}`, payload);
-        alert("수정되었습니다.");
-      } else {
-        // POST /api/admin/boards
-        await adminApi.post('/api/admin/boards', payload);
-        alert("생성되었습니다.");
-      }
-      setShowModal(false);
-      fetchBoards(); // 목록 갱신
-      setSelectedIds([]);
-    } catch (error) {
-      console.error("저장 실패:", error);
-      alert("저장 중 오류가 발생했습니다.");
-    }
-  };
-
-  // [기능] 삭제
-  const handleDelete = async () => {
-    if (selectedIds.length === 0) {
-      alert('삭제할 게시판을 선택해주세요.');
-      return;
-    }
-    if (!window.confirm(`${selectedIds.length}개의 게시판을 삭제하시겠습니까?`)) return;
-
-    try {
-      // DELETE /api/admin/boards/bulk-delete
-      await adminApi.delete('/api/admin/boards/bulk-delete', {
-        data: { boardIds: selectedIds }
-      });
-      alert("삭제되었습니다.");
-      fetchBoards();
-      setSelectedIds([]);
-    } catch (error) {
-      console.error("삭제 실패:", error);
-      alert("삭제 실패 (권한 부족 또는 오류)");
-    }
-  };
-  
   return (
-    <div className="board-container">
+    <div className="board-mgmt-container">
       <div className="page-header">
-        <h2>게시판 관리 <span className="sub-text">총 {filteredBoards.length}개</span></h2>
+        <h2>게시판 관리</h2>
       </div>
 
-      <div className="toolbar">
-        <div className="filter-area">
+      {/* 탭 버튼 */}
+      <div className="tabs" style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+        <button 
+          className={`btn-tab ${activeTab === 'notice' ? 'active-tab' : ''}`}
+          onClick={() => setActiveTab('notice')}
+          style={{ 
+            padding: '10px 20px', 
+            fontWeight: activeTab === 'notice' ? 'bold' : 'normal',
+            backgroundColor: activeTab === 'notice' ? '#007bff' : '#f1f1f1',
+            color: activeTab === 'notice' ? '#fff' : '#333',
+            border: 'none', borderRadius: '5px', cursor: 'pointer'
+          }}
+        >
+          공지사항 관리
+        </button>
+        <button 
+          className={`btn-tab ${activeTab === 'post' ? 'active-tab' : ''}`}
+          onClick={() => setActiveTab('post')}
+          style={{ 
+            padding: '10px 20px', 
+            fontWeight: activeTab === 'post' ? 'bold' : 'normal',
+            backgroundColor: activeTab === 'post' ? '#007bff' : '#f1f1f1',
+            color: activeTab === 'post' ? '#fff' : '#333',
+            border: 'none', borderRadius: '5px', cursor: 'pointer'
+          }}
+        >
+          회원 게시글(자유게시판)
+        </button>
+      </div>
+
+      {/* 툴바 */}
+      <div className="toolbar" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+        <div className="search-area">
           <input 
             type="text" 
-            placeholder="게시판명 검색" 
+            placeholder="제목 또는 작성자 검색" 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ padding: '8px', width: '250px' }}
           />
-          <select onChange={(e) => setScopeFilter(e.target.value)}>
-            <option value="ALL">권한 전체</option>
-            <option value="PUBLIC">전체 공개 (PUBLIC)</option>
-            <option value="MEMBER">회원 전용 (MEMBER)</option>
-            <option value="STAFF">직원 전용 (STAFF)</option>
-            <option value="MANAGER">매니저 전용 (MANAGER)</option>
-            <option value="SUPER">관리자 전용 (SUPER)</option>
-          </select>
-          <select onChange={(e) => setStateFilter(e.target.value)}>
-            <option value="ALL">상태 전체</option>
-            <option value="사용">사용</option>
-            <option value="중지">중지</option>
-          </select>
-          <button className="btn-search-action">검색</button>
         </div>
-
-        <div className="action-buttons">
-          <button className="btn-create" onClick={openCreateModal}>게시판 생성</button>
-          <button className="btn-edit" onClick={openEditModal}>게시판 수정</button>
-          <button className="btn-delete" onClick={handleDelete}>게시판 삭제</button>
+        <div>
+          {/* [핵심 수정] activeTab이 'notice'일 때만 등록 버튼 표시 */}
+          {activeTab === 'notice' && (
+            <button className="btn-create" onClick={openCreateModal} style={{ padding: '8px 16px', backgroundColor: '#28a745', color: '#fff', border:'none', borderRadius:'4px', cursor:'pointer' }}>
+              공지사항 등록
+            </button>
+          )}
         </div>
       </div>
-
+      {/* 테이블 */}
       <div className="table-wrapper">
-        <table className="board-table">
+        <table className="account-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr>
-              <th style={{width: '50px'}}>
-                <input 
-                  type="checkbox" 
-                  onChange={handleSelectAll}
-                  checked={selectedIds.length === currentData.length && currentData.length > 0}
-                />
-              </th>
-              <th>게시판명</th>
-              <th>읽기 권한</th> 
-              <th>쓰기 권한</th> 
-              <th>상태</th>
-              <th>게시물수</th>
-              <th>스킨</th>
-              <th>수정일</th>
+            <tr style={{ backgroundColor: '#f8f9fa', borderBottom: '2px solid #dee2e6' }}>
+              <th style={{ padding: '12px', textAlign: 'center', width: '60px' }}>NO</th>
+              <th style={{ padding: '12px', textAlign: 'left' }}>제목</th>
+              <th style={{ padding: '12px', textAlign: 'center', width: '120px' }}>작성자</th>
+              <th style={{ padding: '12px', textAlign: 'center', width: '150px' }}>작성일</th>
+              {activeTab === 'notice' && <th style={{ padding: '12px', textAlign: 'center', width: '80px' }}>조회수</th>}
+              <th style={{ padding: '12px', textAlign: 'center', width: '150px' }}>관리</th>
             </tr>
           </thead>
           <tbody>
-            {currentData.length > 0 ? (
-              currentData.map((board) => (
-                <tr key={board.id} className={selectedIds.includes(board.id) ? 'selected-row' : ''}>
-                  <td>
-                    <input 
-                      type="checkbox" 
-                      checked={selectedIds.includes(board.id)}
-                      onChange={() => handleSelectOne(board.id)}
-                    />
+            {loading ? (
+              <tr><td colSpan="6" style={{ textAlign: 'center', padding: '20px' }}>로딩 중...</td></tr>
+            ) : currentData.length > 0 ? (
+              currentData.map((item, index) => (
+                <tr key={item.id} style={{ borderBottom: '1px solid #eee' }}>
+                  <td style={{ textAlign: 'center', padding: '10px' }}>
+                    {filteredData.length - ((currentPage - 1) * itemsPerPage) - index}
                   </td>
-                  <td>{board.name}</td>
-                  {/* [수정] 권한 뱃지 표시 */}
-                  <td><span className="badge">{board.readRole}</span></td>
-                  <td><span className="badge">{board.writeRole}</span></td>
-                  <td>
-                    <span className={`status-pill ${board.state === '사용' ? 'active' : 'stopped'}`}>
-                      {board.state}
+                  <td style={{ padding: '10px' }}>
+                    <span style={{ cursor: 'pointer', fontWeight: 'bold', color: '#333' }} onClick={() => openEditModal(item)}>
+                      {item.title}
                     </span>
                   </td>
-                  <td>{board.count}</td>
-                  <td>{board.skin}</td>
-                  <td>{board.date}</td>
+                  <td style={{ textAlign: 'center', padding: '10px' }}>{item.writer}</td>
+                  <td style={{ textAlign: 'center', padding: '10px' }}>
+                    {typeof item.regDate === 'string' ? item.regDate.substring(0, 10) : '-'}
+                  </td>
+                  {activeTab === 'notice' && (
+                    <td style={{ textAlign: 'center', padding: '10px' }}>{item.viewCount}</td>
+                  )}
+                  <td style={{ textAlign: 'center', padding: '10px' }}>
+                    <button 
+                      onClick={() => openEditModal(item)}
+                      style={{ marginRight: '5px', padding: '4px 8px', cursor: 'pointer', backgroundColor:'#007bff', color:'#fff', border:'none', borderRadius:'3px' }}
+                    >
+                      수정
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(item.id)}
+                      style={{ padding: '4px 8px', cursor: 'pointer', backgroundColor:'#dc3545', color:'#fff', border:'none', borderRadius:'3px' }}
+                    >
+                      삭제
+                    </button>
+                  </td>
                 </tr>
               ))
             ) : (
-               <tr><td colSpan="7" style={{textAlign:'center', padding:'20px'}}>데이터가 없습니다.</td></tr>
+              <tr><td colSpan="6" style={{ textAlign: 'center', padding: '30px', color: '#888' }}>데이터가 없습니다.</td></tr>
             )}
           </tbody>
         </table>
       </div>
 
       {/* 페이지네이션 */}
-      <div className="pagination">
-        <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>&lt;</button>
+      <div className="pagination" style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '5px' }}>
         {Array.from({ length: totalPages }, (_, i) => (
           <button 
             key={i + 1} 
-            className={currentPage === i + 1 ? 'active' : ''}
             onClick={() => setCurrentPage(i + 1)}
+            style={{ 
+              padding: '6px 12px', 
+              border: '1px solid #ddd',
+              backgroundColor: currentPage === i + 1 ? '#007bff' : '#fff',
+              color: currentPage === i + 1 ? '#fff' : '#333',
+              cursor: 'pointer'
+            }}
           >
             {i + 1}
           </button>
         ))}
-        <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>&gt;</button>
       </div>
 
-      {/* --- 통합 모달 (생성/수정 공용) --- */}
+      {/* 생성/수정 모달 */}
       {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>{isEditMode ? '게시판 수정' : '게시판 생성'}</h3>
-              <button className="close-btn" onClick={() => setShowModal(false)}>닫기</button>
+        <div className="modal-overlay" style={{ 
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
+          backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 
+        }}>
+          <div className="modal-content" style={{ 
+            backgroundColor: '#fff', padding: '20px', borderRadius: '8px', width: '500px', maxWidth: '90%' 
+          }}>
+            <h3>
+              {activeTab === 'notice' ? '공지사항' : '게시글'} {modalMode === 'create' ? '등록' : '수정'}
+            </h3>
+            
+            <div className="form-group" style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px' }}>제목</label>
+              <input 
+                type="text" 
+                value={formData.title}
+                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+              />
             </div>
-            <div className="modal-body">
-              <div className="form-grid">
-                <div className="form-group">
-                  <label>게시판명 *</label>
-                  <input 
-                    type="text" 
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    placeholder="예: 공지사항" 
-                  />
-                </div>
-                {/* [수정] 읽기 권한 선택 */}
-                <div className="form-group">
-                  <label>읽기 권한 (Read) *</label>
-                  <select 
-                    value={formData.readRole}
-                    onChange={(e) => setFormData({...formData, readRole: e.target.value})}
-                  >
-                    <option value="PUBLIC">전체 공개 (PUBLIC)</option>
-                    <option value="MEMBER">회원 전용 (MEMBER)</option>
-                    <option value="STAFF">직원 전용 (STAFF)</option>
-                    <option value="MANAGER">매니저 전용 (MANAGER)</option>
-                    <option value="SUPER">관리자 전용 (SUPER)</option>
-                  </select>
-                </div>
 
-                {/* [수정] 쓰기 권한 선택 */}
-                <div className="form-group">
-                  <label>쓰기 권한 (Write) *</label>
-                  <select 
-                    value={formData.writeRole}
-                    onChange={(e) => setFormData({...formData, writeRole: e.target.value})}
-                  >
-                    {/* 쓰기는 보통 전체공개 잘 안 함 (스팸 방지) */}
-                    <option value="MEMBER">회원 전용 (MEMBER)</option>
-                    <option value="STAFF">직원 전용 (STAFF)</option>
-                    <option value="MANAGER">매니저 전용 (MANAGER)</option>
-                    <option value="SUPER">관리자 전용 (SUPER)</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>상태 *</label>
-                  <select 
-                    value={formData.status ? "true" : "false"}
-                    onChange={(e) => setFormData({...formData, status: e.target.value === 'true'})}
-                  >
-                    <option value="true">사용</option>
-                    <option value="false">중지</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>스킨 *</label>
-                  <select 
-                    value={formData.skin}
-                    onChange={(e) => setFormData({...formData, skin: e.target.value})}
-                  >
-                    <option value="basic">basic</option>
-                    <option value="gallery">gallery</option>
-                    <option value="event">event</option>
-                  </select>
-                </div>
-              </div>
+            <div className="form-group" style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px' }}>내용</label>
+              <textarea 
+                value={formData.content}
+                onChange={(e) => setFormData({...formData, content: e.target.value})}
+                rows="10"
+                style={{ width: '100%', padding: '8px', boxSizing: 'border-box', resize: 'vertical' }}
+              />
             </div>
-            <div className="modal-footer">
-              <button className="btn-cancel" onClick={() => setShowModal(false)}>취소</button>
-              <button className="btn-confirm" onClick={handleSave}>
-                {isEditMode ? '수정' : '생성'}
+
+            {/* [추가됨] 파일 업로드 필드 */}
+            <div className="form-group" style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px' }}>이미지 첨부</label>
+              <input 
+                type="file" 
+                multiple 
+                accept="image/*"
+                onChange={handleFileChange}
+                style={{ display: 'block', marginTop: '5px' }}
+              />
+              {uploadedFileIds.length > 0 && (
+                <p style={{ fontSize: '12px', color: 'green', marginTop: '5px' }}>
+                  현재 {uploadedFileIds.length}개의 이미지가 업로드 준비됨
+                </p>
+              )}
+            </div>
+
+            <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button onClick={() => setShowModal(false)} style={{ padding: '8px 16px', cursor: 'pointer' }}>취소</button>
+              <button onClick={handleSave} style={{ padding: '8px 16px', backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                저장
               </button>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 };

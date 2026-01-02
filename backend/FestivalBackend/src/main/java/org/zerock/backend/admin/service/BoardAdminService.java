@@ -11,6 +11,7 @@ import org.zerock.backend.entity.AdminUser;
 import org.zerock.backend.entity.Board;
 import org.zerock.backend.repository.AdminUserRepository;
 import org.zerock.backend.repository.BoardRepository;
+import org.zerock.backend.repository.PostRepository;
 
 import java.util.List;
 import java.util.Set;
@@ -21,9 +22,10 @@ import java.util.stream.Collectors;
 public class BoardAdminService {
 
     private final BoardRepository boardRepository;
+    private final PostRepository postRepository;
     private final AdminUserRepository adminUserRepository;
 
-    // [수정 1] "Visibility" 대신 "Role" 허용 값 정의 (읽기/쓰기 공통 사용)
+    // [기존 코드 유지] 권한/스킨 설정
     private static final Set<String> ALLOWED_ROLES = Set.of(
             "PUBLIC", "MEMBER", "STAFF", "MANAGER", "SUPER"
     );
@@ -32,21 +34,21 @@ public class BoardAdminService {
             "basic", "gallery", "event"
     );
 
-    /** [수정 2] 권한 값 검증 (readRole, writeRole 공용) */
+    // [기존 코드 유지] 권한 값 검증
     private void validateRole(String role, String fieldName) {
         if (!ALLOWED_ROLES.contains(role)) {
             throw new IllegalArgumentException(fieldName + " 값이 올바르지 않습니다: " + role);
         }
     }
 
-    /** skin 값 검증 */
+    // [기존 코드 유지] skin 값 검증
     private void validateSkin(String skin) {
         if (!ALLOWED_SKIN.contains(skin)) {
             throw new IllegalArgumentException("허용되지 않는 skin 값입니다: " + skin);
         }
     }
 
-    /** 로그인 관리자 조회 */
+    // [기존 코드 유지] 로그인 관리자 조회
     private AdminUser getLoginAdmin(HttpServletRequest request) {
         Long loginAdminId = (Long) request.getAttribute("loginAdminId");
         if (loginAdminId == null) {
@@ -57,7 +59,7 @@ public class BoardAdminService {
                 .orElseThrow(() -> new IllegalStateException("로그인 관리자 정보를 찾을 수 없습니다."));
     }
 
-    /** 관리자 권한 코드(RoleCode) 조회 */
+    // [기존 코드 유지] 권한 코드 조회
     private String getRoleCode(AdminUser adminUser) {
         return adminUser.getRoles().stream()
                 .map(ar -> ar.getRole().getRoleCode())
@@ -65,26 +67,29 @@ public class BoardAdminService {
                 .orElse(null);
     }
 
-    /** 전체 게시판 목록 (관리자 화면용) */
+    /** 전체 게시판 목록 (관리자 화면용) - [이미 수정되어 있던 부분 유지] */
     @Transactional(readOnly = true)
     public List<BoardSummaryResponse> getBoardList() {
         List<Board> boards = boardRepository.findAllByOrderByBoardIdAsc();
 
-        return boards.stream()
-                .map(BoardSummaryResponse::from)
-                .collect(Collectors.toList());
+        return boards.stream().map(board -> {
+            long count = postRepository.countByBoard(board);
+            return BoardSummaryResponse.from(board, count);
+        }).collect(Collectors.toList());
     }
 
-    /** 단일 게시판 상세 */
+    /** 단일 게시판 상세 - [수정됨: count 추가] */
     @Transactional(readOnly = true)
     public BoardSummaryResponse getBoard(Long boardId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다. id=" + boardId));
 
-        return BoardSummaryResponse.from(board);
+        // [수정] 게시글 수를 세어서 전달
+        long count = postRepository.countByBoard(board);
+        return BoardSummaryResponse.from(board, count);
     }
 
-    /** [수정 3] 게시판 생성 (읽기/쓰기 권한 분리 저장) */
+    /** 게시판 생성 - [수정됨: count(0) 추가] */
     @Transactional
     public BoardSummaryResponse createBoard(BoardCreateRequest request, HttpServletRequest httpRequest) {
 
@@ -95,23 +100,18 @@ public class BoardAdminService {
             throw new IllegalStateException("권한이 설정되지 않은 관리자입니다.");
         }
 
-        // 권한 체크: SUPER, MANAGER만 생성 가능
         if (!"SUPER".equals(loginRoleCode) && !"MANAGER".equals(loginRoleCode)) {
             throw new IllegalStateException("게시판 생성은 SUPER 또는 MANAGER만 가능합니다.");
         }
 
-        // [변경] visibility 대신 readRole, writeRole 각각 검증
         validateRole(request.getReadRole(), "읽기 권한");
         validateRole(request.getWriteRole(), "쓰기 권한");
         validateSkin(request.getSkin());
 
         Board board = new Board();
         board.setName(request.getName());
-        
-        // [변경] 엔티티에 각각 저장
         board.setReadRole(request.getReadRole());
         board.setWriteRole(request.getWriteRole());
-        
         board.setStatus(request.isStatus());
         board.setSkin(request.getSkin());
         board.setPostCount(0L);
@@ -119,10 +119,11 @@ public class BoardAdminService {
 
         Board saved = boardRepository.save(board);
 
-        return BoardSummaryResponse.from(saved);
+        // [수정] 새 게시판이므로 게시글 수는 0
+        return BoardSummaryResponse.from(saved, 0L);
     }
 
-    /** [수정 4] 게시판 수정 (읽기/쓰기 권한 분리 수정) */
+    /** 게시판 수정 - [수정됨: count 추가] */
     @Transactional
     public BoardSummaryResponse updateBoard(Long boardId, BoardUpdateRequest request, HttpServletRequest httpRequest) {
 
@@ -133,7 +134,6 @@ public class BoardAdminService {
             throw new IllegalStateException("게시판 수정은 SUPER 또는 MANAGER만 가능합니다.");
         }
 
-        // [변경] 검증 로직 분리
         validateRole(request.getReadRole(), "읽기 권한");
         validateRole(request.getWriteRole(), "쓰기 권한");
         validateSkin(request.getSkin());
@@ -142,17 +142,18 @@ public class BoardAdminService {
                 .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다. id=" + boardId));
 
         board.setName(request.getName());
-        
-        // [변경] 각각 업데이트
         board.setReadRole(request.getReadRole());
         board.setWriteRole(request.getWriteRole());
-        
         board.setStatus(request.isStatus());
         board.setSkin(request.getSkin());
 
-        return BoardSummaryResponse.from(board);
+        // [수정] 현재 게시글 수를 세어서 전달
+        long count = postRepository.countByBoard(board);
+        return BoardSummaryResponse.from(board, count);
     }
 
+    // [아래부터는 기존 코드와 동일]
+    
     /** 게시판 삭제 (소프트 삭제) */
     @Transactional
     public void deleteBoard(Long boardId, HttpServletRequest httpRequest) {
@@ -166,7 +167,7 @@ public class BoardAdminService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다. id=" + boardId));
 
-        board.setStatus(false); 
+        board.setStatus(false);
     }
 
     /** 게시판 물리 삭제 */

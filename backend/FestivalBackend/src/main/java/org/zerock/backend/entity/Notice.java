@@ -71,4 +71,8 @@ public class Notice {
         this.content = content;
         this.important = important;
     }
+
+    public void setTitle(String title) { this.title = title; }
+    public void setContent(String content) { this.content = content; }
+    public void setImportant(boolean important) { this.important = important; }
 }

@@ -5,7 +5,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.zerock.backend.admin.dto.board.AdminPostCreateRequest;
 import org.zerock.backend.admin.dto.board.AdminPostResponse;
 import org.zerock.backend.admin.dto.board.AdminPostUpdateRequest;
 import org.zerock.backend.admin.service.AdminPostService;
@@ -16,30 +15,6 @@ import org.zerock.backend.admin.service.AdminPostService;
 public class AdminPostController {
 
     private final AdminPostService adminPostService;
-
-    /**
-     * [작성] 관리자 게시글 생성
-     * POST /api/admin/posts
-     */
-    @PostMapping
-    public ResponseEntity<Long> createPost(
-            @Valid @RequestBody AdminPostCreateRequest request,
-            HttpServletRequest httpRequest
-    ) {
-        // 1. 로그인한 관리자 ID 가져오기 (세션 필터가 넣어준 값)
-        Long adminId = (Long) httpRequest.getAttribute("loginAdminId");
-        
-        // 2. 서비스 호출 (DTO에서 필드를 꺼내서 전달)
-        Long postId = adminPostService.createAdminPost(
-                request.getBoardId(),   // DTO의 boardId
-                request.getTitle(),
-                request.getContent(),
-                adminId,                // 작성자(관리자) ID
-                request.isImportant()   // 상단 고정 여부
-        );
-
-        return ResponseEntity.ok(postId);
-    }
 
     /**
      * [삭제] 관리자 권한으로 게시글 삭제
@@ -79,5 +54,14 @@ public class AdminPostController {
         // 서비스에서 AdminPostResponse DTO로 변환해서 리턴해야 함
         AdminPostResponse response = adminPostService.getAdminPostDetail(postId);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * [추가] 게시글 목록 조회 (관리자용)
+     * GET /api/admin/posts
+     */
+    @GetMapping
+    public ResponseEntity<java.util.List<org.zerock.backend.admin.dto.board.AdminPostResponse>> getPostList() {
+        return ResponseEntity.ok(adminPostService.getAllPosts());
     }
 }

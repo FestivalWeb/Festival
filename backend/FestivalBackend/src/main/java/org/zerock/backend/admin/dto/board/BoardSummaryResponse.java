@@ -1,5 +1,6 @@
 package org.zerock.backend.admin.dto.board;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.Builder;
 import lombok.Getter;
 import org.zerock.backend.entity.Board;
@@ -12,8 +13,6 @@ public class BoardSummaryResponse {
 
     private Long boardId;
     private String name;
-    // [삭제] private String visibility;
-    // [추가]
     private String readRole;
     private String writeRole;
     private String status;        // "ACTIVE" / "INACTIVE"
@@ -24,24 +23,35 @@ public class BoardSummaryResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public static BoardSummaryResponse from(Board board) {
+    public static BoardSummaryResponse from(Board board, long realPostCount) {
+        // [수정] Board 엔티티의 status 필드는 isStatus()로 접근
         String statusStr = board.isStatus() ? "ACTIVE" : "INACTIVE";
+
+        // [추가] 삭제된 관리자(DB 불일치) 참조 시 에러 방지를 위한 안전 변수
+        Long safeCreatedById = null;
+        String safeCreatedByName = null;
+
+        try {
+            // getCreatedBy()가 null이 아니어도 실제 DB 조회 시 데이터가 없으면 EntityNotFoundException 발생 가능
+            if (board.getCreatedBy() != null) {
+                safeCreatedById = board.getCreatedBy().getAdminId();
+                safeCreatedByName = board.getCreatedBy().getUsername();
+            }
+        } catch (EntityNotFoundException e) {
+            // DB에 ID는 남아있지만 실제 AdminUser가 없는 경우 처리
+            safeCreatedByName = "삭제된 관리자";
+        }
 
         return BoardSummaryResponse.builder()
                 .boardId(board.getBoardId())
                 .name(board.getName())
-                .readRole(board.getReadRole())   // [추가]
-                .writeRole(board.getWriteRole()) // [추가]
-                // .visibility(...) [삭제]
+                .readRole(board.getReadRole())
+                .writeRole(board.getWriteRole())
                 .status(statusStr)
                 .skin(board.getSkin())
-                .postCount(board.getPostCount())
-                .createdById(
-                        board.getCreatedBy() != null ? board.getCreatedBy().getAdminId() : null
-                ) // AdminUser 필드명에 맞게 수정 필요
-                .createdByName(
-                        board.getCreatedBy() != null ? board.getCreatedBy().getUsername() : null
-                ) // 여기도 실제 필드명에 맞추기
+                .postCount(realPostCount)
+                .createdById(safeCreatedById)
+                .createdByName(safeCreatedByName)
                 .createdAt(board.getCreatedAt())
                 .updatedAt(board.getUpdatedAt())
                 .build();

@@ -11,6 +11,8 @@ export default function NoticePage() {
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [keyword, setKeyword] = useState("");
+  // [추가] 전체 개수 상태 (가상 번호 계산용)
+  const [totalElements, setTotalElements] = useState(0);
 
   useEffect(() => {
     fetchNotices(currentPage, keyword);
@@ -27,13 +29,27 @@ export default function NoticePage() {
       if (response.ok) {
         const data = await response.json();
         
-        const formattedData = data.content.map(n => ({
-          id: n.noticeId,
+        // [필수] 전체 개수 저장
+        const totalElems = data.totalElements;
+        setTotalElements(totalElems);
+
+        const formattedData = data.content.map((n, index) => ({
+          // [핵심] 가상 번호 계산: 전체개수 - (현재페이지-1)*10 - 인덱스
+          id: totalElems - ((page - 1) * 10) - index,
+          
+          realId: n.noticeId, // 실제 ID (클릭 이동용)
           title: n.title,
-          dept: n.adminName || "관리자",
-          views: n.viewCount,
-          date: n.createDate ? n.createDate.split('T')[0] : '',
-          file: n.images && n.images.length > 0 // 첨부파일 여부
+          
+          // [수정] 백엔드가 보내주는 'writer' 사용
+          dept: n.writer || "관리자", 
+          
+          // [수정] 값이 없으면 0으로 표시
+          views: n.viewCount || 0,
+          
+          // [수정] 날짜가 없으면 '-' 표시
+          date: n.createDate ? n.createDate.split('T')[0] : '-',
+          
+          file: n.images && n.images.length > 0
         }));
 
         setNotices(formattedData);
@@ -45,7 +61,6 @@ export default function NoticePage() {
   };
 
   const handleSearch = (type, kw) => {
-    // 공지사항 API는 type 구분 없이 통합 검색이므로 keyword만 사용
     setKeyword(kw);
     setCurrentPage(1);
   };
@@ -56,7 +71,11 @@ export default function NoticePage() {
       <SearchBar onSearch={handleSearch} />
       <BoardTable
         data={notices}
-        onTitleClick={(id) => navigate(`/notice/${id}`)}
+        // [수정] 가짜 ID 대신 realId를 사용해 상세 페이지로 이동
+        onTitleClick={(id) => {
+            const clicked = notices.find(n => n.id === id);
+            if(clicked) navigate(`/notice/${clicked.realId}`);
+        }}
       />
       {notices.length > 0 && (
         <Pagination

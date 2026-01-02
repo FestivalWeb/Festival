@@ -79,4 +79,9 @@ public class MediaFile {
     @JoinColumn(name = "post_id") // DB 컬럼명
     @ToString.Exclude
     private Post post;  // (주의: 클래스 이름이 소문자 'post'라면 그대로 'post'라고 적어야 합니다)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "notice_id")
+    @ToString.Exclude
+    private Notice notice;
 }

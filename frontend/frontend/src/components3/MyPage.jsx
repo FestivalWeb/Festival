@@ -13,6 +13,8 @@ const MyPage = ({ onLogout }) => {
   const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
 
+  const [myProfile, setMyProfile] = useState(user || {});
+
   const isKakao = user && (
     (user.provider === 'KAKAO') || 
     String(user.userId || "").toLowerCase().includes('kakao') ||
@@ -41,15 +43,43 @@ const MyPage = ({ onLogout }) => {
     confirmPassword: ''
   });
 
+  // [수정 3] form 초기값도 myProfile 데이터가 로드되면 반영되도록 수정
   const [form, setForm] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    phone: user?.phone || ''
+    name: '',
+    email: '',
+    phone: ''
   });
+
+  // myProfile이 업데이트되면 폼 데이터도 최신화
+  useEffect(() => {
+    setForm({
+        name: myProfile?.name || '',
+        email: myProfile?.email || '',
+        phone: myProfile?.phoneNumber || myProfile?.phone || ''
+    });
+  }, [myProfile]);
 
   const [myPosts, setMyPosts] = useState([]);
   const [postPage, setPostPage] = useState(1);
   const [postTotalPages, setPostTotalPages] = useState(0);
+
+  useEffect(() => {
+    if (user && (user.userId || user.id)) {
+        const uid = user.userId || user.id;
+        
+        // 내 정보 상세 조회 API 호출
+        fetch(`/api/users/me?userId=${uid}`)
+            .then(res => {
+                if (!res.ok) throw new Error("내 정보 로드 실패");
+                return res.json();
+            })
+            .then(data => {
+                // 백엔드에서 받아온 최신 데이터(이메일 포함)로 교체
+                setMyProfile(data);
+            })
+            .catch(err => console.error(err));
+    }
+  }, [user]);
 
   useEffect(() => {
     if (view !== 'delete') setDeletePassword("");
@@ -141,12 +171,33 @@ const MyPage = ({ onLogout }) => {
     setConfirmAction(null);
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    const updated = { ...(user || {}), ...form };
-    updateUser(updated);
-    alert('정보가 저장되었습니다.');
-    setView('info');
+    
+    try {
+        const userId = user.userId || user.id;
+        const res = await fetch(`/api/users/me?userId=${userId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: form.name,
+                email: form.email, 
+                phoneNumber: form.phone
+            })
+        });
+
+        if (res.ok) {
+            alert('정보가 저장되었습니다.');
+            setMyProfile(prev => ({ ...prev, ...form }));
+            if (updateUser) updateUser({ ...user, ...form });
+            setView('info');
+        } else {
+            alert('정보 수정 실패');
+        }
+    } catch (err) {
+        console.error(err);
+        alert('오류가 발생했습니다.');
+    }
   };
 
   const handleChangePwd = (e) => {
@@ -251,15 +302,18 @@ const MyPage = ({ onLogout }) => {
           <div className="info-form">
             <div className="info-row">
               <div className="label">이름</div>
-              <div className="field"><input readOnly value={user.name || ''} className="info-input" /></div>
+              {/* ▼▼▼ [수정 2] user -> myProfile로 변경 (이래야 최신 데이터가 보임) ▼▼▼ */}
+              <div className="field"><input readOnly value={myProfile.name || ''} className="info-input" /></div>
             </div>
             <div className="info-row">
               <div className="label">이메일</div>
-              <div className="field"><input readOnly value={user.email || ''} className="info-input" /></div>
+              {/* ▼▼▼ [수정 2] user -> myProfile로 변경 (이메일 보이게!) ▼▼▼ */}
+              <div className="field"><input readOnly value={myProfile.email || ''} className="info-input" /></div>
             </div>
             <div className="info-row">
               <div className="label">전화번호</div>
-              <div className="field"><input readOnly value={user.phone || ''} className="info-input" /></div>
+              {/* ▼▼▼ [수정 2] user -> myProfile로 변경 ▼▼▼ */}
+              <div className="field"><input readOnly value={myProfile.phoneNumber || myProfile.phone || ''} className="info-input" /></div>
             </div>
             <div className="actions actions-right">
               <button className="btn-primary" onClick={() => setView('edit')}>수정하기</button>

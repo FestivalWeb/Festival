@@ -31,25 +31,27 @@ public class SearchService {
         // 1. 공지사항 검색
         List<Notice> noticeList = noticeRepository.findByTitleContainingOrContentContaining(cleanKeyword, cleanKeyword);
         List<NoticeDto.Response> notices = noticeList.stream()
-                .map(n -> NoticeDto.Response.builder()
-                        .noticeId(n.getNoticeId())
-                        .title(n.getTitle())
-                        .content(n.getContent())
-                        .createDate(n.getCreateDate())
-                        .viewCount(n.getViewCount())
-                        .build())
+                .map(n -> {
+                    String writerName = (n.getAdminUser() != null) ? n.getAdminUser().getName() : "관리자";
+                    
+                    return NoticeDto.Response.builder()
+                            .noticeId(n.getNoticeId())
+                            .title(n.getTitle())
+                            .content(n.getContent())
+                            // [수정] 변수명 원복
+                            .createDate(n.getCreateDate()) // regDate -> createDate
+                            .viewCount(n.getViewCount())   // view -> viewCount
+                            .writer(writerName)
+                            .build();
+                })
                 .collect(Collectors.toList());
-
         // 2. 게시글 검색
+        // [수정] PostSummaryResponse::from 메서드 참조 사용하여 깔끔하게 변환 (오류 해결)
         List<PostSummaryResponse> posts = postRepository.findByTitleContainingIgnoreCaseOrContextContainingIgnoreCase(
                 cleanKeyword, cleanKeyword, org.springframework.data.domain.Pageable.unpaged()
-        ).stream().map(p -> PostSummaryResponse.builder()
-                .postId(p.getPostId())
-                .title(p.getTitle())
-                .userId(p.getUser().getUserId())
-                .view(p.getView())
-                .createDate(p.getCreateDate())
-                .build()).collect(Collectors.toList());
+        ).stream()
+                .map(PostSummaryResponse::from)
+                .collect(Collectors.toList());
 
 
         // 3. [수정] 체험부스 검색 (새로운 메서드 호출)
