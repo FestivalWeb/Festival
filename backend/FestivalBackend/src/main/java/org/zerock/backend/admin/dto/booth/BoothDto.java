@@ -39,7 +39,7 @@ public class BoothDto {
         private Long priority;
 
         // 이미지 파일 정보 리스트
-        private List<PostImageResponse> fileIds;
+        private List<Long> fileIds;
     }
 
     // 2. [응답용]

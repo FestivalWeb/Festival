@@ -69,9 +69,14 @@ public class BoothAdminService {
     public Long createBooth(BoothDto.CreateRequest request, HttpServletRequest httpRequest) {
         Long adminId = (Long) httpRequest.getAttribute("loginAdminId");
         
+        // [수정 1] 메인 이미지 URL 추출 로직 변경 (ID -> DB조회 -> URI)
         String mainImgUrl = "";
         if (request.getFileIds() != null && !request.getFileIds().isEmpty()) {
-            mainImgUrl = request.getFileIds().get(0).getStorageUri();
+            Long firstFileId = request.getFileIds().get(0); // 첫 번째 ID 가져오기
+            MediaFile firstFile = mediaFileRepository.findById(firstFileId).orElse(null);
+            if (firstFile != null) {
+                mainImgUrl = firstFile.getStorageUri();
+            }
         }
 
         // 1) 부스 저장
@@ -92,9 +97,9 @@ public class BoothAdminService {
         // 2) 이미지 연결 & 갤러리 등록
         if (request.getFileIds() != null && !request.getFileIds().isEmpty()) {
             
-            List<Long> fileIdList = request.getFileIds().stream()
-                    .map(PostImageResponse::getFileId)
-                    .collect(Collectors.toList());
+            // [수정 2] DTO가 이미 List<Long>이므로 변환 과정 없이 바로 사용
+            List<Long> fileIdList = request.getFileIds();
+            
             List<MediaFile> files = mediaFileRepository.findAllById(fileIdList);
 
             // A. [기존] 부스에 이미지 연결
@@ -153,9 +158,39 @@ public class BoothAdminService {
 
     // 4. 수정
     public void updateBooth(Long id, BoothDto.CreateRequest request) {
-         Booth booth = boothRepository.findById(id).orElseThrow();
-         booth.updateInfo(request.getTitle(), request.getContext(), request.getLocation(), 
-                          request.getPrice(), request.getMaxPerson(), request.getEventDate(), request.getPriority());
+        Booth booth = boothRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 부스입니다."));
+
+        // 1) 텍스트 정보 수정
+        booth.updateInfo(request.getTitle(), request.getContext(), request.getLocation(),
+                request.getPrice(), request.getMaxPerson(), request.getEventDate(), request.getPriority());
+
+        // 2) 이미지 수정 (fileIds가 null이 아닐 때만 수행)
+        if (request.getFileIds() != null) {
+            
+            // [중요] 기존 이미지 연결 끊기 (DB에서 자동 삭제됨)
+            booth.getImages().clear();
+
+            if (!request.getFileIds().isEmpty()) {
+                // [수정됨] DTO가 이미 List<Long>이므로 변환 없이 바로 사용
+                List<Long> fileIdList = request.getFileIds();
+                
+                List<MediaFile> files = mediaFileRepository.findAllById(fileIdList);
+
+                // [핵심 해결] 부스 테이블의 대표 이미지(img) 컬럼도 업데이트해야 함!
+                if (!files.isEmpty()) {
+                    booth.setImg(files.get(0).getStorageUri());
+                }
+
+                // 관계 테이블(BoothImage)에 추가
+                for (MediaFile mediaFile : files) {
+                    booth.addImage(mediaFile);
+                }
+            } else {
+                // 이미지를 다 지운 경우 대표 이미지도 초기화
+                booth.setImg("");
+            }
+        }
     }
     
     // 5. 상태 변경

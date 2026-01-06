@@ -20,7 +20,7 @@ import java.util.Map;
 public class ChatService {
 
     // ▼▼▼ [필수] 발급받은 API 키를 여기에 넣으세요! (AIza...) ▼▼▼
-    private final String GEMINI_API_KEY = "AIzaSyAoURGkC-ayDxicDQmQ1Vmkk6_rpX5QF28"; 
+    private final String GEMINI_API_KEY = "AIzaSyAQVEC7UIpkLwXnn-b8jZ4c1R-o2M5Unpo"; 
     
     // [수정완료] gemini-1.5-flash -> gemini-2.5-flash (최신 모델로 변경)
     private final String API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + GEMINI_API_KEY;
