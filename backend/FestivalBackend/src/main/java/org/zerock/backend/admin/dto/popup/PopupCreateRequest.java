@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import java.util.List;
 
 import java.time.LocalDateTime;
 
@@ -29,4 +30,7 @@ public class PopupCreateRequest {
 
     // true = 사용, false = 중지
     private boolean status = true;
+
+    private List<Long> fileIds; 
+
 }

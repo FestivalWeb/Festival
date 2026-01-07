@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -27,4 +28,6 @@ public class PopupUpdateRequest {
     private LocalDateTime endAt;
 
     private boolean status;
+
+    private List<Long> fileIds;
 }

@@ -6,9 +6,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.zerock.backend.admin.dto.popup.*;
 import org.zerock.backend.entity.AdminUser;
+import org.zerock.backend.entity.MediaFile;
 import org.zerock.backend.entity.Popup;
 import org.zerock.backend.entity.PopupSchedule;
 import org.zerock.backend.repository.AdminUserRepository;
+import org.zerock.backend.repository.MediaFileRepository;
 import org.zerock.backend.repository.PopUpRepository;
 import org.zerock.backend.repository.PopupScheduleRepository;
 
@@ -24,6 +26,8 @@ public class PopupAdminService {
     private final PopupScheduleRepository popupScheduleRepository;
     private final AdminUserRepository adminUserRepository;
     private final AdminLogWriter adminLogWriter;
+    private final MediaFileRepository mediaFileRepository;
+
     /** 로그인 관리자 조회 */
     private AdminUser getLoginAdmin(HttpServletRequest request) {
         Long loginAdminId = (Long) request.getAttribute("loginAdminId");
@@ -91,7 +95,20 @@ public class PopupAdminService {
             throw new IllegalArgumentException("시작일은 종료일보다 빠르거나 같아야 합니다.");
         }
 
+        // [수정] fileIds가 있으면 첫 번째 파일의 경로를 imageUri로 설정
+        String imageUri = request.getImageUri(); // 기본값 (없으면 null)
+        
+        if (request.getFileIds() != null && !request.getFileIds().isEmpty()) {
+            // 첫 번째 파일 ID로 MediaFile 조회
+            MediaFile file = mediaFileRepository.findById(request.getFileIds().get(0))
+                    .orElse(null);
+            if (file != null) {
+                imageUri = file.getStorageUri();
+            }
+        }
+
         Long priority = request.getPriority() != null ? request.getPriority() : 1L;
+        // [수정] fileIds가 있으면 첫 번째 파일의 경로를 imageUri로 설정
 
         Popup pop = Popup.builder()
         .title(request.getTitle())

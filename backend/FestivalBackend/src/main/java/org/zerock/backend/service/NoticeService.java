@@ -176,12 +176,28 @@ public class NoticeService {
         }
     }
 
-    // 5. 공지사항 삭제 (기존 유지)
-    public void deleteNotice(Long noticeId) {
-        Notice notice = noticeRepository.findById(noticeId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공지사항입니다."));
-        noticeRepository.delete(notice);
+    // 5. 공지사항 삭제 (수정)
+public void deleteNotice(Long noticeId) {
+    Notice notice = noticeRepository.findById(noticeId)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공지사항입니다."));
+
+    // [단계 1] 연결된 MediaFile들이 공지사항을 참조하지 않도록 null 처리
+    // (이 작업을 안 하면 MediaFile 쪽 외래 키 제약 조건이나 고아 객체 문제가 발생할 수 있음)
+    for (NoticeImageMapping mapping : notice.getImages()) {
+        if (mapping.getMediaFile() != null) {
+            mapping.getMediaFile().setNotice(null); // FK 끊기
+            mediaFileRepository.save(mapping.getMediaFile());
+        }
     }
+
+    // [단계 2] 매핑 테이블(notice_img_mapping) 데이터 명시적 삭제
+    // JPA의 orphanRemoval에만 의존하지 않고 리포지토리를 통해 직접 삭제하여 확실하게 처리
+    notice.getImages().clear(); // 영속성 컨텍스트(1차 캐시) 비우기
+    noticeImageMappingRepository.deleteByNotice(notice); // DB에서 매핑 삭제
+
+    // [단계 3] 공지사항 본문 삭제
+    noticeRepository.delete(notice);
+}
 
    private NoticeDto.Response toResponse(Notice n) {
         List<PostImageResponse> images = n.getImages().stream()

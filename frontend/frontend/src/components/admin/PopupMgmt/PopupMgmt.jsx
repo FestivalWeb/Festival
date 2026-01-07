@@ -90,28 +90,34 @@ const PopupMgmt = () => {
     setShowModal(true);
   };
 
-  // [기능 유지] 저장 핸들러 (이미지 업로드 + 우선순위 반영)
+  // 저장 핸들러
   const handleSave = async () => {
     if (!formData.title || !formData.eventDate) return alert("부스명과 날짜는 필수입니다.");
 
     try {
-      // 1. 이미지 업로드 (선택된 파일이 있는 경우)
-      let uploadedFileIds = [];
+      // 1. 이미지 업로드 로직 수정
+      let uploadedFileIds = null;
+
       if (selectedFiles.length > 0) {
         const imageFormData = new FormData();
         selectedFiles.forEach(file => imageFormData.append('files', file));
         
-        // 파일 업로드 API 호출
-        const uploadRes = await api.post('/api/files/upload', imageFormData, {
+        // [수정 1] API 경로 변경: /api/files/upload -> /api/media/upload
+        // (MediaController를 써야 DB에 저장되고 유효한 ID가 나옵니다)
+        const uploadRes = await api.post('/api/media/upload', imageFormData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
-        uploadedFileIds = uploadRes.data; 
+        
+        // [수정 2] 객체 리스트에서 'ID 번호'만 추출하여 배열로 만듦
+        // 예: [{fileId: 10, url: ...}, {fileId: 11...}] -> [10, 11]
+        uploadedFileIds = uploadRes.data.map(file => file.fileId); 
       }
 
-      // 2. 데이터 병합 (fileIds 포함)
+      // 2. 데이터 병합
       const finalFormData = {
         ...formData,
-        fileIds: uploadedFileIds 
+        // uploadedFileIds가 null(이미지 변경 없음)이면 fileIds 필드를 안 보냄
+        ...(uploadedFileIds !== null && { fileIds: uploadedFileIds })
       };
 
       // 3. API 전송
